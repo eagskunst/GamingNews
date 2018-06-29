@@ -51,9 +51,8 @@ public class MainActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.recyclerview);
         refreshLayout = findViewById(R.id.refreshlayout);
         webView = findViewById(R.id.webview);
-
         newsAdapter = new NewsAdapter(newsList, clickListener());
-        if(Locale.getDefault().getDisplayLanguage().equals("Spanish")){
+        if(Locale.getDefault().getLanguage().equals("es")){
             urls = new String[]{"https://www.eurogamer.es/?format=rss","https://vandal.elespanol.com/xml.cgi","https://www.levelup.com/rss","http://www.tierragamer.com/feed/"};
         }
         else{
