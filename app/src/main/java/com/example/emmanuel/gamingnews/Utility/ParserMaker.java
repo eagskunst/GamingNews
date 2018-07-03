@@ -31,6 +31,7 @@ public class ParserMaker{
     private boolean running;
     private boolean firstRun;
     private boolean error;
+    private boolean newItems;
     private List<NewsModel> newsList;
 
     public ParserMaker(Activity activity,String[] urls, Toast toast, NewsAdapter newsAdapter, List<NewsModel> newsList){
@@ -44,6 +45,7 @@ public class ParserMaker{
     public void create(){
         running = true;
         error = false;
+        newItems = false;
         Parser[] parsers = new Parser[urls.length];
         for (int i = 0;i<parsers.length;i++){
             parsers[i] = new Parser();
@@ -57,6 +59,7 @@ public class ParserMaker{
             @Override
             public void onTaskCompleted(ArrayList<Article> list) {
                 if(firstRun){
+                    newItems = true;
                     for(com.prof.rssparser.Article article:list){
                         newsList.add(new NewsModel(article.getImage() == null ? "":article.getImage(),article.getTitle(),
                                 getDescription(article.getDescription()),article.getLink(),article.getPubDate()));
@@ -73,6 +76,7 @@ public class ParserMaker{
                             }
                         }
                         if(aux == 0){
+                            newItems = true;
                             newsList.add(new NewsModel(article.getImage() == null ? "":article.getImage(),article.getTitle(),
                                     getDescription(article.getDescription()),article.getLink(),article.getPubDate()));
                         }
@@ -80,16 +84,16 @@ public class ParserMaker{
                 }
                 Log.d(TAG,"Size: "+newsList.size()+" Count: "+newsAdapter.getItemCount());
                 if(stopRefresh){
-                    firstRun = false;
                     if(error){
                         toast.show();
                     }
-                    if(firstRun){
+                    if(firstRun || newItems){
+                        newItems = false;
+                        firstRun = false;
                         orderListRecentFirst();
                     }
                     newsAdapter.notifyDataSetChanged();
                     refreshingStatus();
-                    running = false;
                 }
             }
 
@@ -101,7 +105,6 @@ public class ParserMaker{
                         firstRun = false;
                     }
                     toast.show();
-                    running = false;
                     refreshingStatus();
                 }
             }
@@ -131,6 +134,7 @@ public class ParserMaker{
         Collections.sort(newsList, new Comparator<NewsModel>() {
             @Override
             public int compare(NewsModel newsModel, NewsModel t1) {
+                Log.d(TAG,"ENTRÉ A COMPARAR");
                 if(newsModel.getPubDate() != null && t1.getPubDate() != null){
                     return t1.getPubDate().compareTo(newsModel.getPubDate());
                 }
@@ -146,6 +150,7 @@ public class ParserMaker{
             @Override
             public void run() {
                 ((SwipeRefreshLayout)activity.findViewById(R.id.refreshlayout)).setRefreshing(false);
+                running = false;
             }
         });
 
@@ -161,4 +166,5 @@ public class ParserMaker{
     public boolean isRunning() {
         return running;
     }
+
 }

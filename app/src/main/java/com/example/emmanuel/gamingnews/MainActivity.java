@@ -86,19 +86,26 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        parserMaker.setActivity(parserMaker.isRunning() ? this:null);
+        parserMaker.setActivity(parserMaker.isRunning() ? MainActivity.this:null);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        parserMaker.setActivity(parserMaker.isRunning() ? this:null);
+        parserMaker.setActivity(parserMaker.isRunning() ? MainActivity.this:null);
     }
 
     @Override
     public void onBackPressed() {
         if(webView.getVisibility() == View.INVISIBLE || webView.getVisibility() == View.GONE){
-            super.onBackPressed();
+            if(parserMaker.isRunning()){
+                //Bugfix for parserMaker's activity setting to null when onBackPressed. This puts MainActivity on stack, but there's
+                //no other activity, so basic funcionality of onBackPressed() stays the same...
+                moveTaskToBack(true);
+            }
+            else{
+                super.onBackPressed();
+            }
         }
     }
 
