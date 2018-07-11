@@ -1,11 +1,9 @@
 package com.example.emmanuel.gamingnews.Utility;
 
 import android.app.Activity;
-import android.content.Context;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.text.Html;
 import android.util.Log;
-import android.view.View;
 import android.widget.Toast;
 
 import com.example.emmanuel.gamingnews.Adapter.NewsAdapter;
@@ -18,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+
 
 public class ParserMaker{
 
@@ -33,6 +32,7 @@ public class ParserMaker{
     private boolean error;
     private boolean newItems;
     private List<NewsModel> newsList;
+
 
     public ParserMaker(Activity activity,String[] urls, Toast toast, NewsAdapter newsAdapter, List<NewsModel> newsList){
         firstRun = true;

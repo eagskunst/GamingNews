@@ -14,6 +14,8 @@ See changelog on develop branch for not-official features.
 
 -RSS Parser (https://github.com/prof18/RSS-Parser)
 
-#Changelog
+# Changelog
+
+-11/7/2018: Changed colors. Added app icon inside toolbar. Added a Floating Action Button for back to top compability.
 -2/7/2018: Bugfixes for Locale and proper onBackPressed when paserMaker.isRunning = true. Change min. version for Android 4.1 Improvement of ParserMaker
 -27/6/2018: First commit.

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -41,6 +42,7 @@ public class MainActivity extends AppCompatActivity {
     private ParserMaker parserMaker;
     private WebView webView;
     private ProgressBar progressBar;
+    private FloatingActionButton fab;
 
 
     @Override
@@ -51,6 +53,13 @@ public class MainActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.recyclerview);
         refreshLayout = findViewById(R.id.refreshlayout);
         webView = findViewById(R.id.webview);
+        fab = findViewById(R.id.mainFAB);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                recyclerView.smoothScrollToPosition(0);
+            }
+        });
         newsAdapter = new NewsAdapter(newsList, clickListener());
         if(Locale.getDefault().getLanguage().equals("es")){
             urls = new String[]{"https://www.eurogamer.es/?format=rss","https://vandal.elespanol.com/xml.cgi","https://www.levelup.com/rss","http://www.tierragamer.com/feed/"};
@@ -127,6 +136,27 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setAdapter(newsAdapter);
         recyclerView.setHasFixedSize(fixedSize);
 
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                if(dy > 0 && fab.getVisibility() == View.VISIBLE){
+                    fab.setVisibility(View.INVISIBLE);
+                    Log.d(TAG,"Entré para esconder"+fab.getVisibility());
+                }
+                else if(dy < 0 && fab.getVisibility() != View.VISIBLE){
+                    Log.d(TAG,"Entré para mostrar"+fab.getVisibility());
+                    fab.setVisibility(View.VISIBLE);
+                }
+                super.onScrolled(recyclerView, dx, dy);
+            }
+            /*
+            hide() and show() are two methods provided by the FAB to hide/show the FAB button with a smooth animation.
+            dy is a value that changes when you scroll vertically, when the user scrolls down the value is positive
+            and when the user scrolls up the value is negative.
+            So we check if the FAB is visible and the value is positive(i.e. user is scrolling down)
+            we will hide it and if the FAB is hidden and the value is negative(i.e. user is scrolling up) we will show the FAB.
+             */
+        });
     }
 
     private void manageRefreshLayout(final ParserMaker parserMaker) {
@@ -177,11 +207,13 @@ public class MainActivity extends AppCompatActivity {
         return new NewsAdapter.NewsViewHolder.OnItemClickListener() {
             @Override
             public void OnItemClick(NewsModel item) {
-
                 getSupportActionBar().setTitle("Loading...");
                 progressBar.setVisibility(View.VISIBLE);
                 WebSettings webSettings = webView.getSettings();
                 webSettings.setJavaScriptEnabled(true);
+
+                if(fab.getVisibility() == View.VISIBLE)
+                    fab.setVisibility(View.INVISIBLE);
 
                 webView.setWebChromeClient(new WebChromeClient(){
                                                @Override
@@ -211,6 +243,7 @@ public class MainActivity extends AppCompatActivity {
                             webView.setVisibility(View.GONE);
                             recyclerView.setVisibility(View.VISIBLE);
                             refreshLayout.setEnabled(true);
+                            getSupportActionBar().setTitle(R.string.app_name);
                             return true;
                         }
                         else{

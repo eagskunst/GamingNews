@@ -2,6 +2,7 @@
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/main_linearlayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -15,21 +16,23 @@
         android:id="@+id/refreshlayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:animateLayoutChanges="true"
         >
 
-        <RelativeLayout
-            android:id="@+id/relativela"
+        <android.support.design.widget.CoordinatorLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:animateLayoutChanges="true"
             >
-
+            <!-- android:scrollbars activates scrollbars for RV-->
             <android.support.v7.widget.RecyclerView
                 android:id="@+id/recyclerview"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:theme="@style/AppTheme.AppBarOverlay"
+                android:scrollbarSize="10dp"
+                android:scrollbars="vertical"
+                android:scrollbarThumbVertical="@android:drawable/progress_horizontal"
+                android:fadeScrollbars="true"
                 />
             <WebView
                 android:id="@+id/webview"
@@ -38,7 +41,17 @@
                 android:visibility="invisible"
                 />
 
-        </RelativeLayout>
+            <android.support.design.widget.FloatingActionButton
+                android:id="@+id/mainFAB"
+                android:visibility="invisible"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|end"
+                android:layout_margin="16dp"
+                android:src="@android:drawable/arrow_up_float"
+                app:fabSize="normal"
+                />
+        </android.support.design.widget.CoordinatorLayout>
 
     </android.support.v4.widget.SwipeRefreshLayout>
 
