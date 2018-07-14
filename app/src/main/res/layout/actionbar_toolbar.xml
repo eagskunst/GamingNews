@@ -13,16 +13,6 @@
         android:layout_height="match_parent"
         android:orientation="horizontal"
         >
-        <ImageView
-            android:id="@+id/logo_toolbar"
-            android:contentDescription="@string/app_name"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:layout_marginTop="5dp"
-            android:layout_marginStart="6dp"
-            android:layout_marginLeft="6dp"
-            android:src="@mipmap/ic_launcher_round"
-            />
         <android.support.v7.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
@@ -30,7 +20,6 @@
             android:background="@color/colorPrimary"
             app:popupTheme="@style/AppTheme.PopupOverlay">
         </android.support.v7.widget.Toolbar>
-
     </LinearLayout>
 
     <!-- This is how I made the approach for creating a progress bar

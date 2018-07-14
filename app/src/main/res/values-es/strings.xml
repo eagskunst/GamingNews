@@ -1,5 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Gaming News</string>
-    <string name="newssimage">Image from this news</string>
+    <string name="newssimage">Imagen de la noticia</string>
+    <string name="all_menu">All</string>
+    <string name="ps4_menu">PS4</string>
+    <string name="xboxo_menu">Xbox One</string>
+    <string name="switch_menu">Nintendo Switch</string>
+    <string name="pc_menu">PC</string>
+    <string name="drawer_open">Abrir navigation drawer</string>
+    <string name="drawer_close">Cerrar navigation drawer</string>
+    <string name="loading">Cargando...</string>
+    <string name="cant_get_articles">No se obtuvieron todos los artículos de un sitio...</string>
+    <string name="check_your_connection">Revisa tu conexión a internet</string>
+    <string name="still_refreshing">Aún se esta recargando.</string>
 </resources>

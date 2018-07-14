@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<group android:checkableBehavior="single">
+    <item
+        android:id="@+id/all_news"
+        android:icon="@android:drawable/sym_action_chat"
+        android:title="@string/all_menu"
+        />
+    <item
+        android:id="@+id/ps4_news"
+        android:icon="@android:drawable/sym_action_chat"
+        android:title="@string/ps4_menu"
+        />
+    <item
+        android:id="@+id/xboxo_news"
+        android:icon="@android:drawable/sym_action_chat"
+        android:title="@string/xboxo_menu"
+        />
+    <item
+        android:id="@+id/switch_news"
+        android:icon="@android:drawable/sym_action_chat"
+        android:title="@string/switch_menu"
+        />
+    <item
+        android:id="@+id/PC_news"
+        android:icon="@android:drawable/sym_action_chat"
+        android:title="@string/pc_menu"
+        />
+    </group>
+</menu>

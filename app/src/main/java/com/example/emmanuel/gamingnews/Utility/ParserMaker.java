@@ -1,6 +1,7 @@
 package com.example.emmanuel.gamingnews.Utility;
 
 import android.app.Activity;
+import android.content.Context;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.text.Html;
 import android.util.Log;
@@ -9,6 +10,7 @@ import android.widget.Toast;
 import com.example.emmanuel.gamingnews.Adapter.NewsAdapter;
 import com.example.emmanuel.gamingnews.Models.NewsModel;
 import com.example.emmanuel.gamingnews.R;
+import com.example.emmanuel.gamingnews.views.MainActivity;
 import com.prof.rssparser.Article;
 import com.prof.rssparser.Parser;
 
@@ -16,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.logging.Handler;
 
 
 public class ParserMaker{
@@ -23,28 +26,26 @@ public class ParserMaker{
     private static final String TAG = "ParserMaker";
     private static final int OBJ_NUMBER = 65532;
 
-    private Activity activity;
     private String[] urls;
     private Toast toast;
     private NewsAdapter newsAdapter;
     private boolean running;
     private boolean firstRun;
-    private boolean error;
     private boolean newItems;
     private List<NewsModel> newsList;
+    private OnNewsFinishListener onNewsFinishListener;
 
 
-    public ParserMaker(Activity activity,String[] urls, Toast toast, NewsAdapter newsAdapter, List<NewsModel> newsList){
-        firstRun = true;
+    public ParserMaker(OnNewsFinishListener onNewsFinishListener,String[] urls, Toast toast, NewsAdapter newsAdapter, List<NewsModel> newsList){
+        firstRun = newsList.isEmpty();
         this.urls =  urls;
-        this.activity = activity;
+        this.onNewsFinishListener = onNewsFinishListener;
         this.toast = toast;
         this.newsAdapter = newsAdapter;
         this.newsList = newsList;
     }
     public void create(){
         running = true;
-        error = false;
         newItems = false;
         Parser[] parsers = new Parser[urls.length];
         for (int i = 0;i<parsers.length;i++){
@@ -58,7 +59,7 @@ public class ParserMaker{
         return new Parser.OnTaskCompleted() {
             @Override
             public void onTaskCompleted(ArrayList<Article> list) {
-                if(firstRun){
+                if(newsList.isEmpty()){
                     newItems = true;
                     for(com.prof.rssparser.Article article:list){
                         newsList.add(new NewsModel(article.getImage() == null ? "":article.getImage(),article.getTitle(),
@@ -84,10 +85,7 @@ public class ParserMaker{
                 }
                 Log.d(TAG,"Size: "+newsList.size()+" Count: "+newsAdapter.getItemCount());
                 if(stopRefresh){
-                    if(error){
-                        toast.show();
-                    }
-                    if(firstRun || newItems){
+                    if(newItems){
                         newItems = false;
                         firstRun = false;
                         orderListRecentFirst();
@@ -99,12 +97,9 @@ public class ParserMaker{
 
             @Override
             public void onError() {
-                error = true;
-                if(stopRefresh){
-                    if(newsList.size() != 0){
-                        firstRun = false;
-                    }
-                    toast.show();
+                toast.show();
+                if(stopRefresh) {
+                    firstRun = !newsList.isEmpty();
                     refreshingStatus();
                 }
             }
@@ -134,7 +129,6 @@ public class ParserMaker{
         Collections.sort(newsList, new Comparator<NewsModel>() {
             @Override
             public int compare(NewsModel newsModel, NewsModel t1) {
-                Log.d(TAG,"ENTRÉ A COMPARAR");
                 if(newsModel.getPubDate() != null && t1.getPubDate() != null){
                     return t1.getPubDate().compareTo(newsModel.getPubDate());
                 }
@@ -146,25 +140,26 @@ public class ParserMaker{
     }
 
     private void refreshingStatus(){
-        activity.runOnUiThread(new Runnable() {
+        onNewsFinishListener.onNewsFinish();
+        /*activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 ((SwipeRefreshLayout)activity.findViewById(R.id.refreshlayout)).setRefreshing(false);
                 running = false;
             }
-        });
-
-    }
-    public Activity getActivity() {
-        return activity;
+        });*/
     }
 
-    public void setActivity(Activity activity){
-        this.activity = activity;
+    public void setRunning(boolean running) {
+        this.running = running;
     }
 
     public boolean isRunning() {
         return running;
+    }
+
+    public interface OnNewsFinishListener{
+        void onNewsFinish();
     }
 
 }

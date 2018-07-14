@@ -20,7 +20,7 @@
         <ImageView
             android:id="@+id/iv_cardview"
             android:layout_width="match_parent"
-            android:layout_height="300dp"
+            android:layout_height="@dimen/imageview_height_cardv"
             android:scaleType="centerCrop"
             android:contentDescription="@string/newssimage"
             />
@@ -36,14 +36,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="@color/colorPrimaryLight"
-                android:textSize="20sp"
+                android:textSize="@dimen/primary_text_cardv"
                 />
             <TextView
                 android:id="@+id/tv2_cardview"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="@color/colorTextAndIcons"
-                android:textSize="10sp"
+                android:textSize="@dimen/secondary_text_cardv"
                 />
         </LinearLayout>
     </RelativeLayout>
