@@ -13,4 +13,5 @@
     <string name="cant_get_articles">No se obtuvieron todos los artículos de un sitio...</string>
     <string name="check_your_connection">Revisa tu conexión a internet</string>
     <string name="still_refreshing">Aún se esta recargando.</string>
+    <string name="search_hint">Search articles...</string>
 </resources>

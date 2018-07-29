@@ -3,12 +3,16 @@ package com.example.emmanuel.gamingnews.views;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
@@ -17,10 +21,10 @@ import com.example.emmanuel.gamingnews.Fragments.NewsListFragment;
 import com.example.emmanuel.gamingnews.Objects.LoadUrls;
 import com.example.emmanuel.gamingnews.R;
 
-
-
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity implements NewsListFragment.OnFragmentInteractionListener {
@@ -29,21 +33,25 @@ public class MainActivity extends AppCompatActivity implements NewsListFragment.
     private static final String[] News_TAG = {"NewsListFragment_All","NewsListFragment_PS4","NewsListFragment_XboxO",
                                                 "NewsListFragment_Switch","NewsListFragment_PC"
                                                 };
+    private static final int[] tab_id ={R.id.all_news,R.id.ps4_news,R.id.xboxo_news,R.id.switch_news,R.id.PC_news};
 
+    private String currentFrag;
     private DrawerLayout drawerLayout;
     private ProgressBar progressBar;
     private LoadUrls loadUrls;
     private NavigationView navigationView;
+    private List<String> navigationHistory = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         Toolbar toolbar = findViewById(R.id.toolbar);
         navigationView = findViewById(R.id.navigation_view);
         showToolbar(toolbar, R.string.app_name, false);
         startDrawerLayout(toolbar);
-        InputStream is = null;
+        InputStream is;
         loadUrls = null;
         try {
             is = getAssets().open("Urls.json");
@@ -53,27 +61,52 @@ public class MainActivity extends AppCompatActivity implements NewsListFragment.
             e.printStackTrace();
         }
         startNavigationView();
-        makeFragmentTransaction(loadUrls.getAllUrls(), R.id.all_news,News_TAG[0]);
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.container, NewsListFragment.newInstance(loadUrls.getAllUrls()), News_TAG[0])
+                .addToBackStack(News_TAG[0])
+                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+                .commit();
+        currentFrag = News_TAG[0];
+        navigationHistory.add(News_TAG[0]);
+        navigationView.setCheckedItem(tab_id[0]);
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        navigationHistory.clear();
+    }
 
     @Override
     public void onBackPressed() {
-        NewsListFragment fragment = null;
-        for(int i = 0;i<5;i++){
-            fragment = (NewsListFragment) getSupportFragmentManager().findFragmentByTag(News_TAG[i]);
-            if(fragment!=null){
-                break;
-            }
+        NewsListFragment fragment = (NewsListFragment) getSupportFragmentManager().findFragmentByTag(currentFrag);
+        int size = navigationHistory.size() - 2;
+        if(drawerLayout.isDrawerOpen(GravityCompat.START)){
+            drawerLayout.closeDrawers();
         }
-        if (getSupportFragmentManager().getBackStackEntryCount() > 1) {
-            getSupportFragmentManager().popBackStack();
-        } else {
-            if (fragment.getParserMaker().isRunning()) {
+        else if(fragment.getTag().equals(News_TAG[0])){
+            if(fragment.getParserMaker().isRunning()){
                 moveTaskToBack(true);
-            } else {
+            }
+            else{
+                getSupportFragmentManager().popBackStackImmediate(null,FragmentManager.POP_BACK_STACK_INCLUSIVE);
                 finish();
             }
+        }
+        else{
+            if(getSupportFragmentManager().findFragmentByTag(navigationHistory.get(size)).getTag().equals(currentFrag)){
+                currentFrag = getSupportFragmentManager().findFragmentByTag(navigationHistory.get(size-1)).getTag();
+            }
+            else{
+                currentFrag = getSupportFragmentManager().findFragmentByTag(navigationHistory.get(size)).getTag();
+            }
+            int i = 0;
+            while(!currentFrag.equals(News_TAG[i])){
+                i++;
+            }
+            navigationView.setCheckedItem(tab_id[i]);
+            hideAndShow(fragment,(NewsListFragment)getSupportFragmentManager().findFragmentByTag(currentFrag));
+            navigationHistory.remove(fragment.getTag());
         }
     }
 
@@ -104,19 +137,19 @@ public class MainActivity extends AppCompatActivity implements NewsListFragment.
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 switch (item.getItemId()) {
                     case R.id.all_news:
-                        makeFragmentTransaction(loadUrls.getAllUrls(), R.id.all_news,News_TAG[0]);
+                        makeFragmentTransaction(loadUrls.getAllUrls(),tab_id[0],News_TAG[0]);
                         break;
                     case R.id.ps4_news:
-                        makeFragmentTransaction(loadUrls.getPs4Urls(), R.id.all_news,News_TAG[1]);
+                        makeFragmentTransaction(loadUrls.getPs4Urls(), tab_id[1],News_TAG[1]);
                         break;
                     case R.id.xboxo_news:
-                        makeFragmentTransaction(loadUrls.getXboxOUrls(), R.id.all_news,News_TAG[2]);
+                        makeFragmentTransaction(loadUrls.getXboxOUrls(), tab_id[2],News_TAG[2]);
                         break;
                     case R.id.switch_news:
-                        makeFragmentTransaction(loadUrls.getSwitchUrls(), R.id.all_news,News_TAG[3]);
+                        makeFragmentTransaction(loadUrls.getSwitchUrls(), tab_id[3],News_TAG[3]);
                         break;
                     case R.id.PC_news:
-                        makeFragmentTransaction(loadUrls.getPcUrls(), R.id.all_news,News_TAG[4]);
+                        makeFragmentTransaction(loadUrls.getPcUrls(), tab_id[4],News_TAG[4]);
                         break;
                 }
                 return true;
@@ -124,20 +157,50 @@ public class MainActivity extends AppCompatActivity implements NewsListFragment.
         });
     }
 
-    private void makeFragmentTransaction(String[] urls, int item, String TAG) {
-        Bundle bundle = new Bundle();
-        bundle.putStringArray("urls", urls);
-        NewsListFragment newsFragment = (NewsListFragment) getSupportFragmentManager().findFragmentByTag(TAG);
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    private void makeFragmentTransaction(String[] urls, int item, String _TAG) {
+        NewsListFragment newsFragment = (NewsListFragment) getSupportFragmentManager().findFragmentByTag(_TAG);
         if(newsFragment == null){
-            newsFragment = new NewsListFragment();
+            newsFragment = NewsListFragment.newInstance(urls);
+            getSupportFragmentManager().beginTransaction()
+                    .hide(getSupportFragmentManager().findFragmentByTag(currentFrag))
+                    .add(R.id.container,newsFragment,_TAG)
+                    .addToBackStack(_TAG)
+                    .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+                    .commit();
+            currentFrag = _TAG;
+            navigationHistory.add(_TAG);
         }
-        newsFragment.setArguments(bundle);
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.container, newsFragment, TAG)
-                .addToBackStack(null)
-                .commit();
+        else if(!currentFrag.equals(_TAG)){
+            hideAndShow((NewsListFragment)getSupportFragmentManager().findFragmentByTag(currentFrag),newsFragment);
+            if(!navigationHistory.contains(_TAG)){
+                navigationHistory.add(_TAG);
+            }
+            else{
+                int i = navigationHistory.size() - 1;
+                while(!navigationHistory.get(i).equals(_TAG)){
+                    navigationHistory.remove(i);
+                    i--;
+                }
+            }
+            currentFrag = _TAG;
+        }
+        Log.d(TAG,"Size: "+navigationHistory.size());
+
         navigationView.setCheckedItem(item);
         drawerLayout.closeDrawers();
+    }
+
+    private void hideAndShow(NewsListFragment toHide,NewsListFragment toShow) {
+        getSupportFragmentManager().beginTransaction()
+                .hide(toHide)
+                .show(toShow)
+                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+                .commit();
     }
 
     @Override

@@ -16,12 +16,14 @@ import com.example.emmanuel.gamingnews.R;
 import com.squareup.picasso.Picasso;
 
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.NewsViewHolder> {
     private final String TAG = "MainActivity";
 
     private List<NewsModel> newsList;
+    private List<NewsModel> newsListCopy = new ArrayList<>();
     private NewsViewHolder.OnItemClickListener onItemClickListener;
 
     public NewsAdapter(List<NewsModel> newsList, NewsViewHolder.OnItemClickListener onItemClickListener) {
@@ -54,6 +56,26 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.NewsViewHolder
     @Override
     public int getItemCount() {
         return newsList.size();
+    }
+
+    public List<NewsModel> getNewsListCopy() {
+        return newsListCopy;
+    }
+
+
+    public void filter(String text) {
+        newsList.clear();
+        if(text.isEmpty()){
+            newsList.addAll(newsListCopy);
+        } else{
+            text = text.toLowerCase();
+            for(NewsModel item: newsListCopy){
+                if(item.getTitle().toLowerCase().contains(text)){
+                    newsList.add(item);
+                }
+            }
+        }
+        notifyDataSetChanged();
     }
 
 

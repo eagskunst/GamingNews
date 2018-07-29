@@ -91,6 +91,7 @@ public class ParserMaker{
                         orderListRecentFirst();
                     }
                     newsAdapter.notifyDataSetChanged();
+                    newsAdapter.getNewsListCopy().addAll(newsList);
                     refreshingStatus();
                 }
             }
@@ -141,13 +142,6 @@ public class ParserMaker{
 
     private void refreshingStatus(){
         onNewsFinishListener.onNewsFinish();
-        /*activity.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                ((SwipeRefreshLayout)activity.findViewById(R.id.refreshlayout)).setRefreshing(false);
-                running = false;
-            }
-        });*/
     }
 
     public void setRunning(boolean running) {

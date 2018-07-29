@@ -3,27 +3,27 @@
 <group android:checkableBehavior="single">
     <item
         android:id="@+id/all_news"
-        android:icon="@android:drawable/sym_action_chat"
+        android:icon="@drawable/ic_all"
         android:title="@string/all_menu"
         />
     <item
         android:id="@+id/ps4_news"
-        android:icon="@android:drawable/sym_action_chat"
+        android:icon="@drawable/ic_playstation"
         android:title="@string/ps4_menu"
         />
     <item
         android:id="@+id/xboxo_news"
-        android:icon="@android:drawable/sym_action_chat"
+        android:icon="@drawable/ic_xbox"
         android:title="@string/xboxo_menu"
         />
     <item
         android:id="@+id/switch_news"
-        android:icon="@android:drawable/sym_action_chat"
+        android:icon="@drawable/ic_nintendo"
         android:title="@string/switch_menu"
         />
     <item
         android:id="@+id/PC_news"
-        android:icon="@android:drawable/sym_action_chat"
+        android:icon="@drawable/ic_desktop_windows"
         android:title="@string/pc_menu"
         />
     </group>

@@ -14,8 +14,11 @@ import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
@@ -46,16 +49,18 @@ public class NewsListFragment extends Fragment{
         // Required empty public constructor
     }
 
-
-    @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
+    public static NewsListFragment newInstance(String[] urls) {
+        Bundle args = new Bundle();
+        args.putStringArray("urls", urls);
+        NewsListFragment fragment = new NewsListFragment();
+        fragment.setArguments(args);
+        return fragment;
     }
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
+
         View view = inflater.inflate(R.layout.fragment_news_list,container,false);
         String[] urls;
         recyclerView = view.findViewById(R.id.recyclerview);
@@ -74,7 +79,14 @@ public class NewsListFragment extends Fragment{
         ParserMaker.OnNewsFinishListener newsFinishListener = new ParserMaker.OnNewsFinishListener() {
             @Override
             public void onNewsFinish() {
-                refreshLayout.setRefreshing(false);
+                if(getActivity() != null){
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            refreshLayout.setRefreshing(false);
+                        }
+                    });
+                }
                 parserMaker.setRunning(false);
             }
         };
@@ -82,10 +94,10 @@ public class NewsListFragment extends Fragment{
         parserMaker = new ParserMaker(newsFinishListener,urls,
                 Toast.makeText(getActivity(), R.string.cant_get_articles, Toast.LENGTH_SHORT),
                 this.newsAdapter,this.newsList);
-
-        parserMaker.create();
-
-        refreshLayout.setRefreshing(true);
+        if(newsList.isEmpty()){
+            parserMaker.create();
+            refreshLayout.setRefreshing(true);
+        }
         manageRefreshLayout(parserMaker);
         return view;
     }
@@ -95,6 +107,12 @@ public class NewsListFragment extends Fragment{
         if (mListener != null) {
             mListener.onFragmentInteraction(uri);
         }
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        setHasOptionsMenu(true);
+        super.onCreate(savedInstanceState);
     }
 
     @Override
@@ -123,19 +141,41 @@ public class NewsListFragment extends Fragment{
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-        //parserMaker.setActivity(parserMaker.isRunning() ? getActivity():null);
+    public void onDestroyView() {
+        super.onDestroyView();
     }
 
     @Override
-    public void onPause() {
-        super.onPause();
-        //parserMaker.setActivity(parserMaker.isRunning() ? getActivity():null);
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.search_menu,menu);
+        SearchView searchView = (SearchView) menu.findItem(R.id.searchMenu).getActionView();
+
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String s) {
+                if(!parserMaker.isRunning()){
+                    newsAdapter.filter(s);
+                    return true;
+                }
+                else{
+                    return false;
+                }
+            }
+
+            @Override
+            public boolean onQueryTextChange(String s) {
+                if(!parserMaker.isRunning()){
+                    newsAdapter.filter(s);
+                    return true;
+                }
+                else{
+                    return false;
+                }
+            }
+        });
+
+        super.onCreateOptionsMenu(menu, inflater);
     }
-
-
-
 
     private void manageRecyclerView(boolean autoMeasure, boolean fixedSize) {
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
@@ -236,4 +276,5 @@ public class NewsListFragment extends Fragment{
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
     }
+
 }

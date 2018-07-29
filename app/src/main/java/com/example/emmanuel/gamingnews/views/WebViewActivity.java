@@ -61,6 +61,8 @@ public class WebViewActivity extends AppCompatActivity {
     private void loadUrl(String url) {
         progressBar.setVisibility(View.VISIBLE);
         WebSettings webSettings = webView.getSettings();
+        webSettings.setSupportZoom(true);
+        webSettings.setBuiltInZoomControls(true);
         webSettings.setJavaScriptEnabled(true);
         webView.setWebChromeClient(new WebChromeClient(){
                                        @Override
