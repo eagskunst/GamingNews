@@ -1,4 +1,4 @@
-package com.example.emmanuel.gamingnews.views;
+package com.eagskunst.emmanuel.gamingnews.views;
 
 import android.net.Uri;
 import android.support.annotation.NonNull;
@@ -17,9 +17,12 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
 
-import com.example.emmanuel.gamingnews.Fragments.NewsListFragment;
-import com.example.emmanuel.gamingnews.Objects.LoadUrls;
-import com.example.emmanuel.gamingnews.R;
+import com.eagskunst.emmanuel.gamingnews.Fragments.NewsListFragment;
+import com.eagskunst.emmanuel.gamingnews.Objects.LoadUrls;
+import com.eagskunst.emmanuel.gamingnews.R;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.MobileAds;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -35,6 +38,7 @@ public class MainActivity extends AppCompatActivity implements NewsListFragment.
                                                 };
     private static final int[] tab_id ={R.id.all_news,R.id.ps4_news,R.id.xboxo_news,R.id.switch_news,R.id.PC_news};
 
+
     private String currentFrag;
     private DrawerLayout drawerLayout;
     private ProgressBar progressBar;
@@ -46,6 +50,13 @@ public class MainActivity extends AppCompatActivity implements NewsListFragment.
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        MobileAds.initialize(this,"ca-app-pub-7679100799273392~6141549329");
+
+        AdView adView = findViewById(R.id.adView);
+        AdRequest adRequest = new AdRequest.Builder()
+                .build();
+        adView.loadAd(adRequest);
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         navigationView = findViewById(R.id.navigation_view);

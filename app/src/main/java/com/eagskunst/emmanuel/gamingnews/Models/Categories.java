@@ -1,4 +1,4 @@
-package com.example.emmanuel.gamingnews.Models;
+package com.eagskunst.emmanuel.gamingnews.Models;
 
 import java.util.Arrays;
 

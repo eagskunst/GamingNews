@@ -1,8 +1,6 @@
-package com.example.emmanuel.gamingnews.Objects;
+package com.eagskunst.emmanuel.gamingnews.Objects;
 
-import android.app.Activity;
-
-import com.example.emmanuel.gamingnews.Models.Categories;
+import com.eagskunst.emmanuel.gamingnews.Models.Categories;
 import com.google.gson.Gson;
 
 import java.io.IOException;

@@ -1,4 +1,4 @@
-package com.example.emmanuel.gamingnews.views;
+package com.eagskunst.emmanuel.gamingnews.views;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -12,7 +12,7 @@ import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
-import com.example.emmanuel.gamingnews.R;
+import com.eagskunst.emmanuel.gamingnews.R;
 
 public class WebViewActivity extends AppCompatActivity {
     private static final String TAG = "WebViewActivity";
@@ -23,6 +23,7 @@ public class WebViewActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_web_view);
+
         Toolbar toolbar = findViewById(R.id.toolbar);
         showToolbar(toolbar,R.string.loading,true);
         webView = findViewById(R.id.webview);
@@ -63,7 +64,6 @@ public class WebViewActivity extends AppCompatActivity {
         WebSettings webSettings = webView.getSettings();
         webSettings.setSupportZoom(true);
         webSettings.setBuiltInZoomControls(true);
-        webSettings.setJavaScriptEnabled(true);
         webView.setWebChromeClient(new WebChromeClient(){
                                        @Override
                                        public void onProgressChanged(WebView view, int newProgress) {

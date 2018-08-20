@@ -1,18 +1,14 @@
-package com.example.emmanuel.gamingnews.Adapter;
+package com.eagskunst.emmanuel.gamingnews.Adapter;
 
-import android.net.Uri;
-import android.nfc.Tag;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.example.emmanuel.gamingnews.Models.NewsModel;
-import com.example.emmanuel.gamingnews.R;
+import com.eagskunst.emmanuel.gamingnews.Models.NewsModel;
+import com.eagskunst.emmanuel.gamingnews.R;
 import com.squareup.picasso.Picasso;
 
 
@@ -70,7 +66,7 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.NewsViewHolder
         } else{
             text = text.toLowerCase();
             for(NewsModel item: newsListCopy){
-                if(item.getTitle().toLowerCase().contains(text)){
+                if(item.getTitle().toLowerCase().contains(text) && !newsList.contains(item)){
                     newsList.add(item);
                 }
             }

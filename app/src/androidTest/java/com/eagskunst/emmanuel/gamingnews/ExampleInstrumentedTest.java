@@ -1,4 +1,4 @@
-package com.example.emmanuel.gamingnews;
+package com.eagskunst.emmanuel.gamingnews;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;

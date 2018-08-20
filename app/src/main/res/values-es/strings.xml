@@ -2,7 +2,7 @@
 <resources>
     <string name="app_name">Gaming News</string>
     <string name="newssimage">Imagen de la noticia</string>
-    <string name="all_menu">All</string>
+    <string name="all_menu">Todos</string>
     <string name="ps4_menu">PS4</string>
     <string name="xboxo_menu">Xbox One</string>
     <string name="switch_menu">Nintendo Switch</string>
@@ -14,4 +14,5 @@
     <string name="check_your_connection">Revisa tu conexión a internet</string>
     <string name="still_refreshing">Aún se esta recargando.</string>
     <string name="search_hint">Search articles...</string>
+    <string name="saved">Guardado</string>
 </resources>

@@ -1,16 +1,11 @@
-package com.example.emmanuel.gamingnews.Utility;
+package com.eagskunst.emmanuel.gamingnews.Utility;
 
-import android.app.Activity;
-import android.content.Context;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.text.Html;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.example.emmanuel.gamingnews.Adapter.NewsAdapter;
-import com.example.emmanuel.gamingnews.Models.NewsModel;
-import com.example.emmanuel.gamingnews.R;
-import com.example.emmanuel.gamingnews.views.MainActivity;
+import com.eagskunst.emmanuel.gamingnews.Adapter.NewsAdapter;
+import com.eagskunst.emmanuel.gamingnews.Models.NewsModel;
 import com.prof.rssparser.Article;
 import com.prof.rssparser.Parser;
 
@@ -18,7 +13,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.logging.Handler;
 
 
 public class ParserMaker{
@@ -86,12 +80,9 @@ public class ParserMaker{
                 Log.d(TAG,"Size: "+newsList.size()+" Count: "+newsAdapter.getItemCount());
                 if(stopRefresh){
                     if(newItems){
-                        newItems = false;
                         firstRun = false;
                         orderListRecentFirst();
                     }
-                    newsAdapter.notifyDataSetChanged();
-                    newsAdapter.getNewsListCopy().addAll(newsList);
                     refreshingStatus();
                 }
             }
@@ -100,7 +91,10 @@ public class ParserMaker{
             public void onError() {
                 toast.show();
                 if(stopRefresh) {
-                    firstRun = !newsList.isEmpty();
+                    if(newItems){
+                        firstRun = false;
+                        orderListRecentFirst();
+                    }
                     refreshingStatus();
                 }
             }
@@ -109,21 +103,24 @@ public class ParserMaker{
 
 
     private String getDescription(String content){
-        String mString="";
+        StringBuilder mString = new StringBuilder();
         if(!content.isEmpty()){
             content = Html.fromHtml(content).toString().replace((char) OBJ_NUMBER,' ').trim();
             if(content.indexOf('.') != -1){
-                mString = content.substring(0,content.indexOf('.'))+".";
+                mString.append(content.substring(0,content.indexOf('.')));
+                mString.append('.');
             }
             else{
-                mString = content+"...";
+                mString.append(content);
+                mString.append("...");
             }
             if(mString.length()>180){
-                mString = (mString.substring(0,175))+"...";
+                mString.delete(180,mString.length()-1);
+                mString.append("...");
             }
         }
 
-        return mString;
+        return mString.toString();
     }
 
     private void orderListRecentFirst() {
@@ -141,7 +138,7 @@ public class ParserMaker{
     }
 
     private void refreshingStatus(){
-        onNewsFinishListener.onNewsFinish();
+        onNewsFinishListener.onNewsFinish(newItems);
     }
 
     public void setRunning(boolean running) {
@@ -153,7 +150,7 @@ public class ParserMaker{
     }
 
     public interface OnNewsFinishListener{
-        void onNewsFinish();
+        void onNewsFinish(final boolean newItems);
     }
 
 }

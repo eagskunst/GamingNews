@@ -8,12 +8,11 @@
     <string name="pc_menu">PC</string>
     <string name="drawer_open">Open navigation drawer</string>
     <string name="drawer_close">Close navigation drawer</string>
-
     <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="loading">Loading...</string>
     <string name="cant_get_articles">Can\'t get all articles from sites...</string>
     <string name="check_your_connection">Check your internet connection</string>
     <string name="still_refreshing">App is still refreshing</string>
     <string name="search_hint">Search articles...</string>
+    <string name="saved">Saved</string>
 </resources>

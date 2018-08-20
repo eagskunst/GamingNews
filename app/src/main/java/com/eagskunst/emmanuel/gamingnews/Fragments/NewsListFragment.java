@@ -1,4 +1,4 @@
-package com.example.emmanuel.gamingnews.Fragments;
+package com.eagskunst.emmanuel.gamingnews.Fragments;
 
 import android.app.AlertDialog;
 import android.content.Context;
@@ -23,11 +23,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
-import com.example.emmanuel.gamingnews.Adapter.NewsAdapter;
-import com.example.emmanuel.gamingnews.Models.NewsModel;
-import com.example.emmanuel.gamingnews.R;
-import com.example.emmanuel.gamingnews.Utility.ParserMaker;
-import com.example.emmanuel.gamingnews.views.WebViewActivity;
+import com.eagskunst.emmanuel.gamingnews.Adapter.NewsAdapter;
+import com.eagskunst.emmanuel.gamingnews.Models.NewsModel;
+import com.eagskunst.emmanuel.gamingnews.R;
+import com.eagskunst.emmanuel.gamingnews.Utility.ParserMaker;
+import com.eagskunst.emmanuel.gamingnews.views.WebViewActivity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -65,6 +65,8 @@ public class NewsListFragment extends Fragment{
         String[] urls;
         recyclerView = view.findViewById(R.id.recyclerview);
         refreshLayout = view.findViewById(R.id.refreshlayout);
+
+
         fab = view.findViewById(R.id.mainFAB);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -78,11 +80,15 @@ public class NewsListFragment extends Fragment{
 
         ParserMaker.OnNewsFinishListener newsFinishListener = new ParserMaker.OnNewsFinishListener() {
             @Override
-            public void onNewsFinish() {
+            public void onNewsFinish(final boolean newItems) {
                 if(getActivity() != null){
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
+                            if(newItems){
+                                newsAdapter.notifyDataSetChanged();
+                                newsAdapter.getNewsListCopy().addAll(newsList);
+                            }
                             refreshLayout.setRefreshing(false);
                         }
                     });

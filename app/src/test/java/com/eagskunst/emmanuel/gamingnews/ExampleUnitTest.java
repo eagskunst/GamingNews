@@ -1,4 +1,4 @@
-package com.example.emmanuel.gamingnews;
+package com.eagskunst.emmanuel.gamingnews;
 
 import org.junit.Test;
 
