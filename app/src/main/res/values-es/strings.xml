@@ -14,5 +14,9 @@
     <string name="check_your_connection">Revisa tu conexión a internet</string>
     <string name="still_refreshing">Aún se esta recargando.</string>
     <string name="search_hint">Search articles...</string>
-    <string name="saved">Guardado</string>
+    <string name="saved">Favoritos</string>
+    <string name="article_saved">Noticia guardada!</string>
+    <string name="error_relaunch">Error. Intenta volver a lanzar la app.</string>
+    <string name="error_retrieving">Hubo un error cargando las noticias guardadas. Intenta volver a lanzar la app.</string>
+
 </resources>

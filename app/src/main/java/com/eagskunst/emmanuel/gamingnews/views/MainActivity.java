@@ -1,5 +1,7 @@
 package com.eagskunst.emmanuel.gamingnews.views;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
@@ -18,15 +20,20 @@ import android.view.View;
 import android.widget.ProgressBar;
 
 import com.eagskunst.emmanuel.gamingnews.Fragments.NewsListFragment;
+import com.eagskunst.emmanuel.gamingnews.Models.NewsModel;
 import com.eagskunst.emmanuel.gamingnews.Objects.LoadUrls;
 import com.eagskunst.emmanuel.gamingnews.R;
+import com.eagskunst.emmanuel.gamingnews.Utility.SharedPreferencesLoader;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.MobileAds;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -34,9 +41,9 @@ public class MainActivity extends AppCompatActivity implements NewsListFragment.
 
     private static final String TAG = "MainActivity";
     private static final String[] News_TAG = {"NewsListFragment_All","NewsListFragment_PS4","NewsListFragment_XboxO",
-                                                "NewsListFragment_Switch","NewsListFragment_PC"
+                                                "NewsListFragment_Switch","NewsListFragment_PC","NewsListFragment_Saved"
                                                 };
-    private static final int[] tab_id ={R.id.all_news,R.id.ps4_news,R.id.xboxo_news,R.id.switch_news,R.id.PC_news};
+    private static final int[] tab_id ={R.id.all_news,R.id.ps4_news,R.id.xboxo_news,R.id.switch_news,R.id.PC_news,R.id.saved_news};
 
 
     private String currentFrag;
@@ -58,10 +65,22 @@ public class MainActivity extends AppCompatActivity implements NewsListFragment.
                 .build();
         adView.loadAd(adRequest);
 
+        //In first launch, create saved list
+        final String PREFERENCES_USER = "UserPreferences";
+        SharedPreferences sharedPreferences = getSharedPreferences(PREFERENCES_USER, Context.MODE_PRIVATE);
+        if(sharedPreferences.getBoolean("first_launch",true)){
+            Log.d(TAG,"First launch of this app in this device.");
+            SharedPreferences.Editor spEditor = sharedPreferences.edit();
+            List<NewsModel> savedNewsList = new ArrayList<>();
+            SharedPreferencesLoader.saveList(spEditor,savedNewsList);
+            spEditor.putBoolean("first_launch",false).commit();
+        }
+
         Toolbar toolbar = findViewById(R.id.toolbar);
         navigationView = findViewById(R.id.navigation_view);
         showToolbar(toolbar, R.string.app_name, false);
         startDrawerLayout(toolbar);
+
         InputStream is;
         loadUrls = null;
         try {
@@ -161,6 +180,9 @@ public class MainActivity extends AppCompatActivity implements NewsListFragment.
                         break;
                     case R.id.PC_news:
                         makeFragmentTransaction(loadUrls.getPcUrls(), tab_id[4],News_TAG[4]);
+                        break;
+                    case R.id.saved_news:
+                        makeFragmentTransaction(new String[]{"SAVEDLIST"}, tab_id[5],News_TAG[5]);
                         break;
                 }
                 return true;

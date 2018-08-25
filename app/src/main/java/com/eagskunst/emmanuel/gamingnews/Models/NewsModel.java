@@ -1,8 +1,11 @@
 package com.eagskunst.emmanuel.gamingnews.Models;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import java.util.Date;
 
-public class NewsModel {
+public class NewsModel implements Parcelable{
     private String newsImage;
     private String title;
     private String subtext;
@@ -16,6 +19,25 @@ public class NewsModel {
         this.link = link;
         this.pubDate = pubDate;
     }
+
+    protected NewsModel(Parcel in) {
+        newsImage = in.readString();
+        title = in.readString();
+        subtext = in.readString();
+        link = in.readString();
+    }
+
+    public static final Creator<NewsModel> CREATOR = new Creator<NewsModel>() {
+        @Override
+        public NewsModel createFromParcel(Parcel in) {
+            return new NewsModel(in);
+        }
+
+        @Override
+        public NewsModel[] newArray(int size) {
+            return new NewsModel[size];
+        }
+    };
 
     public String getNewsImage() {
         return newsImage;
@@ -55,5 +77,18 @@ public class NewsModel {
 
     public void setPubDate(Date pubDate) {
         this.pubDate = pubDate;
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel parcel, int i) {
+        parcel.writeString(newsImage);
+        parcel.writeString(title);
+        parcel.writeString(subtext);
+        parcel.writeString(link);
     }
 }

@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -27,8 +28,13 @@ import com.eagskunst.emmanuel.gamingnews.Adapter.NewsAdapter;
 import com.eagskunst.emmanuel.gamingnews.Models.NewsModel;
 import com.eagskunst.emmanuel.gamingnews.R;
 import com.eagskunst.emmanuel.gamingnews.Utility.ParserMaker;
+import com.eagskunst.emmanuel.gamingnews.Utility.SharedPreferencesLoader;
+import com.eagskunst.emmanuel.gamingnews.views.MainActivity;
 import com.eagskunst.emmanuel.gamingnews.views.WebViewActivity;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,6 +42,7 @@ import java.util.List;
 public class NewsListFragment extends Fragment{
 
     private static final String TAG = "NewsListFragment";
+    private static final int REQUEST_RESULT = 123;
 
     private RecyclerView recyclerView;
     private SwipeRefreshLayout refreshLayout;
@@ -74,6 +81,7 @@ public class NewsListFragment extends Fragment{
                 recyclerView.smoothScrollToPosition(0);
             }
         });
+
         newsAdapter = new NewsAdapter(newsList, clickListener());
         urls = getArguments().getStringArray("urls");
         manageRecyclerView(true,true);
@@ -100,13 +108,21 @@ public class NewsListFragment extends Fragment{
         parserMaker = new ParserMaker(newsFinishListener,urls,
                 Toast.makeText(getActivity(), R.string.cant_get_articles, Toast.LENGTH_SHORT),
                 this.newsAdapter,this.newsList);
-        if(newsList.isEmpty()){
+
+        //if want to load the saved list
+        Log.d(TAG,"TAG: "+getTag());
+        if(getTag().equals("NewsListFragment_Saved")){
+            loadListFromSharedPreferences();
+        }
+        else if(newsList.isEmpty()){
             parserMaker.create();
             refreshLayout.setRefreshing(true);
         }
+
         manageRefreshLayout(parserMaker);
         return view;
     }
+
 
     // TODO: Rename method, update argument and hook method into UI event
     public void onButtonPressed(Uri uri) {
@@ -119,6 +135,20 @@ public class NewsListFragment extends Fragment{
     public void onCreate(@Nullable Bundle savedInstanceState) {
         setHasOptionsMenu(true);
         super.onCreate(savedInstanceState);
+    }
+
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        Log.d(getTag(),"Handling result...");
+        if(requestCode == REQUEST_RESULT){
+            Log.d(getTag(),"I entered!");
+            if(resultCode == 1){
+                Log.d(TAG, "onActivityResult: enter the resultcode");
+                loadListFromSharedPreferences();
+            }
+        }
+        //super.onActivityResult(requestCode,resultCode,data);
     }
 
     @Override
@@ -144,6 +174,13 @@ public class NewsListFragment extends Fragment{
         if(newsList!=null){
             newsList.clear();
         }
+    }
+
+    @Override
+    public void onHiddenChanged(boolean hidden) {
+        super.onHiddenChanged(hidden);
+        if(getTag().equals("NewsListFragment_Saved") && !hidden)
+            loadListFromSharedPreferences();
     }
 
     @Override
@@ -214,26 +251,52 @@ public class NewsListFragment extends Fragment{
         });
     }
 
+    private void loadListFromSharedPreferences() {
+        newsList.clear();
+        newsAdapter.getNewsListCopy().clear();
+        List<NewsModel> savedList = SharedPreferencesLoader.retrieveList(getActivity()
+                .getSharedPreferences("UserPreferences",0));
+        try{
+            newsList.addAll(savedList);
+            newsAdapter.getNewsListCopy().addAll(savedList);
+            newsAdapter.notifyDataSetChanged();
+        }catch (NullPointerException e){
+            e.printStackTrace();
+            Toast.makeText(getContext(), R.string.error_retrieving, Toast.LENGTH_SHORT).show();
+        }
+
+    }
+
     private void manageRefreshLayout(final ParserMaker parserMaker) {
-        refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                if(isNetworkAvailable() && !parserMaker.isRunning()) {
-                    refreshLayout.setRefreshing(true);
-                    parserMaker.create();
+        if(!getTag().equals("NewsListFragment_Saved")){
+            refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+                @Override
+                public void onRefresh() {
+                    if(isNetworkAvailable() && !parserMaker.isRunning()) {
+                        refreshLayout.setRefreshing(true);
+                        parserMaker.create();
+                    }
+                    else if(!isNetworkAvailable()){
+                        AlertDialog dialog = generateDialog(R.string.check_your_connection);
+                        dialog.show();
+                        refreshLayout.setRefreshing(false);
+                    }
+                    else if(parserMaker.isRunning()){
+                        AlertDialog dialog = generateDialog(R.string.still_refreshing);
+                        dialog.show();
+                        refreshLayout.setRefreshing(false);
+                    }
                 }
-                else if(!isNetworkAvailable()){
-                    AlertDialog dialog = generateDialog(R.string.check_your_connection);
-                    dialog.show();
+            });
+        }
+        else{
+            refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+                @Override
+                public void onRefresh() {
                     refreshLayout.setRefreshing(false);
                 }
-                else if(parserMaker.isRunning()){
-                    AlertDialog dialog = generateDialog(R.string.still_refreshing);
-                    dialog.show();
-                    refreshLayout.setRefreshing(false);
-                }
-            }
-        });
+            });
+        }
     }
 
     private boolean isNetworkAvailable() {
@@ -264,14 +327,19 @@ public class NewsListFragment extends Fragment{
 
                 Intent intent = new Intent(getActivity(), WebViewActivity.class);
                 intent.putExtra("url",item.getLink());
+                intent.putExtra("Article",item);
 
                 if(fab.getVisibility() == View.VISIBLE)
                     fab.setVisibility(View.INVISIBLE);
-
-                getActivity().startActivity(intent);
+                if(!getTag().equals("NewsListFragment_Saved"))
+                    getActivity().startActivity(intent);
+                else{
+                    startActivityForResult(intent,REQUEST_RESULT);
+                }
             }
         };
     }
+
 
 
     public ParserMaker getParserMaker() {
