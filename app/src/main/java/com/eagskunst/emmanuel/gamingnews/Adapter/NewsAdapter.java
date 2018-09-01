@@ -9,6 +9,7 @@ import android.widget.TextView;
 
 import com.eagskunst.emmanuel.gamingnews.Models.NewsModel;
 import com.eagskunst.emmanuel.gamingnews.R;
+import com.eagskunst.emmanuel.gamingnews.Utility.SharedPreferencesLoader;
 import com.squareup.picasso.Picasso;
 
 
@@ -37,7 +38,7 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.NewsViewHolder
     public void onBindViewHolder(NewsViewHolder holder, int position) {
         holder.textView1.setText(newsList.get(position).getTitle());
         holder.textView2.setText(newsList.get(position).getSubtext());
-        if(!newsList.get(position).getNewsImage().isEmpty()){
+        if(!newsList.get(position).getNewsImage().isEmpty() && SharedPreferencesLoader.canLoadImages){
             holder.imageView.setVisibility(View.VISIBLE);
             Picasso.get()
                     .load(newsList.get(position).getNewsImage())

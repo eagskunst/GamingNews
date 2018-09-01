@@ -4,7 +4,7 @@ App for getting video game news from different websites!
 
 See release notes on master branch releases for features that cover last release. You could also download last .apk version there. (**Android min. version: 4.1**)
 
-See changelog on develop branch for not-official features.
+See changelog and develop branch for not-official features.
 
 **WARNING**: The app is in early stage. There's a lot to do and a lot of features to add. If you find/fix any bug please make an issue or a pull request.
 
@@ -25,7 +25,13 @@ See changelog on develop branch for not-official features.
 
 # Changelog
 
-**25/8/2018:** You can know save articles.
+**-1/9/2018:** 
+	Created SettingsActivity and SettingsFragment to (obviously) handle Settings.
+	Change app to night mode.
+	Choose if you want to always load images.
+	Fix FloatingAB position.
+
+**-25/8/2018:** You can know save articles.
 
 **-27/7/2018:** Added the posibility to search articles. Added custom navigation view icons. Erased one es/PS4 link.
 

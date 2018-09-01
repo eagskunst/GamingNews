@@ -1,6 +1,7 @@
 package com.eagskunst.emmanuel.gamingnews.views;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.support.annotation.NonNull;
@@ -56,24 +57,29 @@ public class MainActivity extends AppCompatActivity implements NewsListFragment.
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        final String PREFERENCES_USER = "UserPreferences";
+        SharedPreferences sharedPreferences = getSharedPreferences(PREFERENCES_USER, Context.MODE_PRIVATE);
+        setTheme(SharedPreferencesLoader.currentTheme(sharedPreferences));
+        SharedPreferencesLoader.setCanLoadImages(sharedPreferences);
 
+        setContentView(R.layout.activity_main);
+/*
         MobileAds.initialize(this,"ca-app-pub-7679100799273392~6141549329");
 
         AdView adView = findViewById(R.id.adView);
         AdRequest adRequest = new AdRequest.Builder()
                 .build();
         adView.loadAd(adRequest);
-
+*/
         //In first launch, create saved list
-        final String PREFERENCES_USER = "UserPreferences";
-        SharedPreferences sharedPreferences = getSharedPreferences(PREFERENCES_USER, Context.MODE_PRIVATE);
         if(sharedPreferences.getBoolean("first_launch",true)){
             Log.d(TAG,"First launch of this app in this device.");
             SharedPreferences.Editor spEditor = sharedPreferences.edit();
             List<NewsModel> savedNewsList = new ArrayList<>();
             SharedPreferencesLoader.saveList(spEditor,savedNewsList);
-            spEditor.putBoolean("first_launch",false).commit();
+            spEditor.putBoolean("first_launch",false).apply();
+            spEditor.putBoolean("night_mode",false).apply();
+            spEditor.putBoolean("load_images",true).apply();
         }
 
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -184,6 +190,11 @@ public class MainActivity extends AppCompatActivity implements NewsListFragment.
                     case R.id.saved_news:
                         makeFragmentTransaction(new String[]{"SAVEDLIST"}, tab_id[5],News_TAG[5]);
                         break;
+                    case R.id.settings:
+                        startActivity(new Intent(MainActivity.this,SettingsActivity.class));
+                        drawerLayout.closeDrawers();
+                        break;
+
                 }
                 return true;
             }

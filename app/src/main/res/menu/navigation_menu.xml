@@ -37,5 +37,11 @@
             android:icon="@android:drawable/btn_star"
             android:title="@string/saved"
             />
+        <item
+            android:id="@+id/settings"
+            android:icon="@drawable/ic_settings"
+            android:title="@string/title_activity_settings"
+            android:checkable="false"
+            />
     </group>
 </menu>

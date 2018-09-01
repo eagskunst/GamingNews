@@ -40,6 +40,9 @@ public class WebViewActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        final String PREFERENCES_USER = "UserPreferences";
+        SharedPreferences sharedPreferences = getSharedPreferences(PREFERENCES_USER, Context.MODE_PRIVATE);
+        setTheme(SharedPreferencesLoader.currentTheme(sharedPreferences));
         setContentView(R.layout.activity_web_view);
 
         Toolbar toolbar = findViewById(R.id.toolbar);
