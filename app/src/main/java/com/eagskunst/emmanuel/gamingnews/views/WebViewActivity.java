@@ -1,12 +1,8 @@
 package com.eagskunst.emmanuel.gamingnews.views;
 
-import android.content.Context;
-import android.content.SharedPreferences;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.View;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
@@ -17,15 +13,13 @@ import android.widget.Toast;
 
 import com.eagskunst.emmanuel.gamingnews.Models.NewsModel;
 import com.eagskunst.emmanuel.gamingnews.R;
+import com.eagskunst.emmanuel.gamingnews.Utility.BaseActivity;
 import com.eagskunst.emmanuel.gamingnews.Utility.SharedPreferencesLoader;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
-public class WebViewActivity extends AppCompatActivity {
+public class WebViewActivity extends BaseActivity {
     private static final String TAG = "WebViewActivity";
 
     private WebView webView;
@@ -40,13 +34,28 @@ public class WebViewActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        final String PREFERENCES_USER = "UserPreferences";
-        SharedPreferences sharedPreferences = getSharedPreferences(PREFERENCES_USER, Context.MODE_PRIVATE);
-        setTheme(SharedPreferencesLoader.currentTheme(sharedPreferences));
         setContentView(R.layout.activity_web_view);
 
         Toolbar toolbar = findViewById(R.id.toolbar);
-        showToolbar(toolbar,R.string.loading,true);
+        progressBar = findViewById(R.id.toolbarProgressBar);
+        showToolbar(toolbar,R.string.loading,true,progressBar);
+        callLog(TAG, "Title: " + getSupportActionBar().getTitle().toString());
+
+
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                callLog(TAG,"Entré a terminar ");
+                if(modified){
+                    //Saving modifications
+                    callLog(TAG,"Enter onDestroy if");
+                    // SharedPreferencesLoader.saveList(getSharedPreferences("UserPreferences",0).edit(),newsList);
+                    SharedPreferencesLoader.saveList(getUserSharedPreferences().edit(),newsList);
+                }
+                finish();
+            }
+        });
+
         webView = findViewById(R.id.webview);
         fab = findViewById(R.id.webviewFAB);
         fab.setOnClickListener(saveArticle());
@@ -67,34 +76,9 @@ public class WebViewActivity extends AppCompatActivity {
         webView.loadUrl("about:blank");
         super.onBackPressed();
     }
-    private void showToolbar(Toolbar toolbar, int title, boolean upButton){
-        setSupportActionBar(toolbar);
-        getSupportActionBar().setTitle(title);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(upButton);
-        getSupportActionBar().setLogo(R.mipmap.ic_launcher_round);
-        Log.d(TAG,"Title: "+getSupportActionBar().getTitle().toString());
-        progressBar = findViewById(R.id.toolbarProgressBar);
-        progressBar.setVisibility(View.INVISIBLE);
-        progressBar.setIndeterminate(false);
-
-
-        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Log.d(TAG,"Entré a terminar ");
-                if(modified){
-                    //Saving modifications
-                    Log.d(TAG,"Enter onDestroy if");
-                    SharedPreferencesLoader.saveList(getSharedPreferences("UserPreferences",0).edit(),newsList);
-                }
-                finish();
-            }
-        });
-
-    }
 
     private void getSavedList(){
-        List<NewsModel> savedList = SharedPreferencesLoader.retrieveList(getSharedPreferences("UserPreferences",0));
+        List<NewsModel> savedList = SharedPreferencesLoader.retrieveList(getUserSharedPreferences());
         try{
             newsList.addAll(savedList);
         }catch (NullPointerException e){
@@ -157,12 +141,12 @@ public class WebViewActivity extends AppCompatActivity {
                     modified = true;
                     if(isSaved){
                         boolean removed = newsList.remove(newsModel);
-                        Log.d(TAG, "onClick: removed? "+removed);
+                        callLog(TAG, "onClick: removed? "+removed);
                         fab.setImageResource(R.drawable.ic_star_off);
                         isSaved = false;
                     }
                     else{
-                        Log.d(TAG,"Added!!: "+newsModel.getTitle());
+                        callLog(TAG,"Added!!: "+newsModel.getTitle());
                         newsList.add(0,newsModel);
                         fab.setImageResource(R.drawable.ic_star_on);
                         isSaved = true;

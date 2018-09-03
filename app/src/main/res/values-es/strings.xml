@@ -21,7 +21,9 @@
     <string name="pref_nightmode">pref_nightmode</string>
     <string name="nightmode">Modo nocturno</string>
     <string name="title_activity_settings">Configuración</string>
-    <string name="load_images">Disable images load</string>
+    <string name="load_images">Desactivar la carga de imágenes</string>
     <string name="pref_loadimages">pref_loadimages</string>
+    <string name="filter_title_viewgizmos">googleindexfilter</string>
+
 
 </resources>

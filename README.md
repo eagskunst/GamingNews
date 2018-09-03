@@ -2,7 +2,9 @@
 
 App for getting video game news from different websites!
 
-See release notes on master branch releases for features that cover last release. You could also download last .apk version there. (**Android min. version: 4.1**)
+See release notes on master branch releases for features that cover last release. You could also download last .apk version from the playstore.
+
+<a href='https://play.google.com/store/apps/details?id=com.eagskunst.emmanuel.gamingnews&pcampaignid=MKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1'><img alt='Get it on Google Play' src='https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png'/></a>
 
 See changelog and develop branch for not-official features.
 
@@ -24,6 +26,8 @@ See changelog and develop branch for not-official features.
 
 
 # Changelog
+
+**-3/9/2018:** Following good practices. Created BaseActivity.
 
 **-1/9/2018:** 
 	Created SettingsActivity and SettingsFragment to (obviously) handle Settings.

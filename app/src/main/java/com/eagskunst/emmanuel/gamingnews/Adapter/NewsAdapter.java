@@ -17,7 +17,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.NewsViewHolder> {
-    private final String TAG = "MainActivity";
 
     private List<NewsModel> newsList;
     private List<NewsModel> newsListCopy = new ArrayList<>();

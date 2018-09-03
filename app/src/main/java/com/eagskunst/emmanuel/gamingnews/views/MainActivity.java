@@ -1,6 +1,5 @@
 package com.eagskunst.emmanuel.gamingnews.views;
 
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
@@ -11,34 +10,29 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.ProgressBar;
 
 import com.eagskunst.emmanuel.gamingnews.Fragments.NewsListFragment;
 import com.eagskunst.emmanuel.gamingnews.Models.NewsModel;
 import com.eagskunst.emmanuel.gamingnews.Objects.LoadUrls;
 import com.eagskunst.emmanuel.gamingnews.R;
+import com.eagskunst.emmanuel.gamingnews.Utility.BaseActivity;
 import com.eagskunst.emmanuel.gamingnews.Utility.SharedPreferencesLoader;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.MobileAds;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-public class MainActivity extends AppCompatActivity implements NewsListFragment.OnFragmentInteractionListener {
+public class MainActivity extends BaseActivity implements NewsListFragment.OnFragmentInteractionListener {
 
     private static final String TAG = "MainActivity";
     private static final String[] News_TAG = {"NewsListFragment_All","NewsListFragment_PS4","NewsListFragment_XboxO",
@@ -57,24 +51,21 @@ public class MainActivity extends AppCompatActivity implements NewsListFragment.
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        final String PREFERENCES_USER = "UserPreferences";
-        SharedPreferences sharedPreferences = getSharedPreferences(PREFERENCES_USER, Context.MODE_PRIVATE);
-        setTheme(SharedPreferencesLoader.currentTheme(sharedPreferences));
-        SharedPreferencesLoader.setCanLoadImages(sharedPreferences);
+        SharedPreferencesLoader.setCanLoadImages(getUserSharedPreferences());
 
         setContentView(R.layout.activity_main);
-/*
+
         MobileAds.initialize(this,"ca-app-pub-7679100799273392~6141549329");
 
         AdView adView = findViewById(R.id.adView);
         AdRequest adRequest = new AdRequest.Builder()
                 .build();
         adView.loadAd(adRequest);
-*/
+
         //In first launch, create saved list
-        if(sharedPreferences.getBoolean("first_launch",true)){
-            Log.d(TAG,"First launch of this app in this device.");
-            SharedPreferences.Editor spEditor = sharedPreferences.edit();
+        if(getUserSharedPreferences().getBoolean("first_launch",true)){
+            callLog(TAG,"First launch of this app in this device.");
+            SharedPreferences.Editor spEditor = getUserSharedPreferences().edit();
             List<NewsModel> savedNewsList = new ArrayList<>();
             SharedPreferencesLoader.saveList(spEditor,savedNewsList);
             spEditor.putBoolean("first_launch",false).apply();
@@ -84,7 +75,9 @@ public class MainActivity extends AppCompatActivity implements NewsListFragment.
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         navigationView = findViewById(R.id.navigation_view);
-        showToolbar(toolbar, R.string.app_name, false);
+        progressBar = findViewById(R.id.toolbarProgressBar);
+        showToolbar(toolbar, R.string.app_name, false,progressBar);
+        callLog(TAG, "Title: " + getSupportActionBar().getTitle().toString());
         startDrawerLayout(toolbar);
 
         InputStream is;
@@ -145,19 +138,6 @@ public class MainActivity extends AppCompatActivity implements NewsListFragment.
             navigationHistory.remove(fragment.getTag());
         }
     }
-
-    private void showToolbar(Toolbar toolbar, int title, boolean upButton) {
-        setSupportActionBar(toolbar);
-        getSupportActionBar().setTitle(title);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(upButton);
-        getSupportActionBar().setLogo(R.mipmap.ic_launcher_round);
-        toolbar.getLogo().setBounds(3, 3, 3, 3);
-        Log.d(TAG, "Title: " + getSupportActionBar().getTitle().toString());
-        progressBar = findViewById(R.id.toolbarProgressBar);
-        progressBar.setVisibility(View.GONE);
-        progressBar.setIndeterminate(false);
-    }
-
 
     private void startDrawerLayout(Toolbar toolbar) {
         drawerLayout = findViewById(R.id.drawer_layout);
@@ -233,7 +213,7 @@ public class MainActivity extends AppCompatActivity implements NewsListFragment.
             }
             currentFrag = _TAG;
         }
-        Log.d(TAG,"Size: "+navigationHistory.size());
+        callLog(TAG,"Size: "+navigationHistory.size());
 
         navigationView.setCheckedItem(item);
         drawerLayout.closeDrawers();
