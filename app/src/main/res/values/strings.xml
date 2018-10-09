@@ -26,4 +26,8 @@
     <string name="load_images">Always load images</string>
     <string name="pref_loadimages">pref_loadimages</string>
     <string name="filter_title_viewgizmos">googleindexfilter</string>
+    <string name="notification">Notification</string>
+    <string name="channel_name">mainchannel</string>
+    <string name="channel_description">show notifications for custom user search</string>
+    <string name="default_notification_channel_id">channel_0</string>
 </resources>

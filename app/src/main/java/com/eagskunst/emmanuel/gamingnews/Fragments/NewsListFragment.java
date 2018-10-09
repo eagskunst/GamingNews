@@ -4,7 +4,6 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -29,12 +28,8 @@ import com.eagskunst.emmanuel.gamingnews.Models.NewsModel;
 import com.eagskunst.emmanuel.gamingnews.R;
 import com.eagskunst.emmanuel.gamingnews.Utility.ParserMaker;
 import com.eagskunst.emmanuel.gamingnews.Utility.SharedPreferencesLoader;
-import com.eagskunst.emmanuel.gamingnews.views.MainActivity;
 import com.eagskunst.emmanuel.gamingnews.views.WebViewActivity;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -67,7 +62,6 @@ public class NewsListFragment extends Fragment{
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-
         View view = inflater.inflate(R.layout.fragment_news_list,container,false);
         String[] urls;
         recyclerView = view.findViewById(R.id.recyclerview);

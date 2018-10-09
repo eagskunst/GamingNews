@@ -27,6 +27,12 @@ See changelog and develop branch for not-official features.
 
 # Changelog
 
+**-9/10/2018:**
+	Added Firebase libraries.
+	Added Firebase Cloud Messaging instaces with NotificationMaker class
+	NotificationMaker could recive from Firebase console and from server/http POST Request.
+	Obviously, starting notifications implementation. 
+
 **-3/9/2018:** Following good practices. Created BaseActivity.
 
 **-1/9/2018:** 
