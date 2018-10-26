@@ -1,17 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen
     xmlns:android="http://schemas.android.com/apk/res/android">
-    <SwitchPreference
-        android:id="@+id/disableimages"
-        android:key="@string/pref_loadimages"
-        android:title="@string/load_images"
-        android:defaultValue="true"
-        />
-    <SwitchPreference
-        android:id="@+id/nightmode"
-        android:key="@string/pref_nightmode"
-        android:title="@string/nightmode"
-        android:defaultValue="false"
-        />
+    <PreferenceCategory
+        android:title="@string/pref_title_interface"
+        android:key="@string/pref_key_title1"
+        >
+        <SwitchPreference
+            android:id="@+id/disableimages"
+            android:key="@string/pref_loadimages"
+            android:title="@string/load_images"
+            android:defaultValue="true"
+            />
+        <SwitchPreference
+            android:id="@+id/nightmode"
+            android:key="@string/pref_nightmode"
+            android:title="@string/nightmode"
+            android:defaultValue="false"
+            />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="@string/pref_title_notifications"
+        android:key="@string/pref_key_title2">
+        <CheckBoxPreference
+            android:id="@+id/getdailynotf"
+            android:key="@string/pref_dailynotf"
+            android:title="@string/dailynotf_title"
+            android:summary="@string/dailynotf_descp"
+            android:defaultValue="false"
+            />
+        <Preference
+            android:id="@+id/managetopics"
+            android:title="@string/manage_topics"
+            android:key="pref_managetopics"
+            android:summary="@string/summary_topics"
+            />
+    </PreferenceCategory>
+
 
 </PreferenceScreen>

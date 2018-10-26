@@ -13,7 +13,7 @@
     <string name="cant_get_articles">No se obtuvieron todos los artículos de un sitio...</string>
     <string name="check_your_connection">Revisa tu conexión a internet</string>
     <string name="still_refreshing">Aún se esta recargando.</string>
-    <string name="search_hint">Search articles...</string>
+    <string name="search_hint">Busca artículos...</string>
     <string name="saved">Favoritos</string>
     <string name="article_saved">Noticia guardada!</string>
     <string name="error_relaunch">Error. Intenta volver a lanzar la app.</string>
@@ -21,13 +21,26 @@
     <string name="pref_nightmode">pref_nightmode</string>
     <string name="nightmode">Modo nocturno</string>
     <string name="title_activity_settings">Configuración</string>
-    <string name="load_images">Desactivar la carga de imágenes</string>
+    <string name="load_images">Siempre carga las imágenes</string>
     <string name="pref_loadimages">pref_loadimages</string>
     <string name="filter_title_viewgizmos">googleindexfilter</string>
     <string name="notification">Notificación</string>
     <string name="channel_name">mainchannel</string>
     <string name="channel_description">show notifications for custom user search</string>
     <string name="default_notification_channel_id">channel_0</string>
+    <string name="pref_title_interface">Interfaz</string>
+    <string name="pref_key_title1">pref_interface</string>
+    <string name="pref_title_notifications">Notifications</string>
+    <string name="pref_key_title2">pref_notification</string>
+    <string name="pref_dailynotf">pref_dailynotf</string>
+    <string name="dailynotf_title">Recibe una notificación diaria</string>
+    <string name="dailynotf_descp">Marca para un recordatorio diario para ver las noticias.</string>
+    <string name="manage_topics">Gestiona los temas</string>
+    <string name="no_topics_added">Nos has añadido temas personalizados para recibir notificaciones. Para añadir uno pulsa \'+\'</string>
+    <string name="add_topic">Añadir un tema</string>
+    <string name="summary_topics">Cambia los temas de los cuales quieres recibir notificaciones</string>
+    <string name="cancel">CANCELAR</string>
+    <string name="add">AÑADIR</string>
 
 
 </resources>

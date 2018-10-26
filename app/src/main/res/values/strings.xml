@@ -30,4 +30,19 @@
     <string name="channel_name">mainchannel</string>
     <string name="channel_description">show notifications for custom user search</string>
     <string name="default_notification_channel_id">channel_0</string>
+    <string name="pref_title_interface">Interface</string>
+    <string name="pref_key_title1">pref_interface</string>
+    <string name="pref_title_notifications">Notifications</string>
+    <string name="pref_key_title2">pref_notification</string>
+    <string name="pref_dailynotf">pref_dailynotf</string>
+    <string name="dailynotf_title">Get a daily notification</string>
+    <string name="dailynotf_descp">Mark for a daily reminder to see news</string>
+    <string name="manage_topics">Manage topics</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="no_topics_added">You have not added custom topics to receive notifications. To add one pulse \'+\'</string>
+    <string name="add_topic">Add a topic</string>
+    <string name="summary_topics">Change the topics which you want to receive notifications</string>
+    <string name="cancel">CANCEL</string>
+    <string name="add">add</string>
 </resources>
