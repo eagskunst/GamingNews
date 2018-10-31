@@ -27,6 +27,13 @@ See changelog and develop branch for not-official features.
 
 # Changelog
 
+**-31/10/2018:**
+  Manage your topics layouts finished.
+  Make communication with FirebaseRealtimeDatabase in order to save user prefered topics.
+  TODO: Add a clean list button in TopicListFragment
+  TODO: Add subscribe to "all" in SettingsFragment
+  TODO: Add illegalargumentexception in TopicListFragment
+
 **-9/10/2018:**
 	Added Firebase libraries.
 	Added Firebase Cloud Messaging instaces with NotificationMaker class
@@ -41,7 +48,7 @@ See changelog and develop branch for not-official features.
 	Choose if you want to always load images.
 	Fix FloatingAB position.
 
-**-25/8/2018:** You can know save articles.
+**-25/8/2018:** You can now save articles.
 
 **-27/7/2018:** Added the posibility to search articles. Added custom navigation view icons. Erased one es/PS4 link.
 
