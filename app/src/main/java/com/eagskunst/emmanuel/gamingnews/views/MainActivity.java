@@ -62,12 +62,16 @@ public class MainActivity extends BaseActivity implements NewsListFragment.OnFra
                 .build();
         adView.loadAd(adRequest);
 
+        setFirebaseToken();
+
         //In first launch, create saved list
         if(getUserSharedPreferences().getBoolean("first_launch",true)){
             callLog(TAG,"First launch of this app in this device.");
             SharedPreferences.Editor spEditor = getUserSharedPreferences().edit();
             List<NewsModel> savedNewsList = new ArrayList<>();
+            List<String> topicList = new ArrayList<>();
             SharedPreferencesLoader.saveList(spEditor,savedNewsList);
+            SharedPreferencesLoader.saveTopics(spEditor,topicList);
             spEditor.putBoolean("first_launch",false).apply();
             spEditor.putBoolean("night_mode",false).apply();
             spEditor.putBoolean("load_images",true).apply();

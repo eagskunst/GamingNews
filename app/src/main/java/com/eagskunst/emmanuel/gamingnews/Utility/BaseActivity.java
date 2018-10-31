@@ -34,12 +34,7 @@ public class BaseActivity extends AppCompatActivity {
         final String PREFERENCES_USER = "UserPreferences";
         sharedPreferences = getSharedPreferences(PREFERENCES_USER, Context.MODE_PRIVATE);
         setTheme(SharedPreferencesLoader.currentTheme(sharedPreferences));
-        if(isPlayServicesAvailable()){
-            callLog(getClass().getSimpleName(),"Play services available!");
-            NotificationMaker nm = new NotificationMaker();
-            nm.setToken();
-            FirebaseMessaging.getInstance().subscribeToTopic("all");
-        }
+
     }
 
     @Override
@@ -48,7 +43,7 @@ public class BaseActivity extends AppCompatActivity {
         /* Code for knowing user last session
         DatabaseReference presenceRef = FirebaseDatabase.getInstance().getReference("disconnectmessage");
         presenceRef.onDisconnect().setValue(ServerValue.TIMESTAMP);
-*/
+        */
     }
 
     protected void showToolbar(Toolbar toolbar, int title, boolean upButton, ProgressBar progressBar) {
@@ -63,6 +58,15 @@ public class BaseActivity extends AppCompatActivity {
         }
     }
 
+    protected void setFirebaseToken(){
+        if(isPlayServicesAvailable()){
+            callLog(getClass().getSimpleName(),"Play services available!");
+            NotificationMaker nm = new NotificationMaker(sharedPreferences);
+            nm.setToken();
+            FirebaseMessaging.getInstance().subscribeToTopic("all"); //TODO: Add this line in Settings Fragment
+        }
+    }
+
     protected boolean isPlayServicesAvailable() {
         int resultCode = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(this);
 
@@ -72,7 +76,6 @@ public class BaseActivity extends AppCompatActivity {
         }
         return true;
     }
-
 
     protected void callLog(String TAG, String message){
         Log.d(TAG,message);

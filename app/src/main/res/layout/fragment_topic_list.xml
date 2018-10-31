@@ -17,6 +17,7 @@
         android:visibility="gone" />
 
     <TextView
+        android:id="@+id/tv_topiclist"
         android:gravity="center"
         android:text="@string/no_topics_added"
         android:layout_centerInParent="true"

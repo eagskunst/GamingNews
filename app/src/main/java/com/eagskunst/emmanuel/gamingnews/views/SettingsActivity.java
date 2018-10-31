@@ -23,7 +23,10 @@ public class SettingsActivity extends BaseActivity {
         toolbar = findViewById(R.id.toolbar);
         showToolbar(toolbar,R.string.title_activity_settings,true,null);
         callLog(TAG, "Title: " + getSupportActionBar().getTitle().toString());
-        replaceFragment(SettingsFragment.newInstance(),R.string.title_activity_settings);
+        getFragmentManager().beginTransaction()
+                .replace(R.id.container_settings,SettingsFragment.newInstance())
+                .commit();
+        getSupportActionBar().setTitle(R.string.title_activity_settings);
     }
 
 

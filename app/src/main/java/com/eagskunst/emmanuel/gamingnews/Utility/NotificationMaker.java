@@ -3,6 +3,7 @@ package com.eagskunst.emmanuel.gamingnews.Utility;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.util.Log;
@@ -12,6 +13,7 @@ import com.eagskunst.emmanuel.gamingnews.views.MainActivity;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.InstanceIdResult;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
@@ -19,11 +21,16 @@ import com.google.firebase.messaging.RemoteMessage;
 public class NotificationMaker extends FirebaseMessagingService {
     private final String TAG = getClass().getSimpleName();
     private String sessionToken;
+    private SharedPreferences sharedPreferences;
+
+    public NotificationMaker(SharedPreferences sharedPreferences) {
+        this.sharedPreferences = sharedPreferences;
+    }
+
     @Override
     public void onNewToken(String s) {
         super.onNewToken(s);
         Log.d(TAG,"New token: "+s);
-
     }
 
     @Override
@@ -63,6 +70,7 @@ public class NotificationMaker extends FirebaseMessagingService {
             public void onSuccess(InstanceIdResult instanceIdResult) {
                 String updatedToken = instanceIdResult.getToken();
                 sessionToken = updatedToken;
+                SharedPreferencesLoader.saveFirebaseToken(sharedPreferences.edit(),sessionToken);
                 Log.e("Updated Token",updatedToken);
             }
         });

@@ -5,6 +5,8 @@ import android.content.res.Resources;
 
 import com.eagskunst.emmanuel.gamingnews.Models.NewsModel;
 import com.eagskunst.emmanuel.gamingnews.R;
+import com.google.firebase.messaging.FirebaseMessaging;
+import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -45,4 +47,32 @@ public class SharedPreferencesLoader {
         boolean loadImages = sharedPreferences.getBoolean("load_images",true);
         SharedPreferencesLoader.canLoadImages = loadImages;
     }
+
+    public static void saveTopics(SharedPreferences.Editor spEditor, List<String> topics){
+        Gson gson = new Gson();
+        String toJson = gson.toJson(topics);
+        spEditor.putString("TOPIC_LIST",toJson).apply();
+    }
+
+    public static List<String> retrieveTopics(SharedPreferences sharedPreferences){
+        final String listName = sharedPreferences.getString("TOPIC_LIST",null);
+        if(listName!= null){
+            Gson gson = new Gson();
+            Type type = new TypeToken<List<String>>(){}.getType();
+            List<String> topics = gson.fromJson(listName,type);
+            return topics;
+        }
+        else{
+            return null;
+        }
+    }
+
+    public static void saveFirebaseToken(SharedPreferences.Editor spEditor, String token){
+        spEditor.putString("USER_TOKEN",token).apply();
+    }
+
+    public static String getFirebaseToken(SharedPreferences sharedPreferences){
+        return sharedPreferences.getString("USER_TOKEN","no_play_services");
+    }
+
 }
