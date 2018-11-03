@@ -24,6 +24,9 @@ import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.InstanceIdResult;
 import com.google.firebase.messaging.FirebaseMessaging;
 
+import java.util.Calendar;
+import java.util.TimeZone;
+
 public class BaseActivity extends AppCompatActivity {
 
     private SharedPreferences sharedPreferences;
@@ -40,10 +43,18 @@ public class BaseActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        /* Code for knowing user last session
-        DatabaseReference presenceRef = FirebaseDatabase.getInstance().getReference("disconnectmessage");
-        presenceRef.onDisconnect().setValue(ServerValue.TIMESTAMP);
-        */
+        SharedPreferencesLoader.saveCurrentTime(getUserSharedPreferences().edit());
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        try{
+            manager.cancelAll();
+        }catch (NullPointerException e){
+            e.printStackTrace();
+        }
     }
 
     protected void showToolbar(Toolbar toolbar, int title, boolean upButton, ProgressBar progressBar) {
@@ -61,9 +72,10 @@ public class BaseActivity extends AppCompatActivity {
     protected void setFirebaseToken(){
         if(isPlayServicesAvailable()){
             callLog(getClass().getSimpleName(),"Play services available!");
-            NotificationMaker nm = new NotificationMaker(sharedPreferences);
+            NotificationMaker nm = new NotificationMaker();
+            nm.sharedPreferences = sharedPreferences;
             nm.setToken();
-            FirebaseMessaging.getInstance().subscribeToTopic("all"); //TODO: Add this line in Settings Fragment
+
         }
     }
 

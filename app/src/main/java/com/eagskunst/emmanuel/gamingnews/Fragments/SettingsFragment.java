@@ -3,21 +3,19 @@ package com.eagskunst.emmanuel.gamingnews.Fragments;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.preference.CheckBoxPreference;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.preference.SwitchPreference;
 import android.util.Log;
-import android.widget.ListView;
 
 
 import com.eagskunst.emmanuel.gamingnews.R;
 import com.eagskunst.emmanuel.gamingnews.Utility.SharedPreferencesLoader;
 import com.eagskunst.emmanuel.gamingnews.views.MainActivity;
 import com.eagskunst.emmanuel.gamingnews.views.SettingsActivity;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 
 public class SettingsFragment extends PreferenceFragment {
@@ -43,8 +41,9 @@ public class SettingsFragment extends PreferenceFragment {
         nightmodePreference.setOnPreferenceClickListener(preferenceClickListener("night_mode",nightmodePreference.isChecked()));
         SwitchPreference disableImagesPreference = (SwitchPreference) findPreference("pref_loadimages");
         disableImagesPreference.setOnPreferenceClickListener(preferenceClickListener("load_images",disableImagesPreference.isChecked()));
+        CheckBoxPreference dailyReminderPreference = (CheckBoxPreference) findPreference("pref_dailynotf");
+        dailyReminderPreference.setOnPreferenceClickListener(preferenceClickListener("daily_notf",dailyReminderPreference.isChecked()));
         Preference manageTopics = findPreference("pref_managetopics");
-
         manageTopics.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
             @Override
             public boolean onPreferenceClick(Preference preference) {
@@ -70,15 +69,31 @@ public class SettingsFragment extends PreferenceFragment {
         return new Preference.OnPreferenceClickListener() {
             @Override
             public boolean onPreferenceClick(Preference preference) {
-                if(isChecked)
-                    sharedPreferences.edit().putBoolean(prefKey,false).apply();
-                else
-                    sharedPreferences.edit().putBoolean(prefKey,true).apply();
-                if(prefKey.equals("night_mode"))
-                    reloadApp();
-                else if(prefKey.equals("load_images")){
-                    SharedPreferencesLoader.setCanLoadImages(sharedPreferences);
+                if(prefKey.equals("daily_notf")){
+                    boolean daily_notf = sharedPreferences.getBoolean(prefKey,false);
+                    if(!daily_notf){
+                        Log.d(this.getClass().getSimpleName(), "onPreferenceClick: subscribed");
+                        FirebaseMessaging.getInstance().subscribeToTopic("all");
+                        sharedPreferences.edit().putBoolean(prefKey,true).commit();
+                    }
+                    else{
+                        Log.d(this.getClass().getSimpleName(), "onPreferenceClick: unsubscribed");
+                        FirebaseMessaging.getInstance().unsubscribeFromTopic("all");
+                        sharedPreferences.edit().putBoolean(prefKey,false).commit();
+                    }
                 }
+                else{
+                    if(isChecked)
+                        sharedPreferences.edit().putBoolean(prefKey,false).apply();
+                    else
+                        sharedPreferences.edit().putBoolean(prefKey,true).apply();
+                    if(prefKey.equals("night_mode"))
+                        reloadApp();
+                    else if(prefKey.equals("load_images")){
+                        SharedPreferencesLoader.setCanLoadImages(sharedPreferences);
+                    }
+                }
+
                 return true;
             }
         };

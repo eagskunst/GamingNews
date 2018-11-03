@@ -45,4 +45,5 @@
     <string name="summary_topics">Change the topics which you want to receive notifications</string>
     <string name="cancel">CANCEL</string>
     <string name="add">add</string>
+    <string name="ilegalargumentfirebase">Don\'t use special characters</string>
 </resources>

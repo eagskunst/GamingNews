@@ -11,7 +11,11 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 
 public class SharedPreferencesLoader {
     public static boolean canLoadImages = true;
@@ -73,6 +77,17 @@ public class SharedPreferencesLoader {
 
     public static String getFirebaseToken(SharedPreferences sharedPreferences){
         return sharedPreferences.getString("USER_TOKEN","no_play_services");
+    }
+
+    public static void saveCurrentTime(SharedPreferences.Editor spEditor){
+        SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+        Date date = new Date();
+        String session = formatter.format(date);
+        spEditor.putString("LAST_SESSION",session);
+    }
+
+    public static String getLastSession(SharedPreferences sharedPreferences){
+        return sharedPreferences.getString("LAST_SESSION",null);
     }
 
 }

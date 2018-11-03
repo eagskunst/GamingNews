@@ -20,6 +20,7 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.eagskunst.emmanuel.gamingnews.R;
 import com.eagskunst.emmanuel.gamingnews.Utility.SharedPreferencesLoader;
@@ -108,10 +109,15 @@ public class TopicListFragment extends Fragment {
              */
             case android.R.id.home:
                 if (getActivity().getFragmentManager().getBackStackEntryCount() >= 1) {
-                    addTopicsToFirebase();
-                    subscribeToTopics();
-                    SharedPreferencesLoader.saveTopics(sharedPreferences.edit(),topicList);
-                    getFragmentManager().popBackStack();
+                    try{
+                        addTopicsToFirebase();
+                        subscribeToTopics();
+                        SharedPreferencesLoader.saveTopics(sharedPreferences.edit(),topicList);
+                        getFragmentManager().popBackStack();
+                    }catch (IllegalArgumentException e){
+                        Toast.makeText(getActivity(),R.string.ilegalargumentfirebase,Toast.LENGTH_SHORT).show();
+                        e.printStackTrace();
+                    }
                     return true;
                 }/*
                 Providing topic addition
@@ -149,10 +155,23 @@ public class TopicListFragment extends Fragment {
                 }
                 else if(!editText.getText().toString().isEmpty()){
                     topicList.set(position,editText.getText().toString());
+                    if(!text.equalsIgnoreCase(editText.getText().toString())){
+                        try{
+                            FirebaseMessaging.getInstance().unsubscribeFromTopic(text.replace(" ","_").toUpperCase());
+                        }catch(IllegalArgumentException e){
+                            Toast.makeText(getActivity(),R.string.ilegalargumentfirebase,Toast.LENGTH_SHORT);
+                            e.printStackTrace();
+                        }
+                    }
                 }
                 else{
                     topicList.remove(position);
-                    FirebaseMessaging.getInstance().unsubscribeFromTopic(text.replace(" ","_"));
+                    try{
+                        FirebaseMessaging.getInstance().unsubscribeFromTopic(text.replace(" ","_").toUpperCase());
+                    }catch(IllegalArgumentException e){
+                        Toast.makeText(getActivity(),R.string.ilegalargumentfirebase,Toast.LENGTH_SHORT);
+                        e.printStackTrace();
+                    }
                 }
                 topicsAdapter.notifyDataSetChanged();
                 dialogInterface.dismiss();
@@ -165,17 +184,16 @@ public class TopicListFragment extends Fragment {
     private void addTopicsToFirebase(){
         DatabaseReference database = FirebaseDatabase.getInstance().getReference();
         database.child("topics").child(SharedPreferencesLoader.getFirebaseToken(sharedPreferences)).removeValue();
-        database.child("topics").child(SharedPreferencesLoader.getFirebaseToken(sharedPreferences))
-                .child("lang").setValue(Locale.getDefault().getLanguage());
+        DatabaseReference userReference = database.child("topics")
+                .child(SharedPreferencesLoader.getFirebaseToken(sharedPreferences)).child("subscribedList");
         for(int i = 0;i<topicList.size();i++){
-            database.child("topics").child(SharedPreferencesLoader.getFirebaseToken(sharedPreferences))
-                    .child("topic"+i).setValue(topicList.get(i).replace(" ","_"));
+            userReference.child(Integer.toString(i)).setValue(topicList.get(i).replace(" ","_").toUpperCase());
         }
     }
 
     private void subscribeToTopics(){
         for(String topic:topicList){
-            FirebaseMessaging.getInstance().subscribeToTopic(topic.replace(" ","_"));
+            FirebaseMessaging.getInstance().subscribeToTopic(topic.replace(" ","_").toUpperCase());
         }
     }
 
@@ -201,12 +219,12 @@ public class TopicListFragment extends Fragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context instanceof OnFragmentInteractionListener) {
+        /*if (context instanceof OnFragmentInteractionListener) {
             mListener = (OnFragmentInteractionListener) context;
         } else {
             throw new RuntimeException(context.toString()
                     + " must implement OnFragmentInteractionListener");
-        }
+        }*/
     }
 
     @Override
@@ -225,10 +243,16 @@ public class TopicListFragment extends Fragment {
     public void onDestroy() {
         super.onDestroy();
         Log.d(TAG, "onDestroy");
-        addTopicsToFirebase();
-        subscribeToTopics();
-        SharedPreferencesLoader.saveTopics(sharedPreferences.edit(),topicList);
-        getFragmentManager().popBackStack();
+        try{
+            addTopicsToFirebase();
+            subscribeToTopics();
+            SharedPreferencesLoader.saveTopics(sharedPreferences.edit(),topicList);
+            getFragmentManager().popBackStack();
+        }catch (IllegalArgumentException e){
+            Toast.makeText(getActivity(),R.string.ilegalargumentfirebase,Toast.LENGTH_SHORT).show();
+            e.printStackTrace();
+        }
+
     }
 
     /**

@@ -25,6 +25,7 @@ import com.eagskunst.emmanuel.gamingnews.Utility.SharedPreferencesLoader;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.MobileAds;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -54,6 +55,10 @@ public class MainActivity extends BaseActivity implements NewsListFragment.OnFra
         SharedPreferencesLoader.setCanLoadImages(getUserSharedPreferences());
 
         setContentView(R.layout.activity_main);
+        boolean isNightActive = getUserSharedPreferences().getBoolean("night_mode",false);
+        if(isNightActive){
+            getWindow().getDecorView().setBackgroundColor(getResources().getColor(R.color.colorBackgroundNightMode));
+        }
 
         MobileAds.initialize(this,"ca-app-pub-7679100799273392~6141549329");
 
@@ -67,6 +72,12 @@ public class MainActivity extends BaseActivity implements NewsListFragment.OnFra
         //In first launch, create saved list
         if(getUserSharedPreferences().getBoolean("first_launch",true)){
             callLog(TAG,"First launch of this app in this device.");
+            if(Locale.getDefault().getLanguage().equals("es")){
+                FirebaseMessaging.getInstance().subscribeToTopic(Locale.getDefault().getLanguage());
+            }
+            else{
+                FirebaseMessaging.getInstance().subscribeToTopic("en");
+            }
             SharedPreferences.Editor spEditor = getUserSharedPreferences().edit();
             List<NewsModel> savedNewsList = new ArrayList<>();
             List<String> topicList = new ArrayList<>();
@@ -108,6 +119,7 @@ public class MainActivity extends BaseActivity implements NewsListFragment.OnFra
     protected void onDestroy() {
         super.onDestroy();
         navigationHistory.clear();
+        SharedPreferencesLoader.saveCurrentTime(getUserSharedPreferences().edit());
     }
 
     @Override

@@ -27,6 +27,11 @@ See changelog and develop branch for not-official features.
 
 # Changelog
 
+**-3/11/2018/:** 
+  Hopefully this is the last version that will run on the playstore. You would receive notifications from topics you choose with this build.
+  Fixed a bug that when activity is destroyed on backgroud and night mode is active, MainActivity background was white instead of gray.
+  TODO: Add a clean list button in TopicListFragment
+
 **-31/10/2018:**
   Manage your topics layouts finished.
   Make communication with FirebaseRealtimeDatabase in order to save user prefered topics.

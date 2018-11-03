@@ -2,6 +2,7 @@ package com.eagskunst.emmanuel.gamingnews.Utility;
 
 import android.app.Notification;
 import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.v4.app.NotificationCompat;
@@ -13,19 +14,22 @@ import com.eagskunst.emmanuel.gamingnews.views.MainActivity;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.InstanceIdResult;
-import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.util.Date;
+import java.util.Locale;
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 
 public class NotificationMaker extends FirebaseMessagingService {
     private final String TAG = getClass().getSimpleName();
     private String sessionToken;
-    private SharedPreferences sharedPreferences;
-
-    public NotificationMaker(SharedPreferences sharedPreferences) {
-        this.sharedPreferences = sharedPreferences;
-    }
+    public SharedPreferences sharedPreferences;
 
     @Override
     public void onNewToken(String s) {
@@ -37,31 +41,36 @@ public class NotificationMaker extends FirebaseMessagingService {
     public void onMessageReceived(RemoteMessage remoteMessage) {
         super.onMessageReceived(remoteMessage);
         Log.d(TAG,"Message: "+remoteMessage);
-        generateNotification(remoteMessage.getNotification().getTitle(),remoteMessage.getNotification().getBody());
+        generateNotification(remoteMessage.getData().get("title"),remoteMessage.getData().get("descp"),
+                    remoteMessage.getData().get("lang"));
     }
 
-    private void generateNotification(String title, String body) {
+    private void generateNotification(String title, String body, String lang) {
+        Log.d(TAG, "Lang: "+lang);
+        if(lang.equals(Locale.getDefault().getLanguage())){
+            Random r = new Random();
+            Intent pendingIntent = new Intent(this, MainActivity.class);
+            pendingIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            int requestCode = r.nextInt((100-1)+1)+1;
+            PendingIntent notifyPendingIntent =
+                    PendingIntent.getActivity(
+                            this,
+                            requestCode,
+                            pendingIntent,
+                            0
+                    );
 
-        Intent pendingIntent = new Intent(this, MainActivity.class);
-        pendingIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            Notification notification = new NotificationCompat.Builder(this,"0")
+                    .setContentTitle(title)
+                    .setContentText(body)
+                    .setContentIntent(notifyPendingIntent)
+                    .setColor(getResources().getColor(R.color.colorPrimary))
+                    .setSmallIcon(R.drawable.ic_all)
+                    .build();
 
-        PendingIntent notifyPendingIntent =
-                PendingIntent.getActivity(
-                        this,
-                        99,
-                        pendingIntent,
-                        PendingIntent.FLAG_UPDATE_CURRENT
-                );
-
-        Notification notification = new NotificationCompat.Builder(this,"0")
-                .setContentTitle(title)
-                .setContentText(body)
-                .setContentIntent(notifyPendingIntent)
-                .setSmallIcon(R.mipmap.ic_launcher)
-                .build();
-
-        NotificationManagerCompat manager = NotificationManagerCompat.from(getApplicationContext());
-        manager.notify(0,notification);
+            NotificationManagerCompat manager = NotificationManagerCompat.from(getApplicationContext());
+            manager.notify(requestCode,notification);
+        }
     }
 
     public void setToken() {

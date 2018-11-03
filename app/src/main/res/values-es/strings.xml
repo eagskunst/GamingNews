@@ -30,17 +30,18 @@
     <string name="default_notification_channel_id">channel_0</string>
     <string name="pref_title_interface">Interfaz</string>
     <string name="pref_key_title1">pref_interface</string>
-    <string name="pref_title_notifications">Notifications</string>
+    <string name="pref_title_notifications">Notificaciones</string>
     <string name="pref_key_title2">pref_notification</string>
     <string name="pref_dailynotf">pref_dailynotf</string>
     <string name="dailynotf_title">Recibe una notificación diaria</string>
     <string name="dailynotf_descp">Marca para un recordatorio diario para ver las noticias.</string>
     <string name="manage_topics">Gestiona los temas</string>
-    <string name="no_topics_added">Nos has añadido temas personalizados para recibir notificaciones. Para añadir uno pulsa \'+\'</string>
+    <string name="no_topics_added">No has añadido temas personalizados para recibir notificaciones. Para añadir uno pulsa \'+\'</string>
     <string name="add_topic">Añadir un tema</string>
     <string name="summary_topics">Cambia los temas de los cuales quieres recibir notificaciones</string>
     <string name="cancel">CANCELAR</string>
     <string name="add">AÑADIR</string>
+    <string name="ilegalargumentfirebase">No uses caracteres especiales ni tildes</string>
 
 
 </resources>
