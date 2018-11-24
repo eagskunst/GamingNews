@@ -1,35 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.design.widget.CoordinatorLayout
+<RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".views.WebViewActivity">
-    <LinearLayout
-        android:orientation="vertical"
+    >
+    <android.support.design.widget.CoordinatorLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
-        <include layout="@layout/actionbar_toolbar"/>
-
-        <WebView
-            android:id="@+id/webview"
+        android:layout_height="match_parent"
+        android:animateLayoutChanges="true"
+        tools:context=".views.WebViewActivity">
+        <LinearLayout
+            android:orientation="vertical"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:visibility="invisible"
-            />
-    </LinearLayout>
+            android:layout_height="match_parent">
+            <include layout="@layout/actionbar_toolbar"/>
+
+            <WebView
+                android:id="@+id/webview"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="invisible"
+                />
+        </LinearLayout>
+
+    </android.support.design.widget.CoordinatorLayout>
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/webviewFAB"
         android:visibility="visible"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
+        android:layout_above="@id/adView"
+        android:layout_alignRight="@id/adView"
+        android:layout_alignEnd="@id/adView"
         android:layout_margin="@dimen/margin_fab"
-        android:background="@color/colorAccent"
-        app:fabSize="normal"
+        app:fabSize="mini"
+        app:backgroundTint="@color/colorPrimaryDark"
         />
 
-
-</android.support.design.widget.CoordinatorLayout>
+    <com.google.android.gms.ads.AdView
+        xmlns:ads="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/adView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentBottom="true"
+        ads:adSize="SMART_BANNER"
+        ads:adUnitId="ca-app-pub-7679100799273392/3879182214">
+    </com.google.android.gms.ads.AdView>
+</RelativeLayout>

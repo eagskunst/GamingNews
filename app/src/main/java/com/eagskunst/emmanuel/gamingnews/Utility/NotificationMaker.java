@@ -30,6 +30,7 @@ public class NotificationMaker extends FirebaseMessagingService {
     private final String TAG = getClass().getSimpleName();
     private String sessionToken;
     public SharedPreferences sharedPreferences;
+    public static NotificationCompat.InboxStyle inboxStyle = new NotificationCompat.InboxStyle();
 
     @Override
     public void onNewToken(String s) {
@@ -41,17 +42,21 @@ public class NotificationMaker extends FirebaseMessagingService {
     public void onMessageReceived(RemoteMessage remoteMessage) {
         super.onMessageReceived(remoteMessage);
         Log.d(TAG,"Message: "+remoteMessage);
+        String lang = remoteMessage.getData().get("lang");
+        if(lang.equals(Locale.getDefault().getLanguage())){
+            inboxStyle.addLine(remoteMessage.getData().get("descp").replace("_"," "));
+        }
         generateNotification(remoteMessage.getData().get("title"),remoteMessage.getData().get("descp"),
-                    remoteMessage.getData().get("lang"));
+                    lang);
     }
 
     private void generateNotification(String title, String body, String lang) {
         Log.d(TAG, "Lang: "+lang);
         if(lang.equals(Locale.getDefault().getLanguage())){
-            Random r = new Random();
+
             Intent pendingIntent = new Intent(this, MainActivity.class);
             pendingIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            int requestCode = r.nextInt((100-1)+1)+1;
+            int requestCode = 0;
             PendingIntent notifyPendingIntent =
                     PendingIntent.getActivity(
                             this,
@@ -60,11 +65,13 @@ public class NotificationMaker extends FirebaseMessagingService {
                             0
                     );
 
+
             Notification notification = new NotificationCompat.Builder(this,"0")
                     .setContentTitle(title)
                     .setContentText(body)
                     .setContentIntent(notifyPendingIntent)
                     .setColor(getResources().getColor(R.color.colorPrimary))
+                    .setStyle(inboxStyle)
                     .setSmallIcon(R.drawable.ic_all)
                     .build();
 

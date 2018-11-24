@@ -35,7 +35,8 @@
         "https://www.vg247.com/feed/",
         "https://www.eurogamer.net/?format=rss",
         "https://kotaku.com/tag/gaming/rss",
-        "https://www.gameinformer.com/news.xml"
+        "https://www.gameinformer.com/news.xml",
+        "https://www.fortressofsolitude.co.za/gaming/feed/"
       ],
       "ps4_urls": [
         "https://www.eurogamer.net/?format=rss&platform=PS4",

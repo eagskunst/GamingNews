@@ -15,6 +15,8 @@ import com.eagskunst.emmanuel.gamingnews.Models.NewsModel;
 import com.eagskunst.emmanuel.gamingnews.R;
 import com.eagskunst.emmanuel.gamingnews.Utility.BaseActivity;
 import com.eagskunst.emmanuel.gamingnews.Utility.SharedPreferencesLoader;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,6 +38,11 @@ public class WebViewActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_web_view);
 
+        AdView adView = findViewById(R.id.adView);
+        AdRequest adRequest = new AdRequest.Builder()
+                .build();
+        adView.loadAd(adRequest);
+
         Toolbar toolbar = findViewById(R.id.toolbar);
         progressBar = findViewById(R.id.toolbarProgressBar);
         showToolbar(toolbar,R.string.loading,true,progressBar);
@@ -49,7 +56,6 @@ public class WebViewActivity extends BaseActivity {
                 if(modified){
                     //Saving modifications
                     callLog(TAG,"Enter onDestroy if");
-                    // SharedPreferencesLoader.saveList(getSharedPreferences("UserPreferences",0).edit(),newsList);
                     SharedPreferencesLoader.saveList(getUserSharedPreferences().edit(),newsList);
                 }
                 finish();
@@ -109,6 +115,7 @@ public class WebViewActivity extends BaseActivity {
         WebSettings webSettings = webView.getSettings();
         webSettings.setSupportZoom(true);
         webSettings.setBuiltInZoomControls(true);
+        webSettings.setJavaScriptEnabled(true);
         webView.setWebChromeClient(new WebChromeClient(){
                                        @Override
                                        public void onProgressChanged(WebView view, int newProgress) {

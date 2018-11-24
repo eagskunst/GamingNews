@@ -12,6 +12,7 @@ import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -34,7 +35,8 @@ public class SharedPreferencesLoader {
             return newsModels;
         }
         else{
-            return null;
+            List<NewsModel> newsModels = new ArrayList<>();
+            return newsModels;
         }
     }
 

@@ -1,14 +1,21 @@
 package com.eagskunst.emmanuel.gamingnews.Fragments;
 
+import android.annotation.TargetApi;
 import android.app.AlertDialog;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.customtabs.CustomTabsClient;
+import android.support.customtabs.CustomTabsIntent;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -28,7 +35,10 @@ import com.eagskunst.emmanuel.gamingnews.Models.NewsModel;
 import com.eagskunst.emmanuel.gamingnews.R;
 import com.eagskunst.emmanuel.gamingnews.Utility.ParserMaker;
 import com.eagskunst.emmanuel.gamingnews.Utility.SharedPreferencesLoader;
+import com.eagskunst.emmanuel.gamingnews.receivers.SaveArticleReceiver;
 import com.eagskunst.emmanuel.gamingnews.views.WebViewActivity;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,6 +56,8 @@ public class NewsListFragment extends Fragment{
     private ParserMaker parserMaker;
     private FloatingActionButton fab;
     private OnFragmentInteractionListener mListener;
+    private Bitmap ic_star;
+    private boolean webViewOpen = false;
 
     public NewsListFragment() {
         // Required empty public constructor
@@ -63,6 +75,12 @@ public class NewsListFragment extends Fragment{
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_news_list,container,false);
+
+        AdView adView = view.findViewById(R.id.adView);
+        AdRequest adRequest = new AdRequest.Builder()
+                .build();
+        adView.loadAd(adRequest);
+
         String[] urls;
         recyclerView = view.findViewById(R.id.recyclerview);
         refreshLayout = view.findViewById(R.id.refreshlayout);
@@ -114,6 +132,7 @@ public class NewsListFragment extends Fragment{
         }
 
         manageRefreshLayout(parserMaker);
+        loadBitmaps();
         return view;
     }
 
@@ -131,6 +150,15 @@ public class NewsListFragment extends Fragment{
         super.onCreate(savedInstanceState);
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        if(webViewOpen){
+            if(getTag().equals("NewsListFragment_Saved")){
+                loadListFromSharedPreferences();
+            }
+        }
+    }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -226,12 +254,12 @@ public class NewsListFragment extends Fragment{
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
                 if(dy > 0 && fab.getVisibility() == View.VISIBLE){
-                    fab.setVisibility(View.INVISIBLE);
+                    fab.hide();
                     Log.d(TAG,"Entré para esconder"+fab.getVisibility());
                 }
                 else if(dy < 0 && fab.getVisibility() != View.VISIBLE){
                     Log.d(TAG,"Entré para mostrar"+fab.getVisibility());
-                    fab.setVisibility(View.VISIBLE);
+                    fab.show();
                 }
                 super.onScrolled(recyclerView, dx, dy);
             }
@@ -293,6 +321,16 @@ public class NewsListFragment extends Fragment{
         }
     }
 
+    private void loadBitmaps(){
+        Thread t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                ic_star = BitmapFactory.decodeResource(getResources(),R.drawable.ic_star_on);
+            }
+        });
+        t.run();
+    }
+
     private boolean isNetworkAvailable() {
         ConnectivityManager connectivityManager
                 = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -318,18 +356,38 @@ public class NewsListFragment extends Fragment{
         return new NewsAdapter.NewsViewHolder.OnItemClickListener() {
             @Override
             public void OnItemClick(NewsModel item) {
-
-                Intent intent = new Intent(getActivity(), WebViewActivity.class);
-                intent.putExtra("url",item.getLink());
-                intent.putExtra("Article",item);
-
-                if(fab.getVisibility() == View.VISIBLE)
-                    fab.setVisibility(View.INVISIBLE);
-                if(!getTag().equals("NewsListFragment_Saved"))
-                    getActivity().startActivity(intent);
-                else{
-                    startActivityForResult(intent,REQUEST_RESULT);
+                Intent i = new Intent(getActivity(),SaveArticleReceiver.class);
+                i.putExtra("url",item.getLink());
+                i.setExtrasClassLoader(NewsModel.class.getClassLoader());
+                Bundle bundle = new Bundle();
+                bundle.putParcelable("Article",item);
+                i.putExtra("Bundle",bundle);
+                i.putExtra(Intent.EXTRA_REFERRER,
+                        Uri.parse("android-app://" + getContext().getPackageName()));
+                Bitmap b;
+                if(ic_star != null){
+                    b = ic_star;
                 }
+                else{
+                    b = BitmapFactory.decodeResource(getResources(),R.drawable.ic_star_on);
+                }
+                SharedPreferences sharedPreferences = getActivity().getSharedPreferences("UserPreferences",Context.MODE_PRIVATE);
+
+                CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder()
+                        .addDefaultShareMenuItem();
+                if(SharedPreferencesLoader.currentTheme(sharedPreferences) == R.style.AppTheme)
+                    builder.setToolbarColor(getResources().getColor(R.color.colorPrimaryDark));
+                else{
+                    builder.setToolbarColor(getResources().getColor(R.color.colorPrimaryText));
+                }
+
+                PendingIntent pendingIntent = PendingIntent.getBroadcast(getActivity(),0,i,PendingIntent.FLAG_UPDATE_CURRENT);
+                builder.setActionButton(b,"Save",pendingIntent,true);
+                builder.setStartAnimations(getActivity(),R.anim.slide_in_right,R.anim.slide_out_left);
+                builder.setExitAnimations(getActivity(),android.R.anim.slide_in_left,android.R.anim.slide_out_right);
+                CustomTabsIntent customTab = builder.build();
+                customTab.launchUrl(getActivity(),Uri.parse(item.getLink()));
+                webViewOpen = true;
             }
         };
     }

@@ -28,6 +28,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.messaging.FirebaseMessaging;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -72,6 +73,12 @@ public class TopicListFragment extends Fragment {
 
         setHasOptionsMenu(true);
         topicList = SharedPreferencesLoader.retrieveTopics(sharedPreferences);
+        if(topicList == null){
+            SharedPreferences.Editor spEditor = sharedPreferences.edit();
+            topicList = new ArrayList<>();
+            SharedPreferencesLoader.saveTopics(spEditor,topicList);
+        }
+
         for(String t:topicList)
             Log.d(TAG,"Topic: "+t);
         noTopics = v.findViewById(R.id.tv_topiclist);
@@ -159,7 +166,7 @@ public class TopicListFragment extends Fragment {
                         try{
                             FirebaseMessaging.getInstance().unsubscribeFromTopic(text.replace(" ","_").toUpperCase());
                         }catch(IllegalArgumentException e){
-                            Toast.makeText(getActivity(),R.string.ilegalargumentfirebase,Toast.LENGTH_SHORT);
+                            Toast.makeText(getActivity(),R.string.ilegalargumentfirebase,Toast.LENGTH_SHORT).show();
                             e.printStackTrace();
                         }
                     }
@@ -169,7 +176,7 @@ public class TopicListFragment extends Fragment {
                     try{
                         FirebaseMessaging.getInstance().unsubscribeFromTopic(text.replace(" ","_").toUpperCase());
                     }catch(IllegalArgumentException e){
-                        Toast.makeText(getActivity(),R.string.ilegalargumentfirebase,Toast.LENGTH_SHORT);
+                        Toast.makeText(getActivity(),R.string.ilegalargumentfirebase,Toast.LENGTH_SHORT).show();
                         e.printStackTrace();
                     }
                 }

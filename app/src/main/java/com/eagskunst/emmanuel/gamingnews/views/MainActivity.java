@@ -62,11 +62,6 @@ public class MainActivity extends BaseActivity implements NewsListFragment.OnFra
 
         MobileAds.initialize(this,"ca-app-pub-7679100799273392~6141549329");
 
-        AdView adView = findViewById(R.id.adView);
-        AdRequest adRequest = new AdRequest.Builder()
-                .build();
-        adView.loadAd(adRequest);
-
         setFirebaseToken();
 
         //In first launch, create saved list

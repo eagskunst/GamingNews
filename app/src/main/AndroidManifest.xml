@@ -26,6 +26,13 @@
             android:name="com.google.firebase.messaging.default_notification_color"
             android:resource="@color/colorPrimary" />
 
+        <meta-data android:name="android.webkit.WebView.EnableSafeBrowsing"
+            android:value="true" />
+
+        <receiver android:name="com.eagskunst.emmanuel.gamingnews.receivers.SaveArticleReceiver"
+            android:enabled="true"
+            />
+
 
         <activity
             android:name=".views.MainActivity"
@@ -87,7 +94,6 @@
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT"/>
             </intent-filter>
-
         </service>
     </application>
 
