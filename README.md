@@ -27,6 +27,10 @@ See changelog and develop branch for not-official features.
 
 # Changelog
 
+**-24/11/2018/:** 
+  Changed notifications config.
+  Webview now uses ChromeCustomTabs.
+
 **-3/11/2018/:** 
   Hopefully this is the last version that will run on the playstore. You would receive notifications from topics you choose with this build.
   Fixed a bug that when activity is destroyed on backgroud and night mode is active, MainActivity background was white instead of gray.
