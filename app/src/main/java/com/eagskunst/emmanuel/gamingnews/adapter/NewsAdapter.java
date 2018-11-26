@@ -1,4 +1,4 @@
-package com.eagskunst.emmanuel.gamingnews.Adapter;
+package com.eagskunst.emmanuel.gamingnews.adapter;
 
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -7,9 +7,9 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.eagskunst.emmanuel.gamingnews.Models.NewsModel;
+import com.eagskunst.emmanuel.gamingnews.models.NewsModel;
 import com.eagskunst.emmanuel.gamingnews.R;
-import com.eagskunst.emmanuel.gamingnews.Utility.SharedPreferencesLoader;
+import com.eagskunst.emmanuel.gamingnews.utility.SharedPreferencesLoader;
 import com.squareup.picasso.Picasso;
 
 

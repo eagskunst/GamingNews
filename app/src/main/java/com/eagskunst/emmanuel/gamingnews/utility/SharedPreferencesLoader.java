@@ -1,22 +1,17 @@
-package com.eagskunst.emmanuel.gamingnews.Utility;
+package com.eagskunst.emmanuel.gamingnews.utility;
 
 import android.content.SharedPreferences;
-import android.content.res.Resources;
 
-import com.eagskunst.emmanuel.gamingnews.Models.NewsModel;
+import com.eagskunst.emmanuel.gamingnews.models.NewsModel;
 import com.eagskunst.emmanuel.gamingnews.R;
-import com.google.firebase.messaging.FirebaseMessaging;
-import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import java.util.TimeZone;
 
 public class SharedPreferencesLoader {
     public static boolean canLoadImages = true;

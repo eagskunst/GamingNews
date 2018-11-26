@@ -21,15 +21,19 @@ android {
         applicationId "com.eagskunst.emmanuel.gamingnews"
         minSdkVersion 16
         targetSdkVersion 28
-        versionCode 8
-        versionName "1.2.4"
+        versionCode 9
+        versionName "1.2.5"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
+        signingConfig signingConfigs.config
     }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.config
+        }
+        debug {
             signingConfig signingConfigs.config
         }
     }

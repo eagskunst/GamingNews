@@ -62,15 +62,6 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".views.WebViewActivity"
-            android:launchMode="singleTop"
-            android:parentActivityName=".views.MainActivity"
-            android:screenOrientation="portrait">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.eagskunst.emmanuel.gamingnews.views.MainActivity" />
-        </activity>
-        <activity
             android:name=".views.SettingsActivity"
             android:label="@string/title_activity_settings"
             android:launchMode="singleTop"
@@ -90,7 +81,7 @@
         </activity>
 
         <service
-            android:name=".Utility.NotificationMaker">
+            android:name=".utility.NotificationMaker">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT"/>
             </intent-filter>

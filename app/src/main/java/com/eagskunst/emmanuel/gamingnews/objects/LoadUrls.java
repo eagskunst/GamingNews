@@ -1,6 +1,6 @@
-package com.eagskunst.emmanuel.gamingnews.Objects;
+package com.eagskunst.emmanuel.gamingnews.objects;
 
-import com.eagskunst.emmanuel.gamingnews.Models.Categories;
+import com.eagskunst.emmanuel.gamingnews.models.Categories;
 import com.google.gson.Gson;
 
 import java.io.IOException;

@@ -3,9 +3,9 @@ package com.eagskunst.emmanuel.gamingnews.views;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 
-import com.eagskunst.emmanuel.gamingnews.Fragments.NewsListFragment;
+import com.eagskunst.emmanuel.gamingnews.fragments.NewsListFragment;
 import com.eagskunst.emmanuel.gamingnews.R;
-import com.eagskunst.emmanuel.gamingnews.Utility.BaseActivity;
+import com.eagskunst.emmanuel.gamingnews.utility.BaseActivity;
 
 public class ArticlesFromNotificationActivity extends BaseActivity {
 

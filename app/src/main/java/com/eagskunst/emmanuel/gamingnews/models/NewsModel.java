@@ -1,4 +1,4 @@
-package com.eagskunst.emmanuel.gamingnews.Models;
+package com.eagskunst.emmanuel.gamingnews.models;
 
 import android.os.Parcel;
 import android.os.Parcelable;

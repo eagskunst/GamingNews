@@ -1,4 +1,4 @@
-package com.eagskunst.emmanuel.gamingnews.Fragments;
+package com.eagskunst.emmanuel.gamingnews.fragments;
 
 import android.app.AlertDialog;
 import android.content.Context;
@@ -7,7 +7,6 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
-import android.support.v4.app.DialogFragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -23,14 +22,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.eagskunst.emmanuel.gamingnews.R;
-import com.eagskunst.emmanuel.gamingnews.Utility.SharedPreferencesLoader;
+import com.eagskunst.emmanuel.gamingnews.utility.SharedPreferencesLoader;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.messaging.FirebaseMessaging;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 
 public class TopicListFragment extends Fragment {

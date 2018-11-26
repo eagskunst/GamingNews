@@ -8,9 +8,9 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.eagskunst.emmanuel.gamingnews.Models.NewsModel;
+import com.eagskunst.emmanuel.gamingnews.models.NewsModel;
 import com.eagskunst.emmanuel.gamingnews.R;
-import com.eagskunst.emmanuel.gamingnews.Utility.SharedPreferencesLoader;
+import com.eagskunst.emmanuel.gamingnews.utility.SharedPreferencesLoader;
 
 import java.util.List;
 

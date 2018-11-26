@@ -5,11 +5,10 @@ import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
-import android.widget.ImageButton;
 
-import com.eagskunst.emmanuel.gamingnews.Fragments.SettingsFragment;
+import com.eagskunst.emmanuel.gamingnews.fragments.SettingsFragment;
 import com.eagskunst.emmanuel.gamingnews.R;
-import com.eagskunst.emmanuel.gamingnews.Utility.BaseActivity;
+import com.eagskunst.emmanuel.gamingnews.utility.BaseActivity;
 
 public class SettingsActivity extends BaseActivity {
 

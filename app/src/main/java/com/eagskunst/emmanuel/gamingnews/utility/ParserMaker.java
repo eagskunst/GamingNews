@@ -1,11 +1,11 @@
-package com.eagskunst.emmanuel.gamingnews.Utility;
+package com.eagskunst.emmanuel.gamingnews.utility;
 
 import android.text.Html;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.eagskunst.emmanuel.gamingnews.Adapter.NewsAdapter;
-import com.eagskunst.emmanuel.gamingnews.Models.NewsModel;
+import com.eagskunst.emmanuel.gamingnews.adapter.NewsAdapter;
+import com.eagskunst.emmanuel.gamingnews.models.NewsModel;
 import com.prof.rssparser.Article;
 import com.prof.rssparser.Parser;
 

@@ -44,6 +44,8 @@
                 android:layout_height="wrap_content"
                 android:textColor="@color/colorTextAndIcons"
                 android:textSize="@dimen/secondary_text_cardv"
+                android:layout_marginStart="5dp"
+                android:layout_marginLeft="5dp"
                 />
         </LinearLayout>
     </RelativeLayout>

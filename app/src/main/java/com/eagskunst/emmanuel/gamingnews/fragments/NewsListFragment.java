@@ -1,6 +1,5 @@
-package com.eagskunst.emmanuel.gamingnews.Fragments;
+package com.eagskunst.emmanuel.gamingnews.fragments;
 
-import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -14,7 +13,6 @@ import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.customtabs.CustomTabsClient;
 import android.support.customtabs.CustomTabsIntent;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
@@ -30,13 +28,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
-import com.eagskunst.emmanuel.gamingnews.Adapter.NewsAdapter;
-import com.eagskunst.emmanuel.gamingnews.Models.NewsModel;
+import com.eagskunst.emmanuel.gamingnews.adapter.NewsAdapter;
+import com.eagskunst.emmanuel.gamingnews.models.NewsModel;
 import com.eagskunst.emmanuel.gamingnews.R;
-import com.eagskunst.emmanuel.gamingnews.Utility.ParserMaker;
-import com.eagskunst.emmanuel.gamingnews.Utility.SharedPreferencesLoader;
+import com.eagskunst.emmanuel.gamingnews.utility.ParserMaker;
+import com.eagskunst.emmanuel.gamingnews.utility.SharedPreferencesLoader;
 import com.eagskunst.emmanuel.gamingnews.receivers.SaveArticleReceiver;
-import com.eagskunst.emmanuel.gamingnews.views.WebViewActivity;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 
@@ -156,6 +153,7 @@ public class NewsListFragment extends Fragment{
         if(webViewOpen){
             if(getTag().equals("NewsListFragment_Saved")){
                 loadListFromSharedPreferences();
+                webViewOpen = false;
             }
         }
     }
@@ -392,7 +390,12 @@ public class NewsListFragment extends Fragment{
         };
     }
 
-
+    public void getArticles(){
+        if(newsList.isEmpty()){
+            parserMaker.create();
+            refreshLayout.setRefreshing(true);
+        }
+    }
 
     public ParserMaker getParserMaker() {
         return parserMaker;

@@ -1,8 +1,7 @@
-package com.eagskunst.emmanuel.gamingnews.Utility;
+package com.eagskunst.emmanuel.gamingnews.utility;
 
 import android.app.Notification;
 import android.app.PendingIntent;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.v4.app.NotificationCompat;
@@ -17,13 +16,7 @@ import com.google.firebase.iid.InstanceIdResult;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.time.Instant;
-import java.util.Date;
 import java.util.Locale;
-import java.util.Random;
-import java.util.concurrent.TimeUnit;
 
 
 public class NotificationMaker extends FirebaseMessagingService {

@@ -1,4 +1,4 @@
-package com.eagskunst.emmanuel.gamingnews.Fragments;
+package com.eagskunst.emmanuel.gamingnews.fragments;
 
 import android.content.Context;
 import android.content.Intent;
@@ -12,7 +12,7 @@ import android.util.Log;
 
 
 import com.eagskunst.emmanuel.gamingnews.R;
-import com.eagskunst.emmanuel.gamingnews.Utility.SharedPreferencesLoader;
+import com.eagskunst.emmanuel.gamingnews.utility.SharedPreferencesLoader;
 import com.eagskunst.emmanuel.gamingnews.views.MainActivity;
 import com.eagskunst.emmanuel.gamingnews.views.SettingsActivity;
 import com.google.firebase.messaging.FirebaseMessaging;

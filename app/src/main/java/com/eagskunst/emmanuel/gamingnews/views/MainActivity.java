@@ -5,9 +5,9 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.os.Bundle;
@@ -16,14 +16,14 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ProgressBar;
 
-import com.eagskunst.emmanuel.gamingnews.Fragments.NewsListFragment;
-import com.eagskunst.emmanuel.gamingnews.Models.NewsModel;
-import com.eagskunst.emmanuel.gamingnews.Objects.LoadUrls;
+import com.eagskunst.emmanuel.gamingnews.credentials.Credentials;
+import com.eagskunst.emmanuel.gamingnews.fragments.NewsListFragment;
+import com.eagskunst.emmanuel.gamingnews.models.NewsModel;
+import com.eagskunst.emmanuel.gamingnews.objects.LoadUrls;
 import com.eagskunst.emmanuel.gamingnews.R;
-import com.eagskunst.emmanuel.gamingnews.Utility.BaseActivity;
-import com.eagskunst.emmanuel.gamingnews.Utility.SharedPreferencesLoader;
-import com.google.android.gms.ads.AdRequest;
-import com.google.android.gms.ads.AdView;
+import com.eagskunst.emmanuel.gamingnews.utility.BaseActivity;
+import com.eagskunst.emmanuel.gamingnews.utility.SharedPreferencesLoader;
+
 import com.google.android.gms.ads.MobileAds;
 import com.google.firebase.messaging.FirebaseMessaging;
 
@@ -39,7 +39,7 @@ public class MainActivity extends BaseActivity implements NewsListFragment.OnFra
     private static final String[] News_TAG = {"NewsListFragment_All","NewsListFragment_PS4","NewsListFragment_XboxO",
                                                 "NewsListFragment_Switch","NewsListFragment_PC","NewsListFragment_Saved"
                                                 };
-    private static final int[] tab_id ={R.id.all_news,R.id.ps4_news,R.id.xboxo_news,R.id.switch_news,R.id.PC_news,R.id.saved_news};
+    private NewsListFragment[] newsFragments;
 
 
     private String currentFrag;
@@ -47,7 +47,6 @@ public class MainActivity extends BaseActivity implements NewsListFragment.OnFra
     private ProgressBar progressBar;
     private LoadUrls loadUrls;
     private NavigationView navigationView;
-    private List<String> navigationHistory = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,7 +59,7 @@ public class MainActivity extends BaseActivity implements NewsListFragment.OnFra
             getWindow().getDecorView().setBackgroundColor(getResources().getColor(R.color.colorBackgroundNightMode));
         }
 
-        MobileAds.initialize(this,"ca-app-pub-7679100799273392~6141549329");
+        MobileAds.initialize(this,Credentials.adMobCredential);
 
         setFirebaseToken();
 
@@ -99,56 +98,28 @@ public class MainActivity extends BaseActivity implements NewsListFragment.OnFra
         } catch (IOException e) {
             e.printStackTrace();
         }
+        newsFragments = new NewsListFragment[News_TAG.length];
         startNavigationView();
+        initAllFragments();
         getSupportFragmentManager().beginTransaction()
-                .replace(R.id.container, NewsListFragment.newInstance(loadUrls.getAllUrls()), News_TAG[0])
-                .addToBackStack(News_TAG[0])
+                .replace(R.id.container, newsFragments[0], News_TAG[0])
                 .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
                 .commit();
+
         currentFrag = News_TAG[0];
-        navigationHistory.add(News_TAG[0]);
-        navigationView.setCheckedItem(tab_id[0]);
+        navigationView.setCheckedItem(R.id.all_news);
+        if(newsFragments[0].getParserMaker() != null)
+            newsFragments[0].getArticles();
+        setOnBackChangeListener();
     }
+
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        navigationHistory.clear();
         SharedPreferencesLoader.saveCurrentTime(getUserSharedPreferences().edit());
     }
 
-    @Override
-    public void onBackPressed() {
-        NewsListFragment fragment = (NewsListFragment) getSupportFragmentManager().findFragmentByTag(currentFrag);
-        int size = navigationHistory.size() - 2;
-        if(drawerLayout.isDrawerOpen(GravityCompat.START)){
-            drawerLayout.closeDrawers();
-        }
-        else if(fragment.getTag().equals(News_TAG[0])){
-            if(fragment.getParserMaker().isRunning()){
-                moveTaskToBack(true);
-            }
-            else{
-                getSupportFragmentManager().popBackStackImmediate(null,FragmentManager.POP_BACK_STACK_INCLUSIVE);
-                finish();
-            }
-        }
-        else{
-            if(getSupportFragmentManager().findFragmentByTag(navigationHistory.get(size)).getTag().equals(currentFrag)){
-                currentFrag = getSupportFragmentManager().findFragmentByTag(navigationHistory.get(size-1)).getTag();
-            }
-            else{
-                currentFrag = getSupportFragmentManager().findFragmentByTag(navigationHistory.get(size)).getTag();
-            }
-            int i = 0;
-            while(!currentFrag.equals(News_TAG[i])){
-                i++;
-            }
-            navigationView.setCheckedItem(tab_id[i]);
-            hideAndShow(fragment,(NewsListFragment)getSupportFragmentManager().findFragmentByTag(currentFrag));
-            navigationHistory.remove(fragment.getTag());
-        }
-    }
 
     private void startDrawerLayout(Toolbar toolbar) {
         drawerLayout = findViewById(R.id.drawer_layout);
@@ -156,30 +127,34 @@ public class MainActivity extends BaseActivity implements NewsListFragment.OnFra
                 toolbar, R.string.drawer_open, R.string.drawer_close);
         drawerLayout.addDrawerListener(drawerToggle);
         drawerToggle.syncState();
+        getSupportActionBar().setHomeButtonEnabled(true);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setHomeAsUpIndicator(R.mipmap.ic_launcher_round);
     }
 
     private void startNavigationView() {
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                switch (item.getItemId()) {
+                int id = item.getItemId();
+                switch (id) {
                     case R.id.all_news:
-                        makeFragmentTransaction(loadUrls.getAllUrls(),tab_id[0],News_TAG[0]);
+                        makeFragmentTransaction(newsFragments[0],id,News_TAG[0]);
                         break;
                     case R.id.ps4_news:
-                        makeFragmentTransaction(loadUrls.getPs4Urls(), tab_id[1],News_TAG[1]);
+                        makeFragmentTransaction(newsFragments[1],id,News_TAG[1]);
                         break;
                     case R.id.xboxo_news:
-                        makeFragmentTransaction(loadUrls.getXboxOUrls(), tab_id[2],News_TAG[2]);
+                        makeFragmentTransaction(newsFragments[2],id,News_TAG[2]);
                         break;
                     case R.id.switch_news:
-                        makeFragmentTransaction(loadUrls.getSwitchUrls(), tab_id[3],News_TAG[3]);
+                        makeFragmentTransaction(newsFragments[3],id,News_TAG[3]);
                         break;
                     case R.id.PC_news:
-                        makeFragmentTransaction(loadUrls.getPcUrls(), tab_id[4],News_TAG[4]);
+                        makeFragmentTransaction(newsFragments[4],id,News_TAG[4]);
                         break;
                     case R.id.saved_news:
-                        makeFragmentTransaction(new String[]{"SAVEDLIST"}, tab_id[5],News_TAG[5]);
+                        makeFragmentTransaction(newsFragments[5],id,News_TAG[5]);
                         break;
                     case R.id.settings:
                         startActivity(new Intent(MainActivity.this,SettingsActivity.class));
@@ -192,51 +167,89 @@ public class MainActivity extends BaseActivity implements NewsListFragment.OnFra
         });
     }
 
+    private void initAllFragments(){
+        for(int i = 0;i<newsFragments.length;i++){
+                newsFragments[i] = NewsListFragment.newInstance(getUrls(i));
+        }
+    }
+    private void setOnBackChangeListener() {
+        getSupportFragmentManager().addOnBackStackChangedListener(new FragmentManager.OnBackStackChangedListener() {
+            @Override
+            public void onBackStackChanged() {
+                Fragment currentFragment = getCurrentFragment();
+                String tag = currentFragment.getTag();
+                if(tag.equals(News_TAG[0])){
+                    navigationView.setCheckedItem(R.id.all_news);
+                }
+                else if(tag.equals(News_TAG[1])){
+                    navigationView.setCheckedItem(R.id.ps4_news);
+                }
+                else if(tag.equals(News_TAG[2])){
+                    navigationView.setCheckedItem(R.id.xboxo_news);
+                }
+                else if(tag.equals(News_TAG[3])){
+                    navigationView.setCheckedItem(R.id.switch_news);
+                }
+                else if(tag.equals(News_TAG[4])){
+                    navigationView.setCheckedItem(R.id.PC_news);
+                }
+                else if(tag.equals(News_TAG[5])){
+                    navigationView.setCheckedItem(R.id.saved_news);
+                }
+
+            }
+        });
+    }
+
+    private Fragment getCurrentFragment() {
+        return this.getSupportFragmentManager().findFragmentById(R.id.container);
+    }
+
+    private String[] getUrls(int i) {
+        String urls[] = null;
+        switch (i){
+            case 0:
+                urls = loadUrls.getAllUrls();
+                break;
+            case 1:
+                urls = loadUrls.getPs4Urls();
+                break;
+            case 2:
+                urls = loadUrls.getXboxOUrls();
+                break;
+            case 3:
+                urls = loadUrls.getSwitchUrls();
+                break;
+            case 4:
+                urls = loadUrls.getPcUrls();
+                break;
+            case 5:
+                urls = new String[]{"SAVEDLIST"};
+                break;
+        }
+        return urls;
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         return super.onCreateOptionsMenu(menu);
     }
 
-    private void makeFragmentTransaction(String[] urls, int item, String _TAG) {
-        NewsListFragment newsFragment = (NewsListFragment) getSupportFragmentManager().findFragmentByTag(_TAG);
-        if(newsFragment == null){
-            newsFragment = NewsListFragment.newInstance(urls);
+    private void makeFragmentTransaction(NewsListFragment fragment, int item, String _TAG){
+        if(!currentFrag.equals(_TAG)){
             getSupportFragmentManager().beginTransaction()
-                    .hide(getSupportFragmentManager().findFragmentByTag(currentFrag))
-                    .add(R.id.container,newsFragment,_TAG)
+                    .replace(R.id.container,fragment,_TAG)
                     .addToBackStack(_TAG)
-                    .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+                    .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
                     .commit();
             currentFrag = _TAG;
-            navigationHistory.add(_TAG);
         }
-        else if(!currentFrag.equals(_TAG)){
-            hideAndShow((NewsListFragment)getSupportFragmentManager().findFragmentByTag(currentFrag),newsFragment);
-            if(!navigationHistory.contains(_TAG)){
-                navigationHistory.add(_TAG);
-            }
-            else{
-                int i = navigationHistory.size() - 1;
-                while(!navigationHistory.get(i).equals(_TAG)){
-                    navigationHistory.remove(i);
-                    i--;
-                }
-            }
-            currentFrag = _TAG;
-        }
-        callLog(TAG,"Size: "+navigationHistory.size());
-
         navigationView.setCheckedItem(item);
         drawerLayout.closeDrawers();
+        if(fragment.getParserMaker() != null)
+            fragment.getArticles();
     }
 
-    private void hideAndShow(NewsListFragment toHide,NewsListFragment toShow) {
-        getSupportFragmentManager().beginTransaction()
-                .hide(toHide)
-                .show(toShow)
-                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-                .commit();
-    }
 
     @Override
     public void onFragmentInteraction(Uri uri) {

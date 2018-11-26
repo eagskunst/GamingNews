@@ -1,10 +1,8 @@
-package com.eagskunst.emmanuel.gamingnews.Utility;
+package com.eagskunst.emmanuel.gamingnews.utility;
 
-import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
@@ -14,19 +12,8 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
 
-import com.eagskunst.emmanuel.gamingnews.R;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ServerValue;
-import com.google.firebase.iid.FirebaseInstanceId;
-import com.google.firebase.iid.InstanceIdResult;
-import com.google.firebase.messaging.FirebaseMessaging;
-
-import java.util.Calendar;
-import java.util.TimeZone;
 
 public class BaseActivity extends AppCompatActivity {
 
@@ -63,8 +50,6 @@ public class BaseActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         getSupportActionBar().setTitle(title);
         getSupportActionBar().setDisplayHomeAsUpEnabled(upButton);
-        getSupportActionBar().setLogo(R.mipmap.ic_launcher_round);
-        toolbar.getLogo().setBounds(3, 3, 3, 3);
         if(progressBar != null){
             progressBar.setVisibility(View.GONE);
             progressBar.setIndeterminate(false);
