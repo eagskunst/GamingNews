@@ -27,6 +27,11 @@ See changelog and develop branch for not-official features.
 
 # Changelog
 
+**-25/11/2018/:**
+  Changed custom navigation on MainActivity for all fragments.
+  Renamed packages.
+  UI minimal changes.
+
 **-24/11/2018/:** 
   Changed notifications config.
   Webview now uses ChromeCustomTabs.
