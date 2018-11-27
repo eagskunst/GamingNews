@@ -129,7 +129,7 @@ public class MainActivity extends BaseActivity implements NewsListFragment.OnFra
         drawerToggle.syncState();
         getSupportActionBar().setHomeButtonEnabled(true);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setHomeAsUpIndicator(R.mipmap.ic_launcher_round);
+        getSupportActionBar().setHomeAsUpIndicator(R.drawable.drawerlogo1);
     }
 
     private void startNavigationView() {
