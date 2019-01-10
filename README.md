@@ -27,16 +27,21 @@ See changelog and develop branch for not-official features.
 
 # Changelog
 
-**-25/11/2018/:**
+**-10/01/2019:**
+    Following MVP pattern and DI in NewsListFragment.
+    Cleaning code.
+    Perma-saving FirebaseToken.
+
+**-25/11/2018:**
   Changed custom navigation on MainActivity for all fragments.
   Renamed packages.
   UI minimal changes.
 
-**-24/11/2018/:** 
+**-24/11/2018:**
   Changed notifications config.
   Webview now uses ChromeCustomTabs.
 
-**-3/11/2018/:** 
+**-3/11/2018:**
   Hopefully this is the last version that will run on the playstore. You would receive notifications from topics you choose with this build.
   Fixed a bug that when activity is destroyed on backgroud and night mode is active, MainActivity background was white instead of gray.
   TODO: Add a clean list button in TopicListFragment
