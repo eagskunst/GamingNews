@@ -18,6 +18,7 @@ import android.view.MenuItem;
 import android.widget.ProgressBar;
 
 import com.eagskunst.emmanuel.gamingnews.credentials.Credentials;
+import com.eagskunst.emmanuel.gamingnews.fragments.ReleasesFragment;
 import com.eagskunst.emmanuel.gamingnews.fragments.news_list.NewsListFragment;
 import com.eagskunst.emmanuel.gamingnews.models.NewsModel;
 import com.eagskunst.emmanuel.gamingnews.objects.LoadUrls;
@@ -37,8 +38,9 @@ import java.util.Locale;
 public class MainActivity extends BaseActivity implements NewsListFragment.OnFragmentInteractionListener {
 
     private static final String TAG = "MainActivity";
-    private static final String[] News_TAG = {"NewsListFragment_All","NewsListFragment_PS4","NewsListFragment_XboxO",
-                                                "NewsListFragment_Switch","NewsListFragment_PC","NewsListFragment_Saved"
+    private static final String[] FragmentTags = {"NewsListFragment_All","NewsListFragment_PS4","NewsListFragment_XboxO",
+                                                "NewsListFragment_Switch","NewsListFragment_PC","NewsListFragment_Saved",
+                                                "ReleasesFragment"
                                                 };
     private NewsListFragment[] newsFragments;
 
@@ -98,15 +100,15 @@ public class MainActivity extends BaseActivity implements NewsListFragment.OnFra
         } catch (IOException e) {
             e.printStackTrace();
         }
-        newsFragments = new NewsListFragment[News_TAG.length];
+        newsFragments = new NewsListFragment[FragmentTags.length];
         startNavigationView();
         initAllFragments();
         getSupportFragmentManager().beginTransaction()
-                .replace(R.id.container, newsFragments[0], News_TAG[0])
+                .replace(R.id.container, newsFragments[0], FragmentTags[0])
                 .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
                 .commit();
 
-        currentFrag = News_TAG[0];
+        currentFrag = FragmentTags[0];
         navigationView.setCheckedItem(R.id.all_news);
         setOnBackChangeListener();
     }
@@ -138,22 +140,27 @@ public class MainActivity extends BaseActivity implements NewsListFragment.OnFra
                 drawerLayout.closeDrawers();
                 switch (id) {
                     case R.id.all_news:
-                        makeFragmentTransaction(newsFragments[0],id,News_TAG[0]);
+                        makeFragmentTransaction(newsFragments[0],id, FragmentTags[0]);
                         break;
                     case R.id.ps4_news:
-                        makeFragmentTransaction(newsFragments[1],id,News_TAG[1]);
+                        makeFragmentTransaction(newsFragments[1],id, FragmentTags[1]);
                         break;
                     case R.id.xboxo_news:
-                        makeFragmentTransaction(newsFragments[2],id,News_TAG[2]);
+                        makeFragmentTransaction(newsFragments[2],id, FragmentTags[2]);
                         break;
                     case R.id.switch_news:
-                        makeFragmentTransaction(newsFragments[3],id,News_TAG[3]);
+                        makeFragmentTransaction(newsFragments[3],id, FragmentTags[3]);
                         break;
                     case R.id.PC_news:
-                        makeFragmentTransaction(newsFragments[4],id,News_TAG[4]);
+                        makeFragmentTransaction(newsFragments[4],id, FragmentTags[4]);
                         break;
                     case R.id.saved_news:
-                        makeFragmentTransaction(newsFragments[5],id,News_TAG[5]);
+                        makeFragmentTransaction(newsFragments[5],id, FragmentTags[5]);
+                        break;
+                    case R.id.next_releases:
+                        ReleasesFragment fragment = ReleasesFragment.newInstance();
+                        getSupportActionBar().setTitle("Coming soon games");
+                        makeFragmentTransaction(fragment, id, FragmentTags[6]);
                         break;
                     case R.id.settings:
                         startActivity(new Intent(MainActivity.this,SettingsActivity.class));
@@ -176,25 +183,33 @@ public class MainActivity extends BaseActivity implements NewsListFragment.OnFra
             public void onBackStackChanged() {
                 Fragment currentFragment = getCurrentFragment();
                 String tag = currentFragment.getTag();
-                if(tag.equals(News_TAG[0])){
+                if(tag.equals(FragmentTags[6])){
+                    getSupportActionBar().setTitle("Coming soon games");
+                }
+                else {
+                    getSupportActionBar().setTitle(R.string.app_name);
+                }
+                if(tag.equals(FragmentTags[0])){
                     navigationView.setCheckedItem(R.id.all_news);
                 }
-                else if(tag.equals(News_TAG[1])){
+                else if(tag.equals(FragmentTags[1])){
                     navigationView.setCheckedItem(R.id.ps4_news);
                 }
-                else if(tag.equals(News_TAG[2])){
+                else if(tag.equals(FragmentTags[2])){
                     navigationView.setCheckedItem(R.id.xboxo_news);
                 }
-                else if(tag.equals(News_TAG[3])){
+                else if(tag.equals(FragmentTags[3])){
                     navigationView.setCheckedItem(R.id.switch_news);
                 }
-                else if(tag.equals(News_TAG[4])){
+                else if(tag.equals(FragmentTags[4])){
                     navigationView.setCheckedItem(R.id.PC_news);
                 }
-                else if(tag.equals(News_TAG[5])){
+                else if(tag.equals(FragmentTags[5])){
                     navigationView.setCheckedItem(R.id.saved_news);
                 }
-
+                else if(tag.equals(FragmentTags[6])){
+                    navigationView.setCheckedItem(R.id.next_releases);
+                }
             }
         });
     }
@@ -233,7 +248,7 @@ public class MainActivity extends BaseActivity implements NewsListFragment.OnFra
         return super.onCreateOptionsMenu(menu);
     }
 
-    private void makeFragmentTransaction(final NewsListFragment fragment,final int item, final String _TAG){
+    private void makeFragmentTransaction(final Fragment fragment,final int item, final String _TAG){
         //Handler for the fade animation on the new fragment doesn't seem so abrupt.
         Handler h =  new Handler();
         h.postDelayed(new Runnable() {

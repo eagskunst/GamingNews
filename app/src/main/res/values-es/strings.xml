@@ -43,6 +43,7 @@
     <string name="add">AÑADIR</string>
     <string name="ilegalargumentfirebase">No uses caracteres especiales ni tildes</string>
     <string name="article_removed">Articulo removido</string>
+    <string name="nextReleases">Releases</string>
 
 
 </resources>

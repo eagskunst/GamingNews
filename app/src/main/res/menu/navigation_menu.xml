@@ -38,6 +38,11 @@
             android:title="@string/saved"
             />
         <item
+            android:id="@+id/next_releases"
+            android:icon="@drawable/ic_next_releases"
+            android:title="@string/nextReleases"
+            />
+        <item
             android:id="@+id/settings"
             android:icon="@drawable/ic_settings"
             android:title="@string/title_activity_settings"

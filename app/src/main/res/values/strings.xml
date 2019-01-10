@@ -42,4 +42,5 @@
     <string name="add">add</string>
     <string name="ilegalargumentfirebase">Don\'t use special characters</string>
     <string name="article_removed">Article removed</string>
+    <string name="nextReleases">Releases</string>
 </resources>
