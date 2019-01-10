@@ -30,7 +30,8 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.eagskunst.emmanuel.gamingnews.adapter.NewsAdapter;
-import com.eagskunst.emmanuel.gamingnews.fragments.news_list.mvp.NewsListModel;
+import com.eagskunst.emmanuel.gamingnews.fragments.news_list.di.DaggerNewsComponent;
+import com.eagskunst.emmanuel.gamingnews.fragments.news_list.di.NewsModule;
 import com.eagskunst.emmanuel.gamingnews.fragments.news_list.mvp.NewsListPresenter;
 import com.eagskunst.emmanuel.gamingnews.fragments.news_list.mvp.NewsListView;
 import com.eagskunst.emmanuel.gamingnews.models.NewsModel;
@@ -42,6 +43,8 @@ import com.google.android.gms.ads.AdView;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.inject.Inject;
 
 
 public class NewsListFragment extends Fragment implements NewsListView.View {
@@ -58,8 +61,10 @@ public class NewsListFragment extends Fragment implements NewsListView.View {
     private FloatingActionButton fab;
     private Bitmap ic_star;
     private boolean webViewOpen = false;
-    private NewsListPresenter presenter;
     private String[] urls;
+
+    @Inject
+    NewsListPresenter presenter;
 
     public NewsListFragment() {
         // Required empty public constructor
@@ -158,10 +163,16 @@ public class NewsListFragment extends Fragment implements NewsListView.View {
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
-        presenter = new NewsListPresenter(new NewsListModel());
+        initComponent();
         presenter.onCreateView(this);
         setHasOptionsMenu(true);
         super.onCreate(savedInstanceState);
+    }
+
+    private void initComponent() {
+        DaggerNewsComponent.builder()
+                .newsModule(new NewsModule(this))
+                .build().inject(NewsListFragment.this);
     }
 
 

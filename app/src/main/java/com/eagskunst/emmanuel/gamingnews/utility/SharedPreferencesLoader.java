@@ -73,7 +73,7 @@ public class SharedPreferencesLoader {
     }
 
     public static String getFirebaseToken(SharedPreferences sharedPreferences){
-        return sharedPreferences.getString("USER_TOKEN","no_play_services");
+        return sharedPreferences.getString("USER_TOKEN","no_token");
     }
 
     public static void saveCurrentTime(SharedPreferences.Editor spEditor){

@@ -77,10 +77,15 @@ public class NotificationMaker extends FirebaseMessagingService {
         FirebaseInstanceId.getInstance().getInstanceId().addOnSuccessListener(new OnSuccessListener<InstanceIdResult>() {
             @Override
             public void onSuccess(InstanceIdResult instanceIdResult) {
-                String updatedToken = instanceIdResult.getToken();
-                sessionToken = updatedToken;
-                SharedPreferencesLoader.saveFirebaseToken(sharedPreferences.edit(),sessionToken);
-                Log.e("Updated Token",updatedToken);
+                if(SharedPreferencesLoader.getFirebaseToken(sharedPreferences).equals("no_token")){
+                    String updatedToken = instanceIdResult.getToken();
+                    sessionToken = updatedToken;
+                    SharedPreferencesLoader.saveFirebaseToken(sharedPreferences.edit(),sessionToken);
+                    Log.e("Updated Token",updatedToken);
+                }
+                else{
+                    Log.e(TAG, "Token has already been created");
+                }
             }
         });
     }
