@@ -3,6 +3,7 @@ package com.eagskunst.emmanuel.gamingnews.views;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
@@ -17,7 +18,7 @@ import android.view.MenuItem;
 import android.widget.ProgressBar;
 
 import com.eagskunst.emmanuel.gamingnews.credentials.Credentials;
-import com.eagskunst.emmanuel.gamingnews.fragments.NewsListFragment;
+import com.eagskunst.emmanuel.gamingnews.fragments.news_list.NewsListFragment;
 import com.eagskunst.emmanuel.gamingnews.models.NewsModel;
 import com.eagskunst.emmanuel.gamingnews.objects.LoadUrls;
 import com.eagskunst.emmanuel.gamingnews.R;
@@ -44,7 +45,6 @@ public class MainActivity extends BaseActivity implements NewsListFragment.OnFra
 
     private String currentFrag;
     private DrawerLayout drawerLayout;
-    private ProgressBar progressBar;
     private LoadUrls loadUrls;
     private NavigationView navigationView;
 
@@ -84,8 +84,8 @@ public class MainActivity extends BaseActivity implements NewsListFragment.OnFra
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         navigationView = findViewById(R.id.navigation_view);
-        progressBar = findViewById(R.id.toolbarProgressBar);
-        showToolbar(toolbar, R.string.app_name, false,progressBar);
+        ProgressBar progressBar = findViewById(R.id.toolbarProgressBar);
+        showToolbar(toolbar, R.string.app_name, false, progressBar);
         callLog(TAG, "Title: " + getSupportActionBar().getTitle().toString());
         startDrawerLayout(toolbar);
 
@@ -108,8 +108,6 @@ public class MainActivity extends BaseActivity implements NewsListFragment.OnFra
 
         currentFrag = News_TAG[0];
         navigationView.setCheckedItem(R.id.all_news);
-        if(newsFragments[0].getParserMaker() != null)
-            newsFragments[0].getArticles();
         setOnBackChangeListener();
     }
 
@@ -137,6 +135,7 @@ public class MainActivity extends BaseActivity implements NewsListFragment.OnFra
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 int id = item.getItemId();
+                drawerLayout.closeDrawers();
                 switch (id) {
                     case R.id.all_news:
                         makeFragmentTransaction(newsFragments[0],id,News_TAG[0]);
@@ -158,7 +157,6 @@ public class MainActivity extends BaseActivity implements NewsListFragment.OnFra
                         break;
                     case R.id.settings:
                         startActivity(new Intent(MainActivity.this,SettingsActivity.class));
-                        drawerLayout.closeDrawers();
                         break;
 
                 }
@@ -235,19 +233,24 @@ public class MainActivity extends BaseActivity implements NewsListFragment.OnFra
         return super.onCreateOptionsMenu(menu);
     }
 
-    private void makeFragmentTransaction(NewsListFragment fragment, int item, String _TAG){
-        if(!currentFrag.equals(_TAG)){
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.container,fragment,_TAG)
-                    .addToBackStack(_TAG)
-                    .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
-                    .commit();
-            currentFrag = _TAG;
-        }
-        navigationView.setCheckedItem(item);
-        drawerLayout.closeDrawers();
-        if(fragment.getParserMaker() != null)
-            fragment.getArticles();
+    private void makeFragmentTransaction(final NewsListFragment fragment,final int item, final String _TAG){
+        //Handler for the fade animation on the new fragment doesn't seem so abrupt.
+        Handler h =  new Handler();
+        h.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if(!currentFrag.equals(_TAG)){
+                    getSupportFragmentManager().beginTransaction()
+                            .replace(R.id.container,fragment,_TAG)
+                            .addToBackStack(_TAG)
+                            .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+                            .commit();
+                    currentFrag = _TAG;
+                }
+                navigationView.setCheckedItem(item);
+            }
+        }, 200);
+
     }
 
 

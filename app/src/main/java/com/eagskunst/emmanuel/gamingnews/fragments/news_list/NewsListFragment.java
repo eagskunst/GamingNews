@@ -1,4 +1,4 @@
-package com.eagskunst.emmanuel.gamingnews.fragments;
+package com.eagskunst.emmanuel.gamingnews.fragments.news_list;
 
 import android.app.AlertDialog;
 import android.app.PendingIntent;
@@ -12,6 +12,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.customtabs.CustomTabsIntent;
 import android.support.design.widget.FloatingActionButton;
@@ -29,9 +30,11 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.eagskunst.emmanuel.gamingnews.adapter.NewsAdapter;
+import com.eagskunst.emmanuel.gamingnews.fragments.news_list.mvp.NewsListModel;
+import com.eagskunst.emmanuel.gamingnews.fragments.news_list.mvp.NewsListPresenter;
+import com.eagskunst.emmanuel.gamingnews.fragments.news_list.mvp.NewsListView;
 import com.eagskunst.emmanuel.gamingnews.models.NewsModel;
 import com.eagskunst.emmanuel.gamingnews.R;
-import com.eagskunst.emmanuel.gamingnews.utility.ParserMaker;
 import com.eagskunst.emmanuel.gamingnews.utility.SharedPreferencesLoader;
 import com.eagskunst.emmanuel.gamingnews.receivers.SaveArticleReceiver;
 import com.google.android.gms.ads.AdRequest;
@@ -41,20 +44,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class NewsListFragment extends Fragment{
+public class NewsListFragment extends Fragment implements NewsListView.View {
 
     private static final String TAG = "NewsListFragment";
     private static final int REQUEST_RESULT = 123;
+    private OnFragmentInteractionListener mListener;
 
+    //Collection on views and objects that would be used globally
     private RecyclerView recyclerView;
     private SwipeRefreshLayout refreshLayout;
     private NewsAdapter newsAdapter;
     private List<NewsModel> newsList = new ArrayList<>();
-    private ParserMaker parserMaker;
     private FloatingActionButton fab;
-    private OnFragmentInteractionListener mListener;
     private Bitmap ic_star;
     private boolean webViewOpen = false;
+    private NewsListPresenter presenter;
+    private String[] urls;
 
     public NewsListFragment() {
         // Required empty public constructor
@@ -73,16 +78,10 @@ public class NewsListFragment extends Fragment{
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_news_list,container,false);
 
-        AdView adView = view.findViewById(R.id.adView);
-        AdRequest adRequest = new AdRequest.Builder()
-                .build();
-        adView.loadAd(adRequest);
 
-        String[] urls;
+        createdAd(view);
         recyclerView = view.findViewById(R.id.recyclerview);
         refreshLayout = view.findViewById(R.id.refreshlayout);
-
-
         fab = view.findViewById(R.id.mainFAB);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -93,48 +92,64 @@ public class NewsListFragment extends Fragment{
 
         newsAdapter = new NewsAdapter(newsList, clickListener());
         urls = getArguments().getStringArray("urls");
-        manageRecyclerView(true,true);
 
-        ParserMaker.OnNewsFinishListener newsFinishListener = new ParserMaker.OnNewsFinishListener() {
-            @Override
-            public void onNewsFinish(final boolean newItems) {
-                if(getActivity() != null){
-                    getActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            if(newItems){
-                                newsAdapter.notifyDataSetChanged();
-                                newsAdapter.getNewsListCopy().addAll(newsList);
-                            }
-                            refreshLayout.setRefreshing(false);
-                        }
-                    });
-                }
-                parserMaker.setRunning(false);
-            }
-        };
-
-        parserMaker = new ParserMaker(newsFinishListener,urls,
-                Toast.makeText(getActivity(), R.string.cant_get_articles, Toast.LENGTH_SHORT),
-                this.newsAdapter,this.newsList);
-
-        //if want to load the saved list
-        Log.d(TAG,"TAG: "+getTag());
-        if(getTag().equals("NewsListFragment_Saved")){
-            loadListFromSharedPreferences();
-        }
-        else if(newsList.isEmpty()){
-            parserMaker.create();
-            refreshLayout.setRefreshing(true);
-        }
-
-        manageRefreshLayout(parserMaker);
+        manageRecyclerView();
+        manageRefreshLayout();
         loadBitmaps();
+
         return view;
     }
 
+    private void createdAd(View view) {
+        AdView adView = view.findViewById(R.id.adView);
+        AdRequest adRequest = new AdRequest.Builder()
+                .build();
+        adView.loadAd(adRequest);
+    }
 
-    // TODO: Rename method, update argument and hook method into UI event
+
+    private void manageRefreshLayout() {
+        if(!getTag().equals("NewsListFragment_Saved")){
+            refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+                @Override
+                public void onRefresh() {
+                    getArticleList();
+                }
+            });
+        }
+        else{
+            refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+                @Override
+                public void onRefresh() {
+                    refreshLayout.setRefreshing(false);
+                }
+            });
+        }
+    }
+
+    private void manageRecyclerView() {
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
+
+        recyclerView.setLayoutManager(layoutManager);
+        recyclerView.setAdapter(newsAdapter);
+        recyclerView.setHasFixedSize(true);
+
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                if(dy > 0 && fab.getVisibility() == View.VISIBLE){
+                    fab.hide();
+                    Log.d(TAG,"Entré para esconder"+fab.getVisibility());
+                }
+                else if(dy < 0 && fab.getVisibility() != View.VISIBLE){
+                    Log.d(TAG,"Entré para mostrar"+fab.getVisibility());
+                    fab.show();
+                }
+                super.onScrolled(recyclerView, dx, dy);
+            }
+        });
+    }
+
     public void onButtonPressed(Uri uri) {
         if (mListener != null) {
             mListener.onFragmentInteraction(uri);
@@ -143,9 +158,20 @@ public class NewsListFragment extends Fragment{
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
+        presenter = new NewsListPresenter(new NewsListModel());
+        presenter.onCreateView(this);
         setHasOptionsMenu(true);
         super.onCreate(savedInstanceState);
     }
+
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        if(newsList.isEmpty())
+            getArticleList();
+    }
+
 
     @Override
     public void onResume() {
@@ -168,7 +194,6 @@ public class NewsListFragment extends Fragment{
                 loadListFromSharedPreferences();
             }
         }
-        //super.onActivityResult(requestCode,resultCode,data);
     }
 
     @Override
@@ -191,6 +216,7 @@ public class NewsListFragment extends Fragment{
     @Override
     public void onDestroy() {
         super.onDestroy();
+        presenter.onDestroyView();
         if(newsList!=null){
             newsList.clear();
         }
@@ -212,11 +238,10 @@ public class NewsListFragment extends Fragment{
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.search_menu,menu);
         SearchView searchView = (SearchView) menu.findItem(R.id.searchMenu).getActionView();
-
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String s) {
-                if(!parserMaker.isRunning()){
+                if(!refreshLayout.isRefreshing()){
                     newsAdapter.filter(s);
                     return true;
                 }
@@ -227,7 +252,7 @@ public class NewsListFragment extends Fragment{
 
             @Override
             public boolean onQueryTextChange(String s) {
-                if(!parserMaker.isRunning()){
+                if(!refreshLayout.isRefreshing()){
                     newsAdapter.filter(s);
                     return true;
                 }
@@ -240,38 +265,59 @@ public class NewsListFragment extends Fragment{
         super.onCreateOptionsMenu(menu, inflater);
     }
 
-    private void manageRecyclerView(boolean autoMeasure, boolean fixedSize) {
-        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
-        layoutManager.setAutoMeasureEnabled(autoMeasure);
-
-        recyclerView.setLayoutManager(layoutManager);
-        recyclerView.setAdapter(newsAdapter);
-        recyclerView.setHasFixedSize(fixedSize);
-
-        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
-            @Override
-            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-                if(dy > 0 && fab.getVisibility() == View.VISIBLE){
-                    fab.hide();
-                    Log.d(TAG,"Entré para esconder"+fab.getVisibility());
-                }
-                else if(dy < 0 && fab.getVisibility() != View.VISIBLE){
-                    Log.d(TAG,"Entré para mostrar"+fab.getVisibility());
-                    fab.show();
-                }
-                super.onScrolled(recyclerView, dx, dy);
-            }
-            /*
-            hide() and show() are two methods provided by the FAB to hide/show the FAB button with a smooth animation.
-            dy is a value that changes when you scroll vertically, when the user scrolls down the value is positive
-            and when the user scrolls up the value is negative.
-            So we check if the FAB is visible and the value is positive(i.e. user is scrolling down)
-            we will hide it and if the FAB is hidden and the value is negative(i.e. user is scrolling up) we will show the FAB.
-             */
-        });
+    @Override
+    public void getArticleList(){
+        Log.d(TAG,"Enter articleList");
+        if(getTag().equals("NewsListFragment_Saved")){
+            loadListFromSharedPreferences();
+        }
+        else{
+            presenter.getArticles(urls);
+            refreshLayout.setRefreshing(true);
+        }
     }
 
-    private void loadListFromSharedPreferences() {
+    @Override
+    public void updateList(List<NewsModel> newsList) {
+        refreshLayout.setRefreshing(false);
+        this.newsList.addAll(newsList);
+        newsAdapter.getNewsListCopy().addAll(newsList);
+        newsAdapter.notifyDataSetChanged();
+    }
+
+    @Override
+    public boolean checkInternetConnection() {
+        ConnectivityManager connectivityManager
+                = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null;
+    }
+
+    @Override
+    public void createAlertDialog(int message) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setMessage(message);
+        builder.setNeutralButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                dialogInterface.dismiss();
+            }
+        });
+        builder.create().show();
+    }
+
+    @Override
+    public void showToastError(String message) {
+        Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void showToastError(int message) {
+        Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void loadListFromSharedPreferences() {
         newsList.clear();
         newsAdapter.getNewsListCopy().clear();
         List<NewsModel> savedList = SharedPreferencesLoader.retrieveList(getActivity()
@@ -284,79 +330,17 @@ public class NewsListFragment extends Fragment{
             e.printStackTrace();
             Toast.makeText(getContext(), R.string.error_retrieving, Toast.LENGTH_SHORT).show();
         }
-
     }
-
-    private void manageRefreshLayout(final ParserMaker parserMaker) {
-        if(!getTag().equals("NewsListFragment_Saved")){
-            refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-                @Override
-                public void onRefresh() {
-                    if(isNetworkAvailable() && !parserMaker.isRunning()) {
-                        refreshLayout.setRefreshing(true);
-                        parserMaker.create();
-                    }
-                    else if(!isNetworkAvailable()){
-                        AlertDialog dialog = generateDialog(R.string.check_your_connection);
-                        dialog.show();
-                        refreshLayout.setRefreshing(false);
-                    }
-                    else if(parserMaker.isRunning()){
-                        AlertDialog dialog = generateDialog(R.string.still_refreshing);
-                        dialog.show();
-                        refreshLayout.setRefreshing(false);
-                    }
-                }
-            });
-        }
-        else{
-            refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-                @Override
-                public void onRefresh() {
-                    refreshLayout.setRefreshing(false);
-                }
-            });
-        }
-    }
-
-    private void loadBitmaps(){
-        Thread t = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                ic_star = BitmapFactory.decodeResource(getResources(),R.drawable.ic_star_on);
-            }
-        });
-        t.run();
-    }
-
-    private boolean isNetworkAvailable() {
-        ConnectivityManager connectivityManager
-                = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
-        return activeNetworkInfo != null;
-    }
-
-    private AlertDialog generateDialog(int message)
-    {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-        builder.setMessage(message);
-        builder.setNeutralButton("OK", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                dialogInterface.dismiss();
-            }
-        });
-        return builder.create();
-    }
-
 
     private NewsAdapter.NewsViewHolder.OnItemClickListener clickListener() {
         return new NewsAdapter.NewsViewHolder.OnItemClickListener() {
             @Override
             public void OnItemClick(NewsModel item) {
+                //SaveArticle is a BroadcastReceiver that will be notified if the start button on the CustomTab is tapped
+                //It is made this way because CustomTabs does not have an 'startTabForResult' or something like that.
                 Intent i = new Intent(getActivity(),SaveArticleReceiver.class);
                 i.putExtra("url",item.getLink());
-                i.setExtrasClassLoader(NewsModel.class.getClassLoader());
+                i.setExtrasClassLoader(NewsModel.class.getClassLoader());//For the BroadcastReceiver. Without it, it is not posible to use custom Objects
                 Bundle bundle = new Bundle();
                 bundle.putParcelable("Article",item);
                 i.putExtra("Bundle",bundle);
@@ -378,7 +362,6 @@ public class NewsListFragment extends Fragment{
                 else{
                     builder.setToolbarColor(getResources().getColor(R.color.colorPrimaryText));
                 }
-
                 PendingIntent pendingIntent = PendingIntent.getBroadcast(getActivity(),0,i,PendingIntent.FLAG_UPDATE_CURRENT);
                 builder.setActionButton(b,"Save",pendingIntent,true);
                 builder.setStartAnimations(getActivity(),R.anim.slide_in_right,R.anim.slide_out_left);
@@ -390,15 +373,14 @@ public class NewsListFragment extends Fragment{
         };
     }
 
-    public void getArticles(){
-        if(newsList.isEmpty()){
-            parserMaker.create();
-            refreshLayout.setRefreshing(true);
-        }
-    }
-
-    public ParserMaker getParserMaker() {
-        return parserMaker;
+    private void loadBitmaps(){
+        Thread t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                ic_star = BitmapFactory.decodeResource(getResources(),R.drawable.ic_star_on);
+            }
+        });
+        t.run();
     }
 
     public interface OnFragmentInteractionListener {
