@@ -55,6 +55,7 @@ public class NewsListPresenter implements NewsListView.Presenter, NewsListView.O
        }
        else{
            view.createAlertDialog(R.string.check_your_connection);
+           view.updateList(list);
        }
     }
 
@@ -82,15 +83,12 @@ public class NewsListPresenter implements NewsListView.Presenter, NewsListView.O
 
     @Override
     public void sortListByDate() {
-        Collections.sort(list, new Comparator<NewsModel>() {
-            @Override
-            public int compare(NewsModel newsModel, NewsModel t1) {
-                if(newsModel.getPubDate() != null && t1.getPubDate() != null){
-                    return t1.getPubDate().compareTo(newsModel.getPubDate());
-                }
-                else{
-                    return 1;
-                }
+        Collections.sort(list, (newsModel, t1) -> {
+            if(newsModel.getPubDate() != null && t1.getPubDate() != null){
+                return t1.getPubDate().compareTo(newsModel.getPubDate());
+            }
+            else{
+                return 1;
             }
         });
         view.updateList(list);

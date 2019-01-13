@@ -24,7 +24,6 @@
             android:id="@+id/game_imageView"
             android:layout_width="match_parent"
             android:layout_height="150dp"
-            android:src="@drawable/malumathedog"
             android:scaleType="centerCrop"
             android:layout_marginBottom="8dp"
             />

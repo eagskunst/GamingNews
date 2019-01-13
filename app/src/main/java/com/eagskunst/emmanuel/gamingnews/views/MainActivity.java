@@ -18,7 +18,7 @@ import android.view.MenuItem;
 import android.widget.ProgressBar;
 
 import com.eagskunst.emmanuel.gamingnews.credentials.Credentials;
-import com.eagskunst.emmanuel.gamingnews.fragments.ReleasesFragment;
+import com.eagskunst.emmanuel.gamingnews.fragments.releases.ReleasesFragment;
 import com.eagskunst.emmanuel.gamingnews.fragments.news_list.NewsListFragment;
 import com.eagskunst.emmanuel.gamingnews.models.NewsModel;
 import com.eagskunst.emmanuel.gamingnews.objects.LoadUrls;

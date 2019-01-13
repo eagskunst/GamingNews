@@ -30,6 +30,7 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.eagskunst.emmanuel.gamingnews.adapter.NewsAdapter;
+import com.eagskunst.emmanuel.gamingnews.api.GamesApi;
 import com.eagskunst.emmanuel.gamingnews.fragments.news_list.di.DaggerNewsComponent;
 import com.eagskunst.emmanuel.gamingnews.fragments.news_list.di.NewsModule;
 import com.eagskunst.emmanuel.gamingnews.fragments.news_list.mvp.NewsListPresenter;
@@ -45,6 +46,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
+
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 
 public class NewsListFragment extends Fragment implements NewsListView.View {
@@ -290,10 +294,13 @@ public class NewsListFragment extends Fragment implements NewsListView.View {
 
     @Override
     public void updateList(List<NewsModel> newsList) {
-        refreshLayout.setRefreshing(false);
         this.newsList.addAll(newsList);
         newsAdapter.getNewsListCopy().addAll(newsList);
-        newsAdapter.notifyDataSetChanged();
+        getActivity().runOnUiThread(() -> {
+                refreshLayout.setRefreshing(false);
+                newsAdapter.notifyDataSetChanged();
+            }
+        );
     }
 
     @Override

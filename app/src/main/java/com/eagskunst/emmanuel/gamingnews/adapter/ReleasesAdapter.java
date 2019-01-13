@@ -39,9 +39,14 @@ public class ReleasesAdapter extends RecyclerView.Adapter<ReleasesAdapter.Releas
         holder.gameName.setText(release.getGameName());
         holder.gameDate.setText(release.getGameReleaseDate());
         holder.gamePlatforms.setText(release.getGamePlatforms());
-        Picasso.get()
-                .load(release.getGameCoverUrl())
-                .into(holder.gameCover);
+        if(release.getGameCoverUrl() == null){
+            holder.gameCover.setVisibility(View.GONE);
+        }
+        else{
+            Picasso.get()
+                    .load(release.getGameCoverUrl())
+                    .into(holder.gameCover);
+        }
     }
 
     @Override
