@@ -20,9 +20,11 @@ import java.util.List;
 public class ReleasesAdapter extends RecyclerView.Adapter<ReleasesAdapter.ReleasesViewHolder>{
 
     private List<ReleasesModel> releasesList;
+    private OnReleaseClickListener clickListener;
 
-    public ReleasesAdapter(List<ReleasesModel> releasesList){
+    public ReleasesAdapter(List<ReleasesModel> releasesList, OnReleaseClickListener clickListener){
         this.releasesList = releasesList;
+        this.clickListener = clickListener;
     }
 
 
@@ -47,6 +49,7 @@ public class ReleasesAdapter extends RecyclerView.Adapter<ReleasesAdapter.Releas
                     .load(release.getGameCoverUrl())
                     .into(holder.gameCover);
         }
+        holder.onClick(release, clickListener);
     }
 
     @Override
@@ -67,5 +70,13 @@ public class ReleasesAdapter extends RecyclerView.Adapter<ReleasesAdapter.Releas
             gameDate = itemView.findViewById(R.id.game_release_date);
             gamePlatforms = itemView.findViewById(R.id.game_platform_releases);
         }
+
+        private void onClick(ReleasesModel release, OnReleaseClickListener clickListener){
+            itemView.setOnClickListener(view -> clickListener.OnItemClick(release));
+        }
+    }
+
+    public interface OnReleaseClickListener{
+        void OnItemClick(ReleasesModel release);
     }
 }

@@ -8,12 +8,14 @@ public class ReleasesModel{
     private String gameName;
     private String gameReleaseDate;
     private String gamePlatforms;
+    private String gameUrl;
 
-    public ReleasesModel(String gameCoverUrl, String gameName, String gameReleaseDate, String gamePlatforms) {
+    public ReleasesModel(String gameCoverUrl, String gameName, String gameReleaseDate, String gamePlatforms, String gameUrl) {
         this.gameCoverUrl = gameCoverUrl;
         this.gameName = gameName;
         this.gameReleaseDate = gameReleaseDate;
         this.gamePlatforms = gamePlatforms;
+        this.gameUrl = gameUrl;
     }
 
     public String getGameCoverUrl() {
@@ -46,5 +48,13 @@ public class ReleasesModel{
 
     public void setGamePlatforms(String gamePlatforms) {
         this.gamePlatforms = gamePlatforms;
+    }
+
+    public String getGameUrl() {
+        return gameUrl;
+    }
+
+    public void setGameUrl(String gameUrl) {
+        this.gameUrl = gameUrl;
     }
 }

@@ -2,6 +2,7 @@ package com.eagskunst.emmanuel.gamingnews.fragments.releases.mvp;
 
 import android.util.Log;
 
+import com.eagskunst.emmanuel.gamingnews.R;
 import com.eagskunst.emmanuel.gamingnews.models.Cover;
 import com.eagskunst.emmanuel.gamingnews.models.Game;
 import com.eagskunst.emmanuel.gamingnews.models.ReleasesModel;
@@ -31,7 +32,7 @@ public class ReleasePresenter implements ReleaseView.Presenter, ReleaseView.OnRe
 
     @Override
     public void getReleasesByPlatform() {
-        view.changeTextMessage("Getting last releases...");
+        view.changeTextMessage(R.string.getting_releases);
         long millis = System.currentTimeMillis()/1000;
         Log.d(ReleasePresenter.class.getSimpleName(), "getReleasesByPlatform: "+length);
         for (int platform : platforms) {
@@ -51,7 +52,7 @@ public class ReleasePresenter implements ReleaseView.Presenter, ReleaseView.OnRe
 
     @Override
     public void sortListByDate() {
-        view.changeTextMessage("Sorting by date...");
+        view.changeTextMessage(R.string.sorting_by_date);
         Collections.sort(releasesList, (release1, release2) ->{
             int value1 = Integer.valueOf(release1.getGameReleaseDate().split("-")[2]);
             int value2 = Integer.valueOf(release2.getGameReleaseDate().split("-")[2]);
@@ -76,9 +77,8 @@ public class ReleasePresenter implements ReleaseView.Presenter, ReleaseView.OnRe
                         if(Locale.getDefault().getLanguage().equals("es"))
                             date = changeToSpanish(date);
                         if(isInThisMonth(date)){
-                            ReleasesModel release = new ReleasesModel(url, game.getName() , date, getPlatformByNumber(gameInfo));
+                            ReleasesModel release = new ReleasesModel(url, game.getName() , date, getPlatformByNumber(gameInfo), game.getGameUrl());
                             releasesList.add(release);
-                            Log.e("emmanuel", "name: "+game.getName());
                         }
                     }
                 }
@@ -87,6 +87,20 @@ public class ReleasePresenter implements ReleaseView.Presenter, ReleaseView.OnRe
         length--;
         if(length == 0){
             sortListByDate();
+        }
+    }
+
+    @Override
+    public void erasePassedDate(List<ReleasesModel> list, int day){
+        for(int i = 0;i<list.size() ;i++){
+            String dates[] = list.get(i).getGameReleaseDate().split("-");
+            int releaseDate = Integer.parseInt(dates[2]);
+            if(releaseDate<day){
+                releasesList.remove(i);
+            }
+            else{
+                break;
+            }
         }
     }
 
@@ -169,6 +183,7 @@ public class ReleasePresenter implements ReleaseView.Presenter, ReleaseView.OnRe
     @Override
     public void onGetReleasesFail(String message) {
         view.showToastError(message);
+        view.setTryAgain();
         length--;
         if(length == 0){
             sortListByDate();
@@ -178,10 +193,14 @@ public class ReleasePresenter implements ReleaseView.Presenter, ReleaseView.OnRe
     @Override
     public void onGetReleasesFail(int message) {
         view.showToastError(message);
+        view.setTryAgain();
         length--;
         if(length == 0){
             sortListByDate();
         }
     }
 
+    public List<ReleasesModel> getReleasesList() {
+        return releasesList;
+    }
 }

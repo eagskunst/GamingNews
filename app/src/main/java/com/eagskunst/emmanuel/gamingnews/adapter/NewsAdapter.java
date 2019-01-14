@@ -89,12 +89,7 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.NewsViewHolder
         }
 
         private void bind(final NewsModel newsModel, final OnItemClickListener onItemClickListener){
-            itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    onItemClickListener.OnItemClick(newsModel);
-                }
-            });
+            itemView.setOnClickListener(view -> onItemClickListener.OnItemClick(newsModel));
         }
 
         public interface OnItemClickListener{

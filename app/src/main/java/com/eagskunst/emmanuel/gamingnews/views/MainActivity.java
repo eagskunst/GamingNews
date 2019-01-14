@@ -184,7 +184,7 @@ public class MainActivity extends BaseActivity implements NewsListFragment.OnFra
                 Fragment currentFragment = getCurrentFragment();
                 String tag = currentFragment.getTag();
                 if(tag.equals(FragmentTags[6])){
-                    getSupportActionBar().setTitle("Coming soon games");
+                    getSupportActionBar().setTitle(R.string.coming_soon);
                 }
                 else {
                     getSupportActionBar().setTitle(R.string.app_name);

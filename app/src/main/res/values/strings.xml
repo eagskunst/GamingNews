@@ -43,4 +43,10 @@
     <string name="ilegalargumentfirebase">Don\'t use special characters</string>
     <string name="article_removed">Article removed</string>
     <string name="nextReleases">Releases</string>
+    <string name="no_game_url">Sorry, no url associated with this game :(</string>
+    <string name="cant_get_releases">Can not get releases for some platform, trying again</string>
+    <string name="getting_releases">Getting last releases…</string>
+    <string name="sorting_by_date">Sorting by date…</string>
+    <string name="coming_soon">Games releasing</string>
+    <string name="success_releases">Check out this hot releases!</string>
 </resources>

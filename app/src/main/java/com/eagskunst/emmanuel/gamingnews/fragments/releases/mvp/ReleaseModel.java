@@ -2,6 +2,7 @@ package com.eagskunst.emmanuel.gamingnews.fragments.releases.mvp;
 
 import android.util.Log;
 
+import com.eagskunst.emmanuel.gamingnews.R;
 import com.eagskunst.emmanuel.gamingnews.api.GamesApi;
 import com.eagskunst.emmanuel.gamingnews.models.Response;
 
@@ -37,7 +38,7 @@ public class ReleaseModel {
             public void onFailure(Call<List<Response>> call, Throwable t) {
                 Log.e(TAG, "onFailure: Fail getting games for platform n° "+platform+" message: "+t.getMessage()
                         ,t);
-                listener.onGetReleasesFail("Retrofit fail!");
+                listener.onGetReleasesFail(R.string.cant_get_releases);
             }
         });
     }

@@ -43,7 +43,13 @@
     <string name="add">AÑADIR</string>
     <string name="ilegalargumentfirebase">No uses caracteres especiales ni tildes</string>
     <string name="article_removed">Articulo removido</string>
-    <string name="nextReleases">Releases</string>
+    <string name="nextReleases">Lanzamientos</string>
+    <string name="no_game_url">Lo siento, no hay url para este juego :(</string>
+    <string name="cant_get_releases">No se obtuvieron los lanzamientos de una plataforma, intentado de nuevo</string>
+    <string name="getting_releases">Obteniendo últimos lanzamientos…</string>
+    <string name="sorting_by_date">Ordenándolos por fecha…</string>
+    <string name="coming_soon">Juegos lanzándose</string>
+    <string name="success_releases">Revisa los nuevos lanzamientos!</string>
 
 
 </resources>

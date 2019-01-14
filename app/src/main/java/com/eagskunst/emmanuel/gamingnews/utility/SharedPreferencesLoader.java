@@ -4,6 +4,7 @@ import android.content.SharedPreferences;
 
 import com.eagskunst.emmanuel.gamingnews.models.NewsModel;
 import com.eagskunst.emmanuel.gamingnews.R;
+import com.eagskunst.emmanuel.gamingnews.models.ReleasesModel;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -85,6 +86,33 @@ public class SharedPreferencesLoader {
 
     public static String getLastSession(SharedPreferences sharedPreferences){
         return sharedPreferences.getString("LAST_SESSION",null);
+    }
+
+    public static void saveReleasesList(SharedPreferences.Editor spEditor, List<ReleasesModel> list){
+        Gson gson = new Gson();
+        String toJson  = gson.toJson(list);
+        spEditor.putString("RELEASES_LIST", toJson).apply();
+    }
+
+    public static List<ReleasesModel> retrieveReleasesList(SharedPreferences sharedPreferences){
+        final String listName = sharedPreferences.getString("RELEASES_LIST",null);
+        if(listName!= null){
+            Gson gson = new Gson();
+            Type type = new TypeToken<List<ReleasesModel>>(){}.getType();
+            return gson.fromJson(listName,type);
+        }
+        else{
+            return null;
+        }
+    }
+
+    public static void saveCurrentMonth(SharedPreferences.Editor editor, int month) {
+        editor.putInt("saved_month", month);
+        editor.apply();
+    }
+
+    public static int getSavedMonth(SharedPreferences sharedPreferences){
+        return sharedPreferences.getInt("saved_month", -1);
     }
 
 }

@@ -16,6 +16,10 @@ See changelog and develop branch for not-official features.
 
 -RSS Parser (https://github.com/prof18/RSS-Parser)
 
+-Dagger (https://github.com/google/dagger)
+
+-Retrofit (https://square.github.io/retrofit/)
+
 # Build
 
 1. Open Android Studio.
@@ -26,6 +30,10 @@ See changelog and develop branch for not-official features.
 
 
 # Changelog
+
+**-14/01/2019:**
+    Added new section: ReleasesFragment.
+    Little trick for less api calls: Just saving the retrieved list on shared preferences, erasing passed days if needed :p.
 
 **-10/01/2019:**
     Following MVP pattern and DI in NewsListFragment.

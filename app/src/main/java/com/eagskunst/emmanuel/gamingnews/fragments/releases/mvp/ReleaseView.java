@@ -22,6 +22,7 @@ public interface ReleaseView {
         void createView(ReleaseView.View view);
         void destroyView();
         void sortListByDate();
+        void erasePassedDate(List<ReleasesModel> list, int day);
     }
 
     interface View {
@@ -29,8 +30,8 @@ public interface ReleaseView {
         void showToastError(int message);
         void updateList(List<ReleasesModel> releasesList);
         void getNewReleases();
-        void changeTextMessage(String message);
-        void saveReleasesInPreferences();
+        void changeTextMessage(int message);
+        void setTryAgain();
     }
 
 }
