@@ -92,14 +92,13 @@ public class ReleasePresenter implements ReleaseView.Presenter, ReleaseView.OnRe
 
     @Override
     public void erasePassedDate(List<ReleasesModel> list, int day){
-        for(int i = 0;i<list.size() ;i++){
-            String dates[] = list.get(i).getGameReleaseDate().split("-");
-            int releaseDate = Integer.parseInt(dates[2]);
-            if(releaseDate<day){
-                releasesList.remove(i);
-            }
-            else{
-                break;
+        for(int j = 0;j<3;j++){
+            for(int i = 0;i<list.size();i++){
+                String dates[] = list.get(i).getGameReleaseDate().split("-");
+                int releaseDate = Integer.parseInt(dates[2]);
+                if(day>releaseDate){
+                    list.remove(i);
+                }
             }
         }
     }
@@ -175,7 +174,6 @@ public class ReleasePresenter implements ReleaseView.Presenter, ReleaseView.OnRe
         final Calendar calendar = Calendar.getInstance();
         SimpleDateFormat formatter = new SimpleDateFormat("MMM", Locale.getDefault());
         String month = formatter.format(calendar.getTime());
-        month = month.substring(0,month.length()-1);
         String releaseMonth[] = date.split("-");
         return releaseMonth[1].equalsIgnoreCase(month);
     }

@@ -18,6 +18,6 @@ public interface GamesApi {
             "Accept: application/json",
             "user-key: "+Credentials.igdbCredential
     })
-    @GET("release_dates/?fields=*,game.name,game.cover.url,game.url&order=date:asc&limit=50")
+    @GET("release_dates/?fields=*,game.name,game.cover.*,game.url&order=date:asc&limit=50")
     Call<List<Response>> getReleasingSoonGames( @Query(value = "filter[date][gt]", encoded = true) long timeStamp, @Query(value = "filter[platform][eq]", encoded = true)int platform);
 }

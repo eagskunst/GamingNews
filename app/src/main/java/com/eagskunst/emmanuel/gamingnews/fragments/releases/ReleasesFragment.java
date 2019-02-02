@@ -177,7 +177,7 @@ public class ReleasesFragment extends Fragment implements ReleaseView.View, Rele
         List<ReleasesModel> list = getReleasesFromPreferences();
         int savedMonth = SharedPreferencesLoader.getSavedMonth(((BaseActivity)getActivity()).getUserSharedPreferences());
         int actualMonth = Calendar.getInstance().get(Calendar.MONTH);
-        if(list == null || savedMonth == -1 || actualMonth>savedMonth || (actualMonth == 0 && savedMonth == 11) ){
+        if(list == null || savedMonth == -1 || actualMonth>savedMonth || (actualMonth == 0 && savedMonth == 11) || list.isEmpty()){
             getNewReleases();
         }
         else {
@@ -186,6 +186,7 @@ public class ReleasesFragment extends Fragment implements ReleaseView.View, Rele
             presenter.erasePassedDate(list, day);
             releasesModelList.addAll(list);
             releasesAdapter.notifyDataSetChanged();
+            saveReleasesInPreferences();
         }
     }
 

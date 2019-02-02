@@ -1,11 +1,13 @@
 package com.eagskunst.emmanuel.gamingnews.models;
 
+import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
 
 public class Game{
 
 	@SerializedName("cover")
+	@Expose
 	private Cover cover;
 
 	@SerializedName("name")

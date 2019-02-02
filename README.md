@@ -31,6 +31,11 @@ See changelog and develop branch for not-official features.
 
 # Changelog
 
+**-02/02/2019:**
+    Bugfixes for Api calls and Month check.
+    Some urls in Urls.json are making trouble (don't know exactly why),
+    Because of that, XboxO urls on EN aren't working :/
+
 **-14/01/2019:**
     Added new section: ReleasesFragment.
     Little trick for less api calls: Just saving the retrieved list on shared preferences, erasing passed days if needed :p.
