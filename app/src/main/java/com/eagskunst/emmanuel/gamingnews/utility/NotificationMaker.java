@@ -1,9 +1,13 @@
 package com.eagskunst.emmanuel.gamingnews.utility;
 
 import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.util.Log;
@@ -43,7 +47,7 @@ public class NotificationMaker extends FirebaseMessagingService {
                     lang);
     }
 
-    private void generateNotification(String title, String body, String lang) {
+    public void generateNotification(String title, String body, String lang) {
         Log.d(TAG, "Lang: "+lang);
         if(lang.equals(Locale.getDefault().getLanguage())){
 
@@ -59,7 +63,7 @@ public class NotificationMaker extends FirebaseMessagingService {
                     );
 
 
-            Notification notification = new NotificationCompat.Builder(this,"0")
+            Notification notification = new NotificationCompat.Builder(this,"channelID")
                     .setContentTitle(title)
                     .setContentText(body)
                     .setContentIntent(notifyPendingIntent)
@@ -68,9 +72,17 @@ public class NotificationMaker extends FirebaseMessagingService {
                     .setSmallIcon(R.drawable.ic_all)
                     .build();
 
-            NotificationManagerCompat manager = NotificationManagerCompat.from(getApplicationContext());
+            final NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            createChannel(manager);
             manager.notify(requestCode,notification);
         }
+    }
+
+    private void createChannel(final NotificationManager manager) {
+        if(Build.VERSION.SDK_INT < 26) return;
+        final NotificationChannel channel = new NotificationChannel("channelID", "Articles channel", NotificationManager.IMPORTANCE_DEFAULT);
+        channel.setDescription("Articles channel");
+        manager.createNotificationChannel(channel);
     }
 
     public void setToken() {
