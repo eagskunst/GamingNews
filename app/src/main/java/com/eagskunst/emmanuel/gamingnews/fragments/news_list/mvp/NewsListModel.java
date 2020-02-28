@@ -2,14 +2,9 @@ package com.eagskunst.emmanuel.gamingnews.fragments.news_list.mvp;
 
 import android.util.Log;
 
-import com.prof.rssparser.Article;
+import com.prof.rssparser.Channel;
 import com.prof.rssparser.OnTaskCompleted;
 import com.prof.rssparser.Parser;
-
-import org.jetbrains.annotations.NotNull;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by eagskunst on 09/01/2019
@@ -25,9 +20,9 @@ public class NewsListModel implements OnTaskCompleted {
     }
 
     @Override
-    public void onTaskCompleted(@NotNull List<Article> arrayList) {
+    public void onTaskCompleted(Channel channel) {
         Log.d("NewsListModel", "onTaskCompleted: parsed!");
-        listener.onGetArticlesSucess(arrayList);
+        listener.onGetArticlesSuccess(channel.getArticles(), channel);
     }
 
     @Override

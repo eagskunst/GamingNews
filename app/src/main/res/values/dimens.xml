@@ -2,9 +2,11 @@
 <resources>
     <dimen name="elevation_cardview">12dp</dimen>
     <dimen name="margin_cardview">12dp</dimen>
+    <dimen name="subtitle_text_cardv">12sp</dimen>
     <dimen name="secondary_text_cardv">10sp</dimen>
     <dimen name="primary_text_cardv">20sp</dimen>
     <dimen name="imageview_height_cardv">300dp</dimen>
     <dimen name="scrollbarsize">10dp</dimen>
     <dimen name="margin_fab">6dp</dimen>
+    <dimen name="common_padding_cv">15dp</dimen>
 </resources>

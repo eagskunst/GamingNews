@@ -12,15 +12,15 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.customtabs.CustomTabsIntent;
-import android.support.design.widget.FloatingActionButton;
-import android.support.v4.app.Fragment;
-import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.SearchView;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.browser.customtabs.CustomTabsIntent;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import androidx.fragment.app.Fragment;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.appcompat.widget.SearchView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -30,7 +30,6 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.eagskunst.emmanuel.gamingnews.adapter.NewsAdapter;
-import com.eagskunst.emmanuel.gamingnews.api.GamesApi;
 import com.eagskunst.emmanuel.gamingnews.fragments.news_list.di.DaggerNewsComponent;
 import com.eagskunst.emmanuel.gamingnews.fragments.news_list.di.NewsModule;
 import com.eagskunst.emmanuel.gamingnews.fragments.news_list.mvp.NewsListPresenter;
@@ -46,9 +45,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
-
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
 
 public class NewsListFragment extends Fragment implements NewsListView.View {
@@ -85,28 +81,8 @@ public class NewsListFragment extends Fragment implements NewsListView.View {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View view = inflater.inflate(R.layout.fragment_news_list,container,false);
-
-
-        createdAd(view);
-        recyclerView = view.findViewById(R.id.recyclerview);
-        refreshLayout = view.findViewById(R.id.refreshlayout);
-        fab = view.findViewById(R.id.mainFAB);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                recyclerView.smoothScrollToPosition(0);
-            }
-        });
-
-        newsAdapter = new NewsAdapter(newsList, clickListener());
-        urls = getArguments().getStringArray("urls");
-
-        manageRecyclerView();
-        manageRefreshLayout();
-        loadBitmaps();
-
-        return view;
+        initComponent();
+        return inflater.inflate(R.layout.fragment_news_list,container,false);
     }
 
     private void createdAd(View view) {
@@ -167,8 +143,6 @@ public class NewsListFragment extends Fragment implements NewsListView.View {
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
-        initComponent();
-        presenter.onCreateView(this);
         setHasOptionsMenu(true);
         super.onCreate(savedInstanceState);
     }
@@ -183,8 +157,27 @@ public class NewsListFragment extends Fragment implements NewsListView.View {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        if(newsList.isEmpty())
-            getArticleList();
+        presenter.onCreateView(this);
+
+        createdAd(view);
+        recyclerView = view.findViewById(R.id.recyclerview);
+        refreshLayout = view.findViewById(R.id.refreshlayout);
+        fab = view.findViewById(R.id.mainFAB);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                recyclerView.smoothScrollToPosition(0);
+            }
+        });
+
+        newsAdapter = new NewsAdapter(newsList, clickListener());
+        urls = getArguments().getStringArray("urls");
+
+        manageRecyclerView();
+        manageRefreshLayout();
+        loadBitmaps();
+
+        getArticleList();
     }
 
 
@@ -228,10 +221,10 @@ public class NewsListFragment extends Fragment implements NewsListView.View {
         mListener = null;
     }
 
+
     @Override
     public void onDestroy() {
         super.onDestroy();
-        presenter.onDestroyView();
         if(newsList!=null){
             newsList.clear();
         }
@@ -247,6 +240,7 @@ public class NewsListFragment extends Fragment implements NewsListView.View {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+        presenter.onDestroyView();
     }
 
     @Override
@@ -294,6 +288,7 @@ public class NewsListFragment extends Fragment implements NewsListView.View {
 
     @Override
     public void updateList(List<NewsModel> newsList) {
+        Log.d(TAG, "Updating list");
         this.newsList.addAll(newsList);
         newsAdapter.getNewsListCopy().addAll(newsList);
         getActivity().runOnUiThread(() -> {

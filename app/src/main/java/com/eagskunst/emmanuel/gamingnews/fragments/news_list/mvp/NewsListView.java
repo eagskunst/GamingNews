@@ -2,6 +2,7 @@ package com.eagskunst.emmanuel.gamingnews.fragments.news_list.mvp;
 
 import com.eagskunst.emmanuel.gamingnews.models.NewsModel;
 import com.prof.rssparser.Article;
+import com.prof.rssparser.Channel;
 
 import java.util.List;
 
@@ -19,7 +20,7 @@ public interface NewsListView {
     }
 
     interface OnArticlesLoadedListener {
-        void onGetArticlesSucess(List<Article> articles);
+        void onGetArticlesSuccess(List<Article> articles, Channel channel);
         void onGetArticlesFail();
     }
 

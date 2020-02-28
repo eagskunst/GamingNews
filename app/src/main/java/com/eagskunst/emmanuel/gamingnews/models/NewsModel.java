@@ -3,21 +3,25 @@ package com.eagskunst.emmanuel.gamingnews.models;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.eagskunst.emmanuel.gamingnews.utility.SimpleDateSingleton;
+
 import java.util.Date;
 
-public class NewsModel implements Parcelable{
+public class NewsModel implements Parcelable {
     private String newsImage;
     private String title;
     private String subtext;
     private String link;
     private Date pubDate;
+    private String channelName;
 
-    public NewsModel(String newsImage, String title, String subtext,String link,Date pubDate) {
+    public NewsModel(String newsImage, String title, String subtext, String link, Date pubDate, String channelName) {
         this.newsImage = newsImage;
         this.title = title;
         this.subtext = subtext;
         this.link = link;
         this.pubDate = pubDate;
+        this.channelName = channelName;
     }
 
     protected NewsModel(Parcel in) {
@@ -25,6 +29,7 @@ public class NewsModel implements Parcelable{
         title = in.readString();
         subtext = in.readString();
         link = in.readString();
+        channelName = in.readString();
     }
 
     public static final Creator<NewsModel> CREATOR = new Creator<NewsModel>() {
@@ -90,5 +95,17 @@ public class NewsModel implements Parcelable{
         parcel.writeString(title);
         parcel.writeString(subtext);
         parcel.writeString(link);
+    }
+
+    public String formattedDate(){
+        return  SimpleDateSingleton.getInstance().getToSdf().format(pubDate);
+    }
+
+    public String getChannelName() {
+        return channelName;
+    }
+
+    public void setChannelName(String channelName) {
+        this.channelName = channelName;
     }
 }

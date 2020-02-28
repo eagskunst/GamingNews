@@ -1,10 +1,12 @@
 package com.eagskunst.emmanuel.gamingnews.adapter;
 
-import android.support.v7.widget.RecyclerView;
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.eagskunst.emmanuel.gamingnews.models.NewsModel;
@@ -27,6 +29,7 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.NewsViewHolder
         this.onItemClickListener = onItemClickListener;
     }
 
+    @NonNull
     @Override
     public NewsViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.cardview_news,parent,false);
@@ -35,15 +38,17 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.NewsViewHolder
 
     @Override
     public void onBindViewHolder(NewsViewHolder holder, int position) {
-        holder.textView1.setText(newsList.get(position).getTitle());
-        holder.textView2.setText(newsList.get(position).getSubtext());
+        holder.tvTitle.setText(newsList.get(position).getTitle());
+        holder.tvDescription.setText(newsList.get(position).getSubtext());
+        holder.tvPubDate.setText(newsList.get(position).formattedDate());
+        holder.tvChannelName.setText(newsList.get(position).getChannelName());
         if(!newsList.get(position).getNewsImage().isEmpty() && SharedPreferencesLoader.canLoadImages){
             holder.imageView.setVisibility(View.VISIBLE);
             Picasso.get()
                     .load(newsList.get(position).getNewsImage())
                     .into(holder.imageView);
         }
-        else{
+        else {
             holder.imageView.setVisibility(View.GONE);
         }
         holder.bind(newsList.get(position),onItemClickListener);
@@ -77,15 +82,19 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.NewsViewHolder
 
     public static class NewsViewHolder extends RecyclerView.ViewHolder{
 
-        private TextView textView1;
-        private TextView textView2;
+        private TextView tvTitle;
+        private TextView tvDescription;
+        private TextView tvChannelName;
+        private TextView tvPubDate;
         private ImageView imageView;
 
         public NewsViewHolder(View itemView) {
             super(itemView);
             this.imageView = itemView.findViewById(R.id.iv_cardview);
-            this.textView1 = itemView.findViewById(R.id.tv_cardview);
-            this.textView2 = itemView.findViewById(R.id.tv2_cardview);
+            this.tvTitle = itemView.findViewById(R.id.tv_cardview);
+            this.tvDescription = itemView.findViewById(R.id.tv2_cardview);
+            this.tvChannelName = itemView.findViewById(R.id.tv_channel_title);
+            this.tvPubDate = itemView.findViewById(R.id.tv_publish_date);
         }
 
         private void bind(final NewsModel newsModel, final OnItemClickListener onItemClickListener){

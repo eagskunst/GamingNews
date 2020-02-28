@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.v7.widget.CardView
+<androidx.cardview.widget.CardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_height="wrap_content"
     android:layout_width="match_parent"
     android:id="@+id/cardview_news"
-    app:cardBackgroundColor="@android:color/white"
     android:layout_marginTop="@dimen/margin_cardview"
     android:layout_marginRight="@dimen/margin_cardview"
     android:layout_marginLeft="@dimen/margin_cardview"
@@ -17,6 +16,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         >
+
         <ImageView
             android:id="@+id/iv_cardview"
             android:layout_width="match_parent"
@@ -29,25 +29,56 @@
             android:layout_height="match_parent"
             android:orientation="vertical"
             android:layout_alignParentBottom="true"
-            android:background="#8000"
+            android:background="#A6000000"
+            android:paddingTop="5dp"
+            android:paddingBottom="@dimen/common_padding_cv"
             >
+
+            <TextView
+                android:id="@+id/tv_channel_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingStart="@dimen/common_padding_cv"
+                android:paddingEnd="@dimen/common_padding_cv"
+                android:textSize="@dimen/secondary_text_cardv"
+                android:textColor="@color/colorSecondaryText"/>
+
+            <TextView
+                android:id="@+id/tv_publish_date"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingStart="@dimen/common_padding_cv"
+                android:paddingEnd="@dimen/common_padding_cv"
+                android:textSize="@dimen/secondary_text_cardv"
+                android:textColor="@color/colorSecondaryText"
+                />
+
+
             <TextView
                 android:id="@+id/tv_cardview"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:paddingStart="@dimen/common_padding_cv"
+                android:paddingEnd="@dimen/common_padding_cv"
                 android:textColor="@color/colorPrimaryLight"
+                android:textStyle="bold"
                 android:textSize="@dimen/primary_text_cardv"
                 />
+
+
             <TextView
                 android:id="@+id/tv2_cardview"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:paddingStart="@dimen/common_padding_cv"
+                android:paddingEnd="@dimen/common_padding_cv"
                 android:textColor="@color/colorTextAndIcons"
-                android:textSize="@dimen/secondary_text_cardv"
-                android:layout_marginStart="5dp"
-                android:layout_marginLeft="5dp"
+                android:textSize="@dimen/subtitle_text_cardv"
+                android:layout_marginTop="5dp"
                 />
+
         </LinearLayout>
+
     </RelativeLayout>
 
-</android.support.v7.widget.CardView>
+</androidx.cardview.widget.CardView>

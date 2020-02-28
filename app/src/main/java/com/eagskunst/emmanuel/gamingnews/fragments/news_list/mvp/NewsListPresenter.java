@@ -1,16 +1,22 @@
 package com.eagskunst.emmanuel.gamingnews.fragments.news_list.mvp;
 
 import android.text.Html;
+import android.util.Log;
 
 import com.eagskunst.emmanuel.gamingnews.R;
 import com.eagskunst.emmanuel.gamingnews.models.NewsModel;
+import com.eagskunst.emmanuel.gamingnews.utility.Constants;
+import com.eagskunst.emmanuel.gamingnews.utility.SimpleDateSingleton;
 import com.prof.rssparser.Article;
+import com.prof.rssparser.Channel;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 /**
@@ -50,6 +56,7 @@ public class NewsListPresenter implements NewsListView.Presenter, NewsListView.O
        if(view.checkInternetConnection()){
            this.length = urls.length;
            for (String url : urls) {
+               Log.d("NewListPresenter", "Getting from url"+url);
                model.getArticlesFromUrl(url);
            }
        }
@@ -95,11 +102,14 @@ public class NewsListPresenter implements NewsListView.Presenter, NewsListView.O
     }
 
     @Override
-    public void onGetArticlesSucess(List<Article> articles) {
+    public void onGetArticlesSuccess(List<Article> articles, Channel channel) {
+        SimpleDateFormat sdf = SimpleDateSingleton.getInstance().getInputSdf();
         for(Article article : articles){
             if(!titles.contains(article.getTitle())){
+                Date mDate = parseDate(article.getPubDate(), sdf);
+                String mDescription = article.getDescription() == null ? "" : article.getDescription();
                 NewsModel newsModel = new NewsModel(article.getImage() == null ? "":article.getImage(),article.getTitle(),
-                        formatDescription(article.getDescription()),article.getLink(),article.getPubDate());
+                        formatDescription(mDescription), article.getLink(), mDate, channel.getTitle());
                 list.add(newsModel);
                 titles.add(article.getTitle());
             }
@@ -107,6 +117,15 @@ public class NewsListPresenter implements NewsListView.Presenter, NewsListView.O
         length--;
         if(length == 0){
             sortListByDate();
+        }
+    }
+
+    private Date parseDate(String pubDate, SimpleDateFormat sdf) {
+        try{
+            return sdf.parse(pubDate);
+        }catch (Exception e){
+            e.printStackTrace();
+            return new Date();
         }
     }
 

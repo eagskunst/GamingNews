@@ -8,15 +8,14 @@
         "https://puregaming.es/feed/"
       ],
       "ps4_urls": [
-        "http://feeds.feedburner.com/SCEEBlogES",
         "https://puregaming.es/juegos-ps4/feed/",
         "https://www.egamers.com/category/ps4/feed/",
-        "http://es.ign.com/ps4.xml"
+        "https://es.ign.com/ps4.xml"
       ],
       "xboxO_urls":[
         "https://puregaming.es/juegos-xbox-one/feed/",
         "https://www.somosxbox.com/feed",
-        "http://es.ign.com/xbox-one.xml"
+        "https://es.ign.com/xbox-one.xml"
       ],
       "switch_urls": [
         "https://www.nintenderos.com/category/switch/noticias-switch/feed/",
@@ -39,20 +38,18 @@
       ],
       "ps4_urls": [
         "https://www.eurogamer.net/?format=rss&platform=PS4",
-        "http://feeds.feedburner.com/psblog",
-        "http://pureplaystation.com/category/latest-news/feed/"
+        "https://pureplaystation.com/category/latest-news/feed/"
       ],
       "xboxO_urls":[
-        "http://www.thisisxbox.com/feed/",
         "https://news.xbox.com/en-us/feed/",
-        "http://in.ign.com/xbox-one.xml"
+        "https://in.ign.com/xbox-one.xml"
       ],
       "switch_urls": [
         "https://nintendotoday.com/tag/switch/feed/",
         "https://kotaku.com/tag/nintendo-switch/rss",
         "https://mynintendonews.com/feed/",
         "https://nintendowire.com/switch/feed/",
-        "http://www.nintendolife.com/feeds/news"
+        "https://www.nintendolife.com/feeds/news"
       ],
       "pc_urls": [
         "https://www.rockpapershotgun.com/category/pc-game-news/feed/",

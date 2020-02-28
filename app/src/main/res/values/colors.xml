@@ -6,7 +6,7 @@
     <color name="colorPrimaryLight">#FFCDD2</color>
     <color name="colorTextAndIcons">#FFFFFF</color>
     <color name="colorPrimaryText">#212121</color>
-    <color name="colorSecondaryText">#757575</color>
+    <color name="colorSecondaryText">#99FFFFFF</color>
     <color name="colorDivider">#BDBDBD</color>
     <color name="colorBackgroundNightMode">#303030</color>
 </resources>
