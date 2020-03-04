@@ -5,6 +5,7 @@ import android.os.Parcelable;
 
 import com.eagskunst.emmanuel.gamingnews.utility.SimpleDateSingleton;
 
+import java.text.ParseException;
 import java.util.Date;
 
 public class NewsModel implements Parcelable {
@@ -24,12 +25,24 @@ public class NewsModel implements Parcelable {
         this.channelName = channelName;
     }
 
+
     protected NewsModel(Parcel in) {
         newsImage = in.readString();
         title = in.readString();
         subtext = in.readString();
         link = in.readString();
         channelName = in.readString();
+        final String pubDateString = in.readString();
+        this.pubDate = parseDate(pubDateString);
+    }
+
+    private Date parseDate(final String dateString){
+        try {
+            return SimpleDateSingleton.getInstance().getInputSdf().parse(dateString);
+        } catch (ParseException e) {
+            e.printStackTrace();
+            return new Date();
+        }
     }
 
     public static final Creator<NewsModel> CREATOR = new Creator<NewsModel>() {
@@ -84,19 +97,6 @@ public class NewsModel implements Parcelable {
         this.pubDate = pubDate;
     }
 
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    @Override
-    public void writeToParcel(Parcel parcel, int i) {
-        parcel.writeString(newsImage);
-        parcel.writeString(title);
-        parcel.writeString(subtext);
-        parcel.writeString(link);
-    }
-
     public String formattedDate(){
         return  SimpleDateSingleton.getInstance().getToSdf().format(pubDate);
     }
@@ -107,5 +107,20 @@ public class NewsModel implements Parcelable {
 
     public void setChannelName(String channelName) {
         this.channelName = channelName;
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(newsImage);
+        dest.writeString(title);
+        dest.writeString(subtext);
+        dest.writeString(link);
+        dest.writeString(channelName);
+        dest.writeString(SimpleDateSingleton.getInstance().getInputSdf().format(pubDate));
     }
 }

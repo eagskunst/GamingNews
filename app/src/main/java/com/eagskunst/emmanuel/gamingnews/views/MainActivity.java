@@ -56,7 +56,10 @@ public class MainActivity extends BaseActivity implements NewsListFragment.OnFra
         SharedPreferencesLoader.setCanLoadImages(getUserSharedPreferences());
 
         setContentView(R.layout.activity_main);
+
+
         boolean isNightActive = getUserSharedPreferences().getBoolean("night_mode",false);
+
         if(isNightActive){
             getWindow().getDecorView().setBackgroundColor(getResources().getColor(R.color.colorBackgroundNightMode));
         }

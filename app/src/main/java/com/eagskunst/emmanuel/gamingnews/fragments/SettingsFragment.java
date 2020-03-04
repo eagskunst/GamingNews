@@ -9,13 +9,18 @@ import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.preference.SwitchPreference;
 import android.util.Log;
+import android.widget.Toast;
 
 
 import com.eagskunst.emmanuel.gamingnews.R;
+import com.eagskunst.emmanuel.gamingnews.models.NewsModel;
 import com.eagskunst.emmanuel.gamingnews.utility.SharedPreferencesLoader;
 import com.eagskunst.emmanuel.gamingnews.views.MainActivity;
 import com.eagskunst.emmanuel.gamingnews.views.SettingsActivity;
 import com.google.firebase.messaging.FirebaseMessaging;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class SettingsFragment extends PreferenceFragment {
@@ -44,12 +49,18 @@ public class SettingsFragment extends PreferenceFragment {
         CheckBoxPreference dailyReminderPreference = (CheckBoxPreference) findPreference("pref_dailynotf");
         dailyReminderPreference.setOnPreferenceClickListener(preferenceClickListener("daily_notf",dailyReminderPreference.isChecked()));
         Preference manageTopics = findPreference("pref_managetopics");
-        manageTopics.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
-            @Override
-            public boolean onPreferenceClick(Preference preference) {
-                ((SettingsActivity)getActivity()).replaceFragment(TopicListFragment.newInstance(),R.string.manage_topics);
-                return true;
-            }
+
+        manageTopics.setOnPreferenceClickListener(preference -> {
+            ((SettingsActivity)getActivity()).replaceFragment(TopicListFragment.newInstance(),R.string.manage_topics);
+            return true;
+        });
+
+        final Preference deleteSavedArticles = findPreference("pref_deletesaved");
+        deleteSavedArticles.setOnPreferenceClickListener( preference -> {
+            final SharedPreferences sharedPreferences = (getActivity()).getSharedPreferences("UserPreferences",Context.MODE_PRIVATE);
+            SharedPreferencesLoader.saveList(sharedPreferences.edit(), new ArrayList<>());
+            Toast.makeText(getActivity(), R.string.saved_list_deleted, Toast.LENGTH_LONG).show();
+            return true;
         });
     }
 

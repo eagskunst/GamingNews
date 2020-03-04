@@ -50,6 +50,10 @@
     <string name="sorting_by_date">Ordenándolos por fecha…</string>
     <string name="coming_soon">Juegos lanzándose</string>
     <string name="success_releases">Revisa los nuevos lanzamientos!</string>
-
+    <string name="pref_title_data">Datos</string>
+    <string name="pref_key_title3">data</string>
+    <string name="delete_saved">Limpiar lista de noticias guardadas</string>
+    <string name="summary_delete_saved">Borra toda tu lista de noticias guardadas</string>
+    <string name="saved_list_deleted">Tu lista de noticias guardadas ha sido borrada</string>
 
 </resources>

@@ -49,4 +49,9 @@
     <string name="sorting_by_date">Sorting by date…</string>
     <string name="coming_soon">Games releasing</string>
     <string name="success_releases">Check out this hot releases!</string>
+    <string name="pref_title_data">Data</string>
+    <string name="pref_key_title3">data</string>
+    <string name="delete_saved">Clean saved articles</string>
+    <string name="summary_delete_saved">Deletes all saved articles</string>
+    <string name="saved_list_deleted">Your articles saved list has been deleted</string>
 </resources>

@@ -5,6 +5,6 @@ package com.eagskunst.emmanuel.gamingnews.utility;
  */
 public class Constants {
     public static String NEWS_DATE_RSS_FORMAT = "E, d MMM yyyy HH:mm:ss Z";
-    public static String OUTPUT_FORMAT = "dd/mm/yyyy - HH:mm";
+    public static String OUTPUT_FORMAT = "dd/MM/YYYY - HH:mm";
 
 }

@@ -37,7 +37,7 @@ public class SharedPreferencesLoader {
     }
 
     public static int currentTheme(SharedPreferences sharedPreferences){
-        boolean isDark = sharedPreferences.getBoolean("night_mode",false);
+        final boolean isDark = sharedPreferences.getBoolean("night_mode",false);
         if(!isDark){
             return R.style.AppTheme;
         }

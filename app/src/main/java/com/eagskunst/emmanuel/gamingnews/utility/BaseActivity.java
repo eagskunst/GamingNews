@@ -2,7 +2,9 @@ package com.eagskunst.emmanuel.gamingnews.utility;
 
 import android.app.NotificationManager;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
@@ -12,6 +14,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
 
+import com.eagskunst.emmanuel.gamingnews.views.MainActivity;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 
@@ -24,8 +27,11 @@ public class BaseActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         final String PREFERENCES_USER = "UserPreferences";
         sharedPreferences = getSharedPreferences(PREFERENCES_USER, Context.MODE_PRIVATE);
+        final boolean darkThemeActive = sharedPreferences.getBoolean("night_mode",false);
+        if(isSystemDarkThemeActive() && !darkThemeActive){
+            sharedPreferences.edit().putBoolean("night_mode", true).commit();
+        }
         setTheme(SharedPreferencesLoader.currentTheme(sharedPreferences));
-
     }
 
     @Override
@@ -74,6 +80,10 @@ public class BaseActivity extends AppCompatActivity {
             return false;
         }
         return true;
+    }
+
+    protected boolean isSystemDarkThemeActive() {
+        return (getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK ) == Configuration.UI_MODE_NIGHT_YES;
     }
 
     protected void callLog(String TAG, String message){

@@ -37,5 +37,18 @@
             />
     </PreferenceCategory>
 
+    <PreferenceCategory
+        android:title="@string/pref_title_data"
+        android:key="@string/pref_key_title3">
+
+        <Preference
+            android:id="@+id/deleteSaved"
+            android:title="@string/delete_saved"
+            android:key="pref_deletesaved"
+            android:summary="@string/summary_delete_saved"
+            />
+
+    </PreferenceCategory>
+
 
 </PreferenceScreen>
