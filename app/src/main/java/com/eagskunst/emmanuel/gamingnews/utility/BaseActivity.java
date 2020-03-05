@@ -28,8 +28,12 @@ public class BaseActivity extends AppCompatActivity {
         final String PREFERENCES_USER = "UserPreferences";
         sharedPreferences = getSharedPreferences(PREFERENCES_USER, Context.MODE_PRIVATE);
         final boolean darkThemeActive = sharedPreferences.getBoolean("night_mode",false);
-        if(isSystemDarkThemeActive() && !darkThemeActive){
+        final boolean isSystemDarkThemeActive = isSystemDarkThemeActive();
+        if(isSystemDarkThemeActive && !darkThemeActive){
             sharedPreferences.edit().putBoolean("night_mode", true).commit();
+        }
+        else if(!isSystemDarkThemeActive && darkThemeActive){
+            sharedPreferences.edit().putBoolean("night_mode", false).commit();
         }
         setTheme(SharedPreferencesLoader.currentTheme(sharedPreferences));
     }
