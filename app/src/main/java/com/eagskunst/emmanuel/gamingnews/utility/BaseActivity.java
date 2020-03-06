@@ -2,19 +2,18 @@ package com.eagskunst.emmanuel.gamingnews.utility;
 
 import android.app.NotificationManager;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
-import androidx.annotation.Nullable;
-import androidx.core.app.NotificationCompat;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
 
-import com.eagskunst.emmanuel.gamingnews.views.MainActivity;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.NotificationCompat;
+
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 
@@ -30,10 +29,10 @@ public class BaseActivity extends AppCompatActivity {
         final boolean darkThemeActive = sharedPreferences.getBoolean("night_mode",false);
         final boolean isSystemDarkThemeActive = isSystemDarkThemeActive();
         if(isSystemDarkThemeActive && !darkThemeActive){
-            sharedPreferences.edit().putBoolean("night_mode", true).commit();
+            sharedPreferences.edit().putBoolean("night_mode", true).apply();
         }
         else if(!isSystemDarkThemeActive && darkThemeActive){
-            sharedPreferences.edit().putBoolean("night_mode", false).commit();
+            sharedPreferences.edit().putBoolean("night_mode", false).apply();
         }
         setTheme(SharedPreferencesLoader.currentTheme(sharedPreferences));
     }
@@ -87,7 +86,13 @@ public class BaseActivity extends AppCompatActivity {
     }
 
     protected boolean isSystemDarkThemeActive() {
-        return (getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK ) == Configuration.UI_MODE_NIGHT_YES;
+        switch (getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK) {
+            case Configuration.UI_MODE_NIGHT_YES:
+                return true;
+            case Configuration.UI_MODE_NIGHT_NO:
+            default:
+                return false;
+        }
     }
 
     protected void callLog(String TAG, String message){

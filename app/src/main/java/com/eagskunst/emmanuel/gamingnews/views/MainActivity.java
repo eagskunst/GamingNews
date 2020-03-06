@@ -83,7 +83,6 @@ public class MainActivity extends BaseActivity implements NewsListFragment.OnFra
             SharedPreferencesLoader.saveList(spEditor,savedNewsList);
             SharedPreferencesLoader.saveTopics(spEditor,topicList);
             spEditor.putBoolean("first_launch",false).apply();
-            spEditor.putBoolean("night_mode",false).apply();
             spEditor.putBoolean("load_images",true).apply();
         }
 

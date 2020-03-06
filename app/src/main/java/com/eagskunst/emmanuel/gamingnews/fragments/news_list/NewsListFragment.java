@@ -190,6 +190,22 @@ public class NewsListFragment extends Fragment implements NewsListView.View {
                 webViewOpen = false;
             }
         }
+        changeAdViewVisibility(View.VISIBLE);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        changeAdViewVisibility(View.GONE);
+    }
+
+    private void changeAdViewVisibility(final int visibility){
+        Log.d(TAG, "Changing ad visibility to: "+visibility);
+        final View fragmentView = getView();
+        if(fragmentView != null){
+            final AdView adView = fragmentView.findViewById(R.id.adView);
+            adView.setVisibility(visibility);
+        }
     }
 
     @Override

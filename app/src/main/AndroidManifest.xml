@@ -38,8 +38,7 @@
 
         <activity
             android:name=".views.MainActivity"
-            android:launchMode="singleTask"
-            android:screenOrientation="portrait">
+            android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -67,8 +66,7 @@
             android:name=".views.SettingsActivity"
             android:label="@string/title_activity_settings"
             android:launchMode="singleTop"
-            android:parentActivityName=".views.MainActivity"
-            android:screenOrientation="portrait">
+            android:parentActivityName=".views.MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.eagskunst.emmanuel.gamingnews.views.MainActivity" />

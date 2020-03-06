@@ -43,12 +43,21 @@ public class SettingsFragment extends PreferenceFragment {
 
         addPreferencesFromResource(R.xml.preferences);
         final SwitchPreference nightmodePreference = (SwitchPreference) findPreference("pref_nightmode");
+        if(sharedPreferences.getBoolean("night_mode", false)){
+            nightmodePreference.setChecked(true);
+        }
+        else{
+            nightmodePreference.setChecked(false);
+        }
         nightmodePreference.setOnPreferenceClickListener(preferenceClickListener("night_mode",nightmodePreference.isChecked()));
-        SwitchPreference disableImagesPreference = (SwitchPreference) findPreference("pref_loadimages");
+
+        final SwitchPreference disableImagesPreference = (SwitchPreference) findPreference("pref_loadimages");
         disableImagesPreference.setOnPreferenceClickListener(preferenceClickListener("load_images",disableImagesPreference.isChecked()));
-        CheckBoxPreference dailyReminderPreference = (CheckBoxPreference) findPreference("pref_dailynotf");
+
+        final CheckBoxPreference dailyReminderPreference = (CheckBoxPreference) findPreference("pref_dailynotf");
         dailyReminderPreference.setOnPreferenceClickListener(preferenceClickListener("daily_notf",dailyReminderPreference.isChecked()));
-        Preference manageTopics = findPreference("pref_managetopics");
+
+        final Preference manageTopics = findPreference("pref_managetopics");
 
         manageTopics.setOnPreferenceClickListener(preference -> {
             ((SettingsActivity)getActivity()).replaceFragment(TopicListFragment.newInstance(),R.string.manage_topics);
