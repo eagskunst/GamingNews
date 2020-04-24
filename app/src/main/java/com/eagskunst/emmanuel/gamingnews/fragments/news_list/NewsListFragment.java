@@ -367,7 +367,7 @@ public class NewsListFragment extends Fragment implements NewsListView.View {
             public void OnItemClick(NewsModel item) {
                 //SaveArticle is a BroadcastReceiver that will be notified if the start button on the CustomTab is tapped
                 //It is made this way because CustomTabs does not have an 'startTabForResult' or something like that.
-                Intent i = new Intent(getActivity(),SaveArticleReceiver.class);
+                final Intent i = new Intent(getActivity(),SaveArticleReceiver.class);
                 i.putExtra("url",item.getLink());
                 i.setExtrasClassLoader(NewsModel.class.getClassLoader());//For the BroadcastReceiver. Without it, it is not posible to use custom Objects
                 Bundle bundle = new Bundle();
@@ -382,10 +382,11 @@ public class NewsListFragment extends Fragment implements NewsListView.View {
                 else{
                     b = BitmapFactory.decodeResource(getResources(),R.drawable.ic_star_on);
                 }
-                SharedPreferences sharedPreferences = getActivity().getSharedPreferences("UserPreferences",Context.MODE_PRIVATE);
+                final SharedPreferences sharedPreferences = getActivity().getSharedPreferences("UserPreferences",Context.MODE_PRIVATE);
 
-                CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder()
+                final CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder()
                         .addDefaultShareMenuItem();
+
                 if(SharedPreferencesLoader.currentTheme(sharedPreferences) == R.style.AppTheme)
                     builder.setToolbarColor(getResources().getColor(R.color.colorPrimaryDark));
                 else{
