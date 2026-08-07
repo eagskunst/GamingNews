@@ -22,22 +22,22 @@ interface IgdbApi {
 @Serializable
 data class IgdbReleaseDateDto(
     val id: Long,
-    val date: Long?,
-    val human: String?,
+    val date: Long? = null,
+    val human: String? = null,
     val platform: Int,
-    @SerialName("game") val game: IgdbGameDto?
+    @SerialName("game") val game: IgdbGameDto? = null
 )
 
 @Serializable
 data class IgdbGameDto(
     val id: Long,
-    val name: String?,
-    val url: String?,
-    val cover: IgdbCoverDto?
+    val name: String? = null,
+    val url: String? = null,
+    val cover: IgdbCoverDto? = null
 )
 
 @Serializable
 data class IgdbCoverDto(
     val id: Long,
-    val url: String?
+    val url: String? = null
 )
