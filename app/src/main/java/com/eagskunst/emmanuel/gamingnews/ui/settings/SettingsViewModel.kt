@@ -1,5 +1,6 @@
 package com.eagskunst.emmanuel.gamingnews.ui.settings
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.Topic
@@ -10,7 +11,9 @@ import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.RemoveTopicUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateDailyReminderUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateDarkThemeUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateLoadImagesUseCase
+import com.eagskunst.emmanuel.gamingnews.worker.DailyReminderScheduler
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -28,6 +31,7 @@ data class SettingsUiState(
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
     getUserPreferencesUseCase: GetUserPreferencesUseCase,
     getTopicsUseCase: GetTopicsUseCase,
     private val updateDarkThemeUseCase: UpdateDarkThemeUseCase,
@@ -63,7 +67,14 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun toggleDailyReminder(enabled: Boolean) {
-        viewModelScope.launch { updateDailyReminderUseCase(enabled) }
+        viewModelScope.launch {
+            updateDailyReminderUseCase(enabled)
+            if (enabled) {
+                DailyReminderScheduler.schedule(context)
+            } else {
+                DailyReminderScheduler.cancel(context)
+            }
+        }
     }
 
     fun addTopic(name: String) {
