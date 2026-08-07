@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.eagskunst.emmanuel.gamingnews">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
         android:allowBackup="false"
@@ -12,7 +12,6 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
-        android:name="androidx.multidex.MultiDexApplication"
         >
 
 
@@ -31,14 +30,22 @@
         <meta-data android:name="android.webkit.WebView.EnableSafeBrowsing"
             android:value="true" />
 
+        <!-- AdMob integration is disabled for now (the app previously initialized ads
+             programmatically via a now-removed MobileAds.initialize(Context, String) overload).
+             To re-enable: add back the com.google.android.gms:play-services-ads dependency,
+             a com.google.android.gms.ads.APPLICATION_ID meta-data entry here pointing at a real
+             AdMob app ID string resource, and MobileAds.initialize(...) in MainActivity. -->
+
         <receiver android:name="com.eagskunst.emmanuel.gamingnews.receivers.SaveArticleReceiver"
             android:enabled="true"
+            android:exported="false"
             />
 
 
         <activity
             android:name=".views.MainActivity"
             android:launchMode="singleTask"
+            android:exported="true"
             android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -67,6 +74,7 @@
             android:name=".views.SettingsActivity"
             android:label="@string/title_activity_settings"
             android:launchMode="singleTop"
+            android:exported="false"
             android:parentActivityName=".views.MainActivity"
             android:screenOrientation="portrait">
             <meta-data
@@ -75,6 +83,7 @@
         </activity>
         <activity android:name=".views.ArticlesFromNotificationActivity"
             android:launchMode="singleTask"
+            android:exported="false"
             android:taskAffinity=""
             android:excludeFromRecents="true">
             <meta-data
@@ -83,7 +92,8 @@
         </activity>
 
         <service
-            android:name=".utility.NotificationMaker">
+            android:name=".utility.NotificationMaker"
+            android:exported="false">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT"/>
             </intent-filter>
