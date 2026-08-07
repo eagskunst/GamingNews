@@ -16,6 +16,13 @@ if (hasKeystoreProperties) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 
+val localPropertiesFile = rootProject.file("local.properties")
+val localProperties = Properties()
+if (localPropertiesFile.exists()) {
+    localProperties.load(FileInputStream(localPropertiesFile))
+}
+fun localProperty(name: String, default: String = ""): String = localProperties.getProperty(name, default) ?: default
+
 android {
     namespace = "com.eagskunst.emmanuel.gamingnews"
     compileSdk = 37
@@ -39,6 +46,8 @@ android {
         versionName = "2.0.0-beta01"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
+        buildConfigField("String", "TWITCH_CLIENT_ID", "\"${localProperty("twitch.client.id")}\"")
+        buildConfigField("String", "TWITCH_CLIENT_SECRET", "\"${localProperty("twitch.client.secret")}\"")
         if (hasKeystoreProperties) {
             signingConfig = signingConfigs.getByName("config")
         }
@@ -81,6 +90,10 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+}
+
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
 }
 
 dependencies {
@@ -134,6 +147,7 @@ dependencies {
     implementation(libs.okhttp.logging)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.kotlinx.coroutines.play.services)
 
     // Image loading
     implementation(libs.coil.compose)
