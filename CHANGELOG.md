@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0-beta01] - 2026-08-07
+
 ### Changed
 - Migrated the entire application source from Java to Kotlin.
 - Upgraded Android Gradle Plugin from 3.5.3 to 9.3.0.

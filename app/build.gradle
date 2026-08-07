@@ -31,8 +31,8 @@ android {
         applicationId = "com.eagskunst.emmanuel.gamingnews"
         minSdkVersion 23
         targetSdkVersion 36
-        versionCode = 15
-        versionName = "1.4.1"
+        versionCode = 16
+        versionName = "2.0.0-beta01"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
         if (hasKeystoreProperties) {
