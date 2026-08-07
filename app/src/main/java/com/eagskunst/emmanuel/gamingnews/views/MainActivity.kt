@@ -4,7 +4,10 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.annotation.StringRes
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
@@ -16,8 +19,13 @@ import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationRail
+import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
+import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -47,9 +55,11 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
         setContent {
             GamingNewsTheme {
                 MainScreen(
+                    activity = this,
                     onOpenArticle = { url -> openCustomTab(url.toUri()) },
                     onOpenGameUrl = { url -> openCustomTab(url.toUri()) },
                     onSettingsClick = { startActivity(Intent(this, SettingsActivity::class.java)) }
@@ -59,40 +69,56 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Composable
 private fun MainScreen(
+    activity: ComponentActivity,
     onOpenArticle: (String) -> Unit,
     onOpenGameUrl: (String) -> Unit,
     onSettingsClick: () -> Unit
 ) {
+    val windowSizeClass = calculateWindowSizeClass(activity)
     val navController = rememberNavController()
+    val useNavigationRail = windowSizeClass.widthSizeClass != WindowWidthSizeClass.Compact
 
     Scaffold(
-        bottomBar = { BottomNavigationBar(navController) }
+        bottomBar = {
+            if (!useNavigationRail) {
+                BottomNavigationBar(navController)
+            }
+        }
     ) { padding ->
-        NavHost(
-            navController = navController,
-            startDestination = BottomNavRoute.News.route,
-            modifier = Modifier.padding(padding)
-        ) {
-            composable(BottomNavRoute.News.route) {
-                val viewModel = hiltViewModel<NewsViewModel>()
-                NewsScreen(
-                    viewModel = viewModel,
-                    onSettingsClick = onSettingsClick,
-                    onOpenArticle = onOpenArticle
+        Row(modifier = Modifier.padding(padding)) {
+            if (useNavigationRail) {
+                NavigationSideBar(
+                    navController = navController,
+                    modifier = Modifier.fillMaxHeight()
                 )
             }
-            composable(BottomNavRoute.Releases.route) {
-                val viewModel = hiltViewModel<ReleasesViewModel>()
-                ReleasesScreen(
-                    viewModel = viewModel,
-                    onOpenGameUrl = onOpenGameUrl
-                )
-            }
-            composable(BottomNavRoute.Topics.route) {
-                val viewModel = hiltViewModel<TopicsViewModel>()
-                TopicsScreen(viewModel = viewModel)
+            NavHost(
+                navController = navController,
+                startDestination = BottomNavRoute.News.route,
+                modifier = Modifier.weight(1f)
+            ) {
+                composable(BottomNavRoute.News.route) {
+                    val viewModel = hiltViewModel<NewsViewModel>()
+                    NewsScreen(
+                        viewModel = viewModel,
+                        onSettingsClick = onSettingsClick,
+                        onOpenArticle = onOpenArticle
+                    )
+                }
+                composable(BottomNavRoute.Releases.route) {
+                    val viewModel = hiltViewModel<ReleasesViewModel>()
+                    ReleasesScreen(
+                        viewModel = viewModel,
+                        onOpenGameUrl = onOpenGameUrl
+                    )
+                }
+                composable(BottomNavRoute.Topics.route) {
+                    val viewModel = hiltViewModel<TopicsViewModel>()
+                    TopicsScreen(viewModel = viewModel)
+                }
             }
         }
     }
@@ -115,17 +141,44 @@ private fun BottomNavigationBar(navController: NavHostController) {
                 },
                 label = { Text(stringResource(item.labelRes)) },
                 selected = selected,
-                onClick = {
-                    navController.navigate(item.route) {
-                        popUpTo(navController.graph.findStartDestination().id) {
-                            saveState = true
-                        }
-                        launchSingleTop = true
-                        restoreState = true
-                    }
-                }
+                onClick = { navController.navigateToTopLevel(item.route) }
             )
         }
+    }
+}
+
+@Composable
+private fun NavigationSideBar(
+    navController: NavHostController,
+    modifier: Modifier = Modifier
+) {
+    val backStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = backStackEntry?.destination?.route
+
+    NavigationRail(modifier = modifier) {
+        BottomNavRoute.entries.forEach { item ->
+            NavigationRailItem(
+                icon = {
+                    Icon(
+                        imageVector = if (currentRoute == item.route) item.selectedIcon else item.unselectedIcon,
+                        contentDescription = stringResource(item.labelRes)
+                    )
+                },
+                label = { Text(stringResource(item.labelRes)) },
+                selected = currentRoute == item.route,
+                onClick = { navController.navigateToTopLevel(item.route) }
+            )
+        }
+    }
+}
+
+private fun NavHostController.navigateToTopLevel(route: String) {
+    navigate(route) {
+        popUpTo(graph.findStartDestination().id) {
+            saveState = true
+        }
+        launchSingleTop = true
+        restoreState = true
     }
 }
 
