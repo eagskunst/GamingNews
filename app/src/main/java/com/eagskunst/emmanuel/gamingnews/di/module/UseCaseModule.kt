@@ -27,6 +27,7 @@ object UseCaseModule {
     @Provides
     fun provideGetNewsUseCase(repository: NewsRepository): GetNewsUseCase = GetNewsUseCase(repository)
 
+
     @Provides
     fun provideGetSavedArticlesUseCase(repository: NewsRepository): GetSavedArticlesUseCase =
         GetSavedArticlesUseCase(repository)

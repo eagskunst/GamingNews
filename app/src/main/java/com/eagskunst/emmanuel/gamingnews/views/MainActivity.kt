@@ -1,230 +1,156 @@
 package com.eagskunst.emmanuel.gamingnews.views
 
 import android.content.Intent
-import android.content.SharedPreferences
-import android.net.Uri
 import android.os.Bundle
-import android.os.Handler
-import android.view.Menu
-import android.view.MenuItem
-import android.widget.ProgressBar
-import androidx.annotation.NonNull
-import androidx.appcompat.app.ActionBarDrawerToggle
-import androidx.appcompat.widget.Toolbar
-import androidx.drawerlayout.widget.DrawerLayout
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentManager
-import androidx.fragment.app.FragmentTransaction
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.annotation.StringRes
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.outlined.DateRange
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material3.Icon
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
+import androidx.core.net.toUri
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import com.eagskunst.emmanuel.gamingnews.R
-import com.eagskunst.emmanuel.gamingnews.fragments.news_list.NewsListFragment
-import com.eagskunst.emmanuel.gamingnews.fragments.releases.ReleasesFragment
-import com.eagskunst.emmanuel.gamingnews.models.NewsModel
-import com.eagskunst.emmanuel.gamingnews.objects.LoadUrls
-import com.eagskunst.emmanuel.gamingnews.utility.BaseActivity
-import com.eagskunst.emmanuel.gamingnews.utility.SharedPreferencesLoader
-import com.google.android.material.navigation.NavigationView
-import com.google.firebase.messaging.FirebaseMessaging
-import java.io.IOException
-import java.util.Locale
+import com.eagskunst.emmanuel.gamingnews.ui.news.NewsScreen
+import com.eagskunst.emmanuel.gamingnews.ui.news.NewsViewModel
+import com.eagskunst.emmanuel.gamingnews.ui.releases.ReleasesScreen
+import com.eagskunst.emmanuel.gamingnews.ui.releases.ReleasesViewModel
+import com.eagskunst.emmanuel.gamingnews.ui.theme.GamingNewsTheme
+import com.eagskunst.emmanuel.gamingnews.ui.topics.TopicsScreen
+import com.eagskunst.emmanuel.gamingnews.ui.topics.TopicsViewModel
+import com.eagskunst.emmanuel.gamingnews.utility.openCustomTab
+import dagger.hilt.android.AndroidEntryPoint
 
-class MainActivity : BaseActivity(), NewsListFragment.OnFragmentInteractionListener {
-
-    private lateinit var newsFragments: Array<NewsListFragment?>
-
-    private lateinit var currentFrag: String
-    private lateinit var drawerLayout: DrawerLayout
-    private var loadUrls: LoadUrls? = null
-    private lateinit var navigationView: NavigationView
+@AndroidEntryPoint
+class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        SharedPreferencesLoader.setCanLoadImages(getUserSharedPreferences())
-
-        setContentView(R.layout.activity_main)
-
-        val isNightActive = getUserSharedPreferences().getBoolean("night_mode", false)
-
-        if (isNightActive) {
-            window.decorView.setBackgroundColor(resources.getColor(R.color.colorBackgroundNightMode))
-        }
-
-        // AdMob integration is disabled for now (see AndroidManifest.xml comment near where
-        // the com.google.android.gms.ads.APPLICATION_ID meta-data used to be).
-
-        setFirebaseToken()
-
-        // In first launch, create saved list
-        if (getUserSharedPreferences().getBoolean("first_launch", true)) {
-            callLog(TAG, "First launch of this app in this device.")
-            if (Locale.getDefault().language == "es") {
-                FirebaseMessaging.getInstance().subscribeToTopic(Locale.getDefault().language)
-            } else {
-                FirebaseMessaging.getInstance().subscribeToTopic("en")
+        setContent {
+            GamingNewsTheme {
+                MainScreen(
+                    onOpenArticle = { url -> openCustomTab(url.toUri()) },
+                    onOpenGameUrl = { url -> openCustomTab(url.toUri()) },
+                    onSettingsClick = { startActivity(Intent(this, SettingsActivity::class.java)) }
+                )
             }
-            val spEditor: SharedPreferences.Editor = getUserSharedPreferences().edit()
-            val savedNewsList: List<NewsModel> = ArrayList()
-            val topicList: List<String> = ArrayList()
-            SharedPreferencesLoader.saveList(spEditor, savedNewsList)
-            SharedPreferencesLoader.saveTopics(spEditor, topicList)
-            spEditor.putBoolean("first_launch", false).apply()
-            spEditor.putBoolean("night_mode", false).apply()
-            spEditor.putBoolean("load_images", true).apply()
         }
-
-        val toolbar: Toolbar = findViewById(R.id.toolbar)
-        navigationView = findViewById(R.id.navigation_view)
-        val progressBar: ProgressBar = findViewById(R.id.toolbarProgressBar)
-        showToolbar(toolbar, R.string.app_name, false, progressBar)
-        callLog(TAG, "Title: " + supportActionBar!!.title.toString())
-        startDrawerLayout(toolbar)
-
-        loadUrls = null
-        try {
-            val stream = assets.open("Urls.json")
-            val urls = LoadUrls(Locale.getDefault().language, stream)
-            urls.setUrls()
-            loadUrls = urls
-        } catch (e: IOException) {
-            e.printStackTrace()
-        }
-        newsFragments = arrayOfNulls(FragmentTags.size)
-        startNavigationView()
-        initAllFragments()
-        supportFragmentManager.beginTransaction()
-            .replace(R.id.container, newsFragments[0]!!, FragmentTags[0])
-            .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-            .commit()
-
-        currentFrag = FragmentTags[0]
-        navigationView.setCheckedItem(R.id.all_news)
-        setOnBackChangeListener()
     }
+}
 
-    override fun onDestroy() {
-        super.onDestroy()
-        SharedPreferencesLoader.saveCurrentTime(getUserSharedPreferences().edit())
-    }
+@Composable
+private fun MainScreen(
+    onOpenArticle: (String) -> Unit,
+    onOpenGameUrl: (String) -> Unit,
+    onSettingsClick: () -> Unit
+) {
+    val navController = rememberNavController()
 
-    private fun startDrawerLayout(toolbar: Toolbar) {
-        drawerLayout = findViewById(R.id.drawer_layout)
-        val drawerToggle = ActionBarDrawerToggle(
-            this, drawerLayout,
-            toolbar, R.string.drawer_open, R.string.drawer_close
-        )
-        drawerLayout.addDrawerListener(drawerToggle)
-        drawerToggle.syncState()
-        supportActionBar!!.setHomeButtonEnabled(true)
-        supportActionBar!!.setDisplayHomeAsUpEnabled(true)
-        supportActionBar!!.setHomeAsUpIndicator(R.drawable.drawerlogo1)
-    }
-
-    private fun startNavigationView() {
-        navigationView.setNavigationItemSelectedListener(NavigationView.OnNavigationItemSelectedListener { item: MenuItem ->
-            val id = item.itemId
-            drawerLayout.closeDrawers()
-            if (id == R.id.all_news) {
-                makeFragmentTransaction(newsFragments[0]!!, id, FragmentTags[0])
-            } else if (id == R.id.ps4_news) {
-                makeFragmentTransaction(newsFragments[1]!!, id, FragmentTags[1])
-            } else if (id == R.id.xboxo_news) {
-                makeFragmentTransaction(newsFragments[2]!!, id, FragmentTags[2])
-            } else if (id == R.id.switch_news) {
-                makeFragmentTransaction(newsFragments[3]!!, id, FragmentTags[3])
-            } else if (id == R.id.PC_news) {
-                makeFragmentTransaction(newsFragments[4]!!, id, FragmentTags[4])
-            } else if (id == R.id.saved_news) {
-                makeFragmentTransaction(newsFragments[5]!!, id, FragmentTags[5])
-            } else if (id == R.id.next_releases) {
-                val fragment = ReleasesFragment.newInstance()
-                supportActionBar!!.title = "Coming soon games"
-                makeFragmentTransaction(fragment, id, FragmentTags[6])
-            } else if (id == R.id.settings) {
-                startActivity(Intent(this@MainActivity, SettingsActivity::class.java))
+    Scaffold(
+        bottomBar = { BottomNavigationBar(navController) }
+    ) { padding ->
+        NavHost(
+            navController = navController,
+            startDestination = BottomNavRoute.News.route,
+            modifier = Modifier.padding(padding)
+        ) {
+            composable(BottomNavRoute.News.route) {
+                val viewModel = hiltViewModel<NewsViewModel>()
+                NewsScreen(
+                    viewModel = viewModel,
+                    onSettingsClick = onSettingsClick,
+                    onOpenArticle = onOpenArticle
+                )
             }
-            true
-        })
-    }
-
-    private fun initAllFragments() {
-        for (i in newsFragments.indices) {
-            newsFragments[i] = NewsListFragment.newInstance(getUrls(i))
+            composable(BottomNavRoute.Releases.route) {
+                val viewModel = hiltViewModel<ReleasesViewModel>()
+                ReleasesScreen(
+                    viewModel = viewModel,
+                    onOpenGameUrl = onOpenGameUrl
+                )
+            }
+            composable(BottomNavRoute.Topics.route) {
+                val viewModel = hiltViewModel<TopicsViewModel>()
+                TopicsScreen(viewModel = viewModel)
+            }
         }
     }
+}
 
-    private fun setOnBackChangeListener() {
-        supportFragmentManager.addOnBackStackChangedListener(object : FragmentManager.OnBackStackChangedListener {
-            override fun onBackStackChanged() {
-                val currentFragment = getCurrentFragment()
-                val tag = currentFragment!!.tag
-                if (tag == FragmentTags[6]) {
-                    supportActionBar!!.setTitle(R.string.coming_soon)
-                } else {
-                    supportActionBar!!.setTitle(R.string.app_name)
+@Composable
+private fun BottomNavigationBar(navController: NavHostController) {
+    val backStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = backStackEntry?.destination?.route
+
+    NavigationBar {
+        BottomNavRoute.entries.forEach { item ->
+            val selected = currentRoute == item.route
+            NavigationBarItem(
+                icon = {
+                    Icon(
+                        imageVector = if (selected) item.selectedIcon else item.unselectedIcon,
+                        contentDescription = stringResource(item.labelRes)
+                    )
+                },
+                label = { Text(stringResource(item.labelRes)) },
+                selected = selected,
+                onClick = {
+                    navController.navigate(item.route) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
                 }
-                if (tag == FragmentTags[0]) {
-                    navigationView.setCheckedItem(R.id.all_news)
-                } else if (tag == FragmentTags[1]) {
-                    navigationView.setCheckedItem(R.id.ps4_news)
-                } else if (tag == FragmentTags[2]) {
-                    navigationView.setCheckedItem(R.id.xboxo_news)
-                } else if (tag == FragmentTags[3]) {
-                    navigationView.setCheckedItem(R.id.switch_news)
-                } else if (tag == FragmentTags[4]) {
-                    navigationView.setCheckedItem(R.id.PC_news)
-                } else if (tag == FragmentTags[5]) {
-                    navigationView.setCheckedItem(R.id.saved_news)
-                } else if (tag == FragmentTags[6]) {
-                    navigationView.setCheckedItem(R.id.next_releases)
-                }
-            }
-        })
-    }
-
-    private fun getCurrentFragment(): Fragment? {
-        return this.supportFragmentManager.findFragmentById(R.id.container)
-    }
-
-    private fun getUrls(i: Int): Array<String> {
-        return when (i) {
-            0 -> loadUrls!!.allUrls!!
-            1 -> loadUrls!!.ps4Urls!!
-            2 -> loadUrls!!.xboxOUrls!!
-            3 -> loadUrls!!.switchUrls!!
-            4 -> loadUrls!!.pcUrls!!
-            5 -> arrayOf("SAVEDLIST")
-            else -> arrayOf()
+            )
         }
     }
+}
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        return super.onCreateOptionsMenu(menu)
-    }
-
-    private fun makeFragmentTransaction(fragment: Fragment, item: Int, _TAG: String) {
-        // Handler for the fade animation on the new fragment doesn't seem so abrupt.
-        val h = Handler()
-        h.postDelayed({
-            if (currentFrag != _TAG) {
-                supportFragmentManager.beginTransaction()
-                    .replace(R.id.container, fragment, _TAG)
-                    .addToBackStack(_TAG)
-                    .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
-                    .commit()
-                currentFrag = _TAG
-            }
-            navigationView.setCheckedItem(item)
-        }, 200)
-    }
-
-    override fun onFragmentInteraction(uri: Uri) {
-    }
-
-    companion object {
-        private const val TAG = "MainActivity"
-        private val FragmentTags = arrayOf(
-            "NewsListFragment_All", "NewsListFragment_PS4", "NewsListFragment_XboxO",
-            "NewsListFragment_Switch", "NewsListFragment_PC", "NewsListFragment_Saved",
-            "ReleasesFragment"
-        )
-    }
+private enum class BottomNavRoute(
+    val route: String,
+    @StringRes val labelRes: Int,
+    val selectedIcon: ImageVector,
+    val unselectedIcon: ImageVector
+) {
+    News(
+        route = "news",
+        labelRes = R.string.app_name,
+        selectedIcon = Icons.Filled.Home,
+        unselectedIcon = Icons.Outlined.Home
+    ),
+    Releases(
+        route = "releases",
+        labelRes = R.string.nextReleases,
+        selectedIcon = Icons.Filled.DateRange,
+        unselectedIcon = Icons.Outlined.DateRange
+    ),
+    Topics(
+        route = "topics",
+        labelRes = R.string.notification,
+        selectedIcon = Icons.Filled.Notifications,
+        unselectedIcon = Icons.Outlined.Notifications
+    )
 }
