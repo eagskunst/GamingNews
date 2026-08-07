@@ -11,11 +11,11 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
 class RssRemoteDataSource @Inject constructor(
-    private val parser: Parser,
     private val dispatchers: DispatcherProvider
 ) {
 
     suspend fun fetchChannel(url: String): Channel = withContext(dispatchers.io) {
+        val parser = Parser.Builder().build()
         suspendCancellableCoroutine { continuation ->
             parser.onFinish(object : OnTaskCompleted {
                 override fun onTaskCompleted(channel: Channel) {

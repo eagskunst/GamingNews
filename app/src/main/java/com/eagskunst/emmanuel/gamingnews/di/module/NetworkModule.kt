@@ -3,7 +3,6 @@ package com.eagskunst.emmanuel.gamingnews.di.module
 import com.eagskunst.emmanuel.gamingnews.BuildConfig
 import com.eagskunst.emmanuel.gamingnews.core.data.source.remote.api.IgdbApi
 import com.eagskunst.emmanuel.gamingnews.core.data.source.remote.api.TwitchAuthApi
-import com.prof.rssparser.Parser
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -64,10 +63,6 @@ object NetworkModule {
     @Singleton
     fun provideTwitchAuthApi(@Named("twitch") retrofit: Retrofit): TwitchAuthApi =
         retrofit.create(TwitchAuthApi::class.java)
-
-    @Provides
-    @Singleton
-    fun provideRssParser(): Parser = Parser.Builder().build()
 
     @Provides
     @Named("igdbClientId")
