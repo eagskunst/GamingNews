@@ -4,8 +4,9 @@ import com.eagskunst.emmanuel.gamingnews.core.data.source.local.UserPreferencesL
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.UserPreferences
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.UserPreferencesRepository
 import kotlinx.coroutines.flow.Flow
+import javax.inject.Inject
 
-class DefaultUserPreferencesRepository(
+class DefaultUserPreferencesRepository @Inject constructor(
     private val localDataSource: UserPreferencesLocalDataSource
 ) : UserPreferencesRepository {
 

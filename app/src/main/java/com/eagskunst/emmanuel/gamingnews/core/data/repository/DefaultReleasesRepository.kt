@@ -18,8 +18,9 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import java.util.Calendar
 import java.util.Date
+import javax.inject.Inject
 
-class DefaultReleasesRepository(
+class DefaultReleasesRepository @Inject constructor(
     private val igdbRemoteDataSource: IgdbRemoteDataSource,
     private val releaseDao: ReleaseDao,
     private val dispatchers: DispatcherProvider

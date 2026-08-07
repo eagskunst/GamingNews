@@ -5,8 +5,9 @@ import com.eagskunst.emmanuel.gamingnews.core.data.source.remote.FirebaseTopicsD
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.Topic
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.TopicsRepository
 import kotlinx.coroutines.flow.Flow
+import javax.inject.Inject
 
-class DefaultTopicsRepository(
+class DefaultTopicsRepository @Inject constructor(
     private val localDataSource: TopicsLocalDataSource,
     private val firebaseDataSource: FirebaseTopicsDataSource
 ) : TopicsRepository {

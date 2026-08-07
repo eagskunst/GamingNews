@@ -4,6 +4,7 @@ import java.util.Properties
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.hilt)
     alias(libs.plugins.google.services)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
@@ -94,6 +95,7 @@ android {
 
 ksp {
     arg("room.schemaLocation", "$projectDir/schemas")
+    arg("dagger.hilt.disableModulesHaveInstallInCheck", "true")
 }
 
 dependencies {
@@ -110,9 +112,12 @@ dependencies {
     implementation(libs.androidx.browser)
     implementation(libs.google.android.material)
 
-    // Dagger (legacy manual DI; will be replaced by Hilt in Phase 2)
-    implementation(libs.dagger)
-    ksp(libs.dagger.compiler)
+    // Hilt
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.android.compiler)
+    implementation(libs.androidx.hilt.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.hilt.navigation.compose)
+    implementation(libs.androidx.hilt.work)
 
     // Compose
     implementation(libs.androidx.activity.compose)

@@ -17,8 +17,9 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.supervisorScope
+import javax.inject.Inject
 
-class DefaultNewsRepository(
+class DefaultNewsRepository @Inject constructor(
     private val rssRemoteDataSource: RssRemoteDataSource,
     private val articleDao: ArticleDao,
     private val dispatchers: DispatcherProvider
