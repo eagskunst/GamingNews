@@ -1,44 +1,34 @@
 package com.eagskunst.emmanuel.gamingnews.ui.news
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil3.compose.AsyncImage
 import com.eagskunst.emmanuel.gamingnews.R
-import com.eagskunst.emmanuel.gamingnews.core.domain.model.NewsArticle
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.NewsCategory
+import com.eagskunst.emmanuel.gamingnews.ui.components.ArticleCard
+import com.eagskunst.emmanuel.gamingnews.ui.components.MainTopAppBar
 
 private val categories = NewsCategory.entries.toTypedArray()
 
@@ -50,19 +40,24 @@ fun NewsScreen(
     onOpenArticle: (String) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val filteredArticles = remember(uiState.articles, uiState.searchQuery) {
+        if (uiState.searchQuery.isBlank()) {
+            uiState.articles
+        } else {
+            uiState.articles.filter { it.title.contains(uiState.searchQuery, ignoreCase = true) }
+        }
+    }
 
     Scaffold(
+        // The outer Scaffold in MainActivity already reserves space for the bottom
+        // navigation bar; only consume the top status bar inset here to avoid double padding.
+        contentWindowInsets = WindowInsets.statusBars,
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.app_name)) },
-                actions = {
-                    IconButton(onClick = onSettingsClick) {
-                        Icon(
-                            imageVector = Icons.Default.FavoriteBorder,
-                            contentDescription = stringResource(R.string.title_activity_settings)
-                        )
-                    }
-                }
+            MainTopAppBar(
+                title = stringResource(R.string.app_name),
+                searchQuery = uiState.searchQuery,
+                onSearchQueryChange = viewModel::onSearchQueryChange,
+                onSettingsClick = onSettingsClick
             )
         }
     ) { padding ->
@@ -95,10 +90,10 @@ fun NewsScreen(
 
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                items(uiState.articles, key = { it.link }) { article ->
+                items(filteredArticles, key = { it.link }) { article ->
                     ArticleCard(
                         article = article,
                         isSaved = uiState.savedLinks.contains(article.link),
@@ -123,10 +118,24 @@ private fun CategorySelector(
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         items(categories) { category ->
+            val isSelected = category == selected
             FilterChip(
-                selected = category == selected,
+                selected = isSelected,
                 onClick = { onSelected(category) },
-                label = { Text(category.displayName()) }
+                label = { Text(category.displayName()) },
+                shape = MaterialTheme.shapes.extraLarge,
+                colors = FilterChipDefaults.filterChipColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    selectedContainerColor = MaterialTheme.colorScheme.primary,
+                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary
+                ),
+                border = FilterChipDefaults.filterChipBorder(
+                    enabled = true,
+                    selected = isSelected,
+                    borderColor = MaterialTheme.colorScheme.outline,
+                    selectedBorderColor = MaterialTheme.colorScheme.primary
+                )
             )
         }
     }
@@ -139,57 +148,4 @@ private fun NewsCategory.displayName(): String = when (this) {
     NewsCategory.XBOX -> "Xbox"
     NewsCategory.SWITCH -> "Switch"
     NewsCategory.PC -> "PC"
-}
-
-@Composable
-private fun ArticleCard(
-    article: NewsArticle,
-    isSaved: Boolean,
-    onToggleSave: () -> Unit,
-    onClick: () -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-    ) {
-        Row(
-            modifier = Modifier.padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            AsyncImage(
-                model = article.imageUrl,
-                contentDescription = article.title,
-                modifier = Modifier
-                    .size(80.dp)
-                    .padding(end = 12.dp),
-                contentScale = ContentScale.Crop
-            )
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-                Text(
-                    text = article.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    maxLines = 2
-                )
-                Text(
-                    text = article.sourceName,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                Text(
-                    text = article.description,
-                    style = MaterialTheme.typography.bodyMedium,
-                    maxLines = 3
-                )
-            }
-            IconButton(onClick = onToggleSave) {
-                Icon(
-                    imageVector = if (isSaved) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                    contentDescription = if (isSaved) "Remove from saved" else "Save article"
-                )
-            }
-        }
-    }
 }

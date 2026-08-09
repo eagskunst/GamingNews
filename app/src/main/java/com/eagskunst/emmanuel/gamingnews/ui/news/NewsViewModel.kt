@@ -21,6 +21,7 @@ data class NewsUiState(
     val articles: List<NewsArticle> = emptyList(),
     val savedLinks: Set<String> = emptySet(),
     val selectedCategory: NewsCategory = NewsCategory.ALL,
+    val searchQuery: String = "",
     val isLoading: Boolean = false,
     val errorMessage: String? = null
 )
@@ -70,5 +71,9 @@ class NewsViewModel @Inject constructor(
 
     fun toggleSavedArticle(article: NewsArticle) {
         viewModelScope.launch { toggleSavedArticleUseCase(article) }
+    }
+
+    fun onSearchQueryChange(query: String) {
+        _uiState.update { it.copy(searchQuery = query) }
     }
 }

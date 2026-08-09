@@ -11,21 +11,37 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+    primary = CrimsonPrimaryDark,
+    onPrimary = CrimsonOnPrimaryDark,
+    primaryContainer = CrimsonPrimaryContainerDark,
+    onPrimaryContainer = CrimsonOnPrimaryContainerDark,
+    secondary = CrimsonSecondaryDark,
+    background = CrimsonBackgroundDark,
+    surface = CrimsonBackgroundDark,
+    surfaceVariant = CrimsonSurfaceVariantDark,
+    onSurfaceVariant = CrimsonOnSurfaceVariantDark,
+    outline = CrimsonOutlineDark
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
+    primary = CrimsonPrimaryLight,
+    onPrimary = CrimsonOnPrimaryLight,
+    primaryContainer = CrimsonPrimaryContainerLight,
+    onPrimaryContainer = CrimsonOnPrimaryContainerLight,
+    secondary = CrimsonSecondaryLight,
+    background = CrimsonBackgroundLight,
+    surface = CrimsonBackgroundLight,
+    surfaceVariant = CrimsonSurfaceVariantLight,
+    onSurfaceVariant = CrimsonOnSurfaceVariantLight,
+    outline = CrimsonOutlineLight
 )
 
 @Composable
 fun GamingNewsTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = true,
+    // Dynamic color is disabled by default so the app keeps its red brand identity
+    // instead of following the device wallpaper palette (Material You).
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {

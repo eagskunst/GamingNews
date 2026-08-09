@@ -15,6 +15,7 @@ import javax.inject.Inject
 
 data class ReleasesUiState(
     val releases: List<GameRelease> = emptyList(),
+    val searchQuery: String = "",
     val isLoading: Boolean = false,
     val errorMessage: String? = null
 )
@@ -46,5 +47,9 @@ class ReleasesViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    fun onSearchQueryChange(query: String) {
+        _uiState.update { it.copy(searchQuery = query) }
     }
 }

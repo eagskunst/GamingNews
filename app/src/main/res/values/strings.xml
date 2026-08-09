@@ -16,6 +16,7 @@
     <string name="search_hint">Search articles...</string>
     <string name="saved">Saved</string>
     <string name="article_saved">Article saved!</string>
+    <string name="no_saved_articles">You haven\'t saved any articles yet</string>
     <string name="error_relaunch">Error. Try relaunching the app.</string>
     <string name="error_retrieving">Failed to retrieve saved list. Try re-launching the app</string>
     <string name="title_activity_settings">Settings</string>

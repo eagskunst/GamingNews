@@ -10,12 +10,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -44,9 +44,9 @@ import com.eagskunst.emmanuel.gamingnews.ui.news.NewsScreen
 import com.eagskunst.emmanuel.gamingnews.ui.news.NewsViewModel
 import com.eagskunst.emmanuel.gamingnews.ui.releases.ReleasesScreen
 import com.eagskunst.emmanuel.gamingnews.ui.releases.ReleasesViewModel
+import com.eagskunst.emmanuel.gamingnews.ui.saved.SavedScreen
+import com.eagskunst.emmanuel.gamingnews.ui.saved.SavedViewModel
 import com.eagskunst.emmanuel.gamingnews.ui.theme.GamingNewsTheme
-import com.eagskunst.emmanuel.gamingnews.ui.topics.TopicsScreen
-import com.eagskunst.emmanuel.gamingnews.ui.topics.TopicsViewModel
 import com.eagskunst.emmanuel.gamingnews.utility.openCustomTab
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -108,16 +108,21 @@ private fun MainScreen(
                         onOpenArticle = onOpenArticle
                     )
                 }
+                composable(BottomNavRoute.Saved.route) {
+                    val viewModel = hiltViewModel<SavedViewModel>()
+                    SavedScreen(
+                        viewModel = viewModel,
+                        onSettingsClick = onSettingsClick,
+                        onOpenArticle = onOpenArticle
+                    )
+                }
                 composable(BottomNavRoute.Releases.route) {
                     val viewModel = hiltViewModel<ReleasesViewModel>()
                     ReleasesScreen(
                         viewModel = viewModel,
+                        onSettingsClick = onSettingsClick,
                         onOpenGameUrl = onOpenGameUrl
                     )
-                }
-                composable(BottomNavRoute.Topics.route) {
-                    val viewModel = hiltViewModel<TopicsViewModel>()
-                    TopicsScreen(viewModel = viewModel)
                 }
             }
         }
@@ -194,16 +199,16 @@ private enum class BottomNavRoute(
         selectedIcon = Icons.Filled.Home,
         unselectedIcon = Icons.Outlined.Home
     ),
+    Saved(
+        route = "saved",
+        labelRes = R.string.saved,
+        selectedIcon = Icons.Filled.Bookmark,
+        unselectedIcon = Icons.Outlined.BookmarkBorder
+    ),
     Releases(
         route = "releases",
         labelRes = R.string.nextReleases,
         selectedIcon = Icons.Filled.DateRange,
         unselectedIcon = Icons.Outlined.DateRange
-    ),
-    Topics(
-        route = "topics",
-        labelRes = R.string.notification,
-        selectedIcon = Icons.Filled.Notifications,
-        unselectedIcon = Icons.Outlined.Notifications
     )
 }
