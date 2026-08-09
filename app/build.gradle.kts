@@ -43,8 +43,8 @@ android {
         applicationId = "com.eagskunst.emmanuel.gamingnews"
         minSdk = 23
         targetSdk = 36
-        versionCode = 16
-        versionName = "2.0.0-beta01"
+        versionCode = 17
+        versionName = "2.0.0-beta02"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
         buildConfigField("String", "TWITCH_CLIENT_ID", "\"${localProperty("twitch.client.id")}\"")

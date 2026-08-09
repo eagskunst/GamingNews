@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0-beta02] - 2026-08-09
+
+### Changed
+- Refreshed the RSS feed sources in `urls.json` with a new, updated set of URLs per language/publisher.
+- Renamed news category tabs from console names to platform brand names: PS4 → Playstation, Switch → Nintendo (All, Xbox, and PC labels unchanged).
+- Renamed `NewsCategory` enum values and related `FeedUrlsCategoryDto` fields from console-specific names to platform names (`PS4`/`ps4Urls` → `SONY`/`sonyUrls`, `XBOX`/`xboxUrls` → `MICROSOFT`/`microsoftUrls`, `SWITCH`/`switchUrls` → `NINTENDO`/`nintendoUrls`) and updated the corresponding JSON keys (`ps4_urls` → `sony`, `xboxO_urls` → `microsoft`, `switch_urls` → `nintendo`).
+
+### Removed
+- Removed pre-migration legacy MVP/Dagger code: leftover fragments, adapters, legacy models, old utility helpers (`NotificationMaker`, `SharedPreferencesLoader`, etc.), `ArticlesFromNotificationActivity`, `SaveArticleReceiver`, and the now-unused `Credentials.java`.
+- Removed associated legacy resources: layouts, menus, animations, preferences XML, legacy PNG icons, unused drawable XMLs, dimens, and unused strings/colors.
+- Pruned dependencies only used by the deleted legacy code: `gson`, `picasso`, `retrofit-converter-gson`, `constraintlayout`, `cardview`, `recyclerview`, `swiperefreshlayout`, `navigation-fragment`, and `navigation-ui`.
+
 ## [2.0.0-beta01] - 2026-08-07
 
 ### Changed

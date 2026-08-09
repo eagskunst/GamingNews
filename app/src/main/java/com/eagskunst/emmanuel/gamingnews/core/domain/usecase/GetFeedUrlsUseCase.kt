@@ -22,9 +22,9 @@ class GetFeedUrlsUseCase @Inject constructor(
 
         return when (category) {
             NewsCategory.ALL -> matching.allUrls
-            NewsCategory.PS4 -> matching.ps4Urls
-            NewsCategory.XBOX -> matching.xboxUrls
-            NewsCategory.SWITCH -> matching.switchUrls
+            NewsCategory.SONY -> matching.sonyUrls
+            NewsCategory.MICROSOFT -> matching.microsoftUrls
+            NewsCategory.NINTENDO -> matching.nintendoUrls
             NewsCategory.PC -> matching.pcUrls
         }
     }

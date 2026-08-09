@@ -6,9 +6,9 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class FeedUrlsCategoryDto(
     val language: String,
-    @SerialName("all_urls") val allUrls: List<String>,
-    @SerialName("ps4_urls") val ps4Urls: List<String>,
-    @SerialName("xboxO_urls") val xboxUrls: List<String>,
-    @SerialName("switch_urls") val switchUrls: List<String>,
-    @SerialName("pc_urls") val pcUrls: List<String>
+    @SerialName("all") val allUrls: List<String>,
+    @SerialName("sony") val sonyUrls: List<String>,
+    @SerialName("microsoft") val microsoftUrls: List<String>,
+    @SerialName("nintendo") val nintendoUrls: List<String>,
+    @SerialName("pc") val pcUrls: List<String>
 )

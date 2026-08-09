@@ -144,8 +144,8 @@ private fun CategorySelector(
 @Composable
 private fun NewsCategory.displayName(): String = when (this) {
     NewsCategory.ALL -> "All"
-    NewsCategory.PS4 -> "PS4"
-    NewsCategory.XBOX -> "Xbox"
-    NewsCategory.SWITCH -> "Switch"
+    NewsCategory.SONY -> "Playstation"
+    NewsCategory.MICROSOFT -> "Xbox"
+    NewsCategory.NINTENDO -> "Nintendo"
     NewsCategory.PC -> "PC"
 }
