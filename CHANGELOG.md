@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0-beta04] - 2026-08-09
+
+### Changed
+- Updated `com.prof18.rssparser:rssparser` from `5.0.3` to `6.1.8`, migrating to the new `RssParser`/`RssChannel`/`RssItem` API (`Channel.articles` renamed to `RssChannel.items`).
+- Added a custom Coil `ImageLoader` that sends a browser-like `User-Agent` header on image requests, fixing HTTP 403 errors from some feed image CDNs.
+
+### Fixed
+- `ArticleCard` no longer shows a broken image placeholder: the image is hidden if it fails to load or if the "Load images" setting is disabled.
+
 ## [2.0.0-beta03] - 2026-08-09
 
 ### Fixed

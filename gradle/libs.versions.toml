@@ -32,7 +32,7 @@ hiltAndroidx = "1.4.0"
 okhttp = "5.4.0"
 retrofit = "2.11.0"
 retrofitKotlinxSerialization = "3.0.0"
-rssparser = "5.0.3"
+rssparser = "6.1.8"
 
 # Kotlin
 kotlinxCoroutines = "1.11.0"

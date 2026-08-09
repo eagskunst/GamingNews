@@ -8,6 +8,7 @@ import com.eagskunst.emmanuel.gamingnews.core.domain.model.NewsCategory
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetFeedUrlsUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetNewsUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetSavedArticlesUseCase
+import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetUserPreferencesUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.ToggleSavedArticleUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,7 +24,8 @@ data class NewsUiState(
     val selectedCategory: NewsCategory = NewsCategory.ALL,
     val searchQuery: String = "",
     val isLoading: Boolean = false,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val loadImages: Boolean = true
 )
 
 @HiltViewModel
@@ -31,7 +33,8 @@ class NewsViewModel @Inject constructor(
     private val getNewsUseCase: GetNewsUseCase,
     private val getSavedArticlesUseCase: GetSavedArticlesUseCase,
     private val toggleSavedArticleUseCase: ToggleSavedArticleUseCase,
-    private val getFeedUrlsUseCase: GetFeedUrlsUseCase
+    private val getFeedUrlsUseCase: GetFeedUrlsUseCase,
+    private val getUserPreferencesUseCase: GetUserPreferencesUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(NewsUiState())
@@ -41,6 +44,11 @@ class NewsViewModel @Inject constructor(
         viewModelScope.launch {
             getSavedArticlesUseCase().collect { saved ->
                 _uiState.update { it.copy(savedLinks = saved.map { article -> article.link }.toSet()) }
+            }
+        }
+        viewModelScope.launch {
+            getUserPreferencesUseCase().collect { preferences ->
+                _uiState.update { it.copy(loadImages = preferences.loadImages) }
             }
         }
         refresh()

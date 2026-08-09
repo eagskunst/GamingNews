@@ -78,6 +78,7 @@ fun SavedScreen(
                     ArticleCard(
                         article = article,
                         isSaved = true,
+                        loadImages = uiState.loadImages,
                         onToggleSave = { viewModel.toggleSavedArticle(article) },
                         onClick = { onOpenArticle(article.link) }
                     )

@@ -97,6 +97,7 @@ fun NewsScreen(
                     ArticleCard(
                         article = article,
                         isSaved = uiState.savedLinks.contains(article.link),
+                        loadImages = uiState.loadImages,
                         onToggleSave = { viewModel.toggleSavedArticle(article) },
                         onClick = { onOpenArticle(article.link) }
                     )

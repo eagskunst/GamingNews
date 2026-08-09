@@ -9,7 +9,7 @@ import com.eagskunst.emmanuel.gamingnews.core.data.source.local.ArticleDao
 import com.eagskunst.emmanuel.gamingnews.core.data.source.remote.RssRemoteDataSource
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.NewsArticle
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.NewsRepository
-import com.prof.rssparser.Channel
+import com.prof18.rssparser.model.RssChannel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.Flow
@@ -72,16 +72,16 @@ class DefaultNewsRepository @Inject constructor(
         val channels = fetchChannels(urls)
         return channels.flatMap { channel ->
             val sourceName = channel.title ?: ""
-            channel.articles.map { it.toNewsArticle(sourceName) }
+            channel.items.map { it.toNewsArticle(sourceName) }
         }.sortedByDescending { it.publicationDate }
     }
 
-    private suspend fun fetchChannels(urls: List<String>): List<Channel> = supervisorScope {
+    private suspend fun fetchChannels(urls: List<String>): List<RssChannel> = supervisorScope {
         urls.map { url ->
             async {
                 try {
                     val channel = rssRemoteDataSource.fetchChannel(url)
-                    Log.i("Channel response", "Channel articles: ${channel.articles}")
+                    // Log.i("Channel response", "Channel articles: ${channel.items}")
                     channel
                 } catch (e: Exception) {
                     null

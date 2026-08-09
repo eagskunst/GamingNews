@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.NewsArticle
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetSavedArticlesUseCase
+import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetUserPreferencesUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.ToggleSavedArticleUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,13 +16,15 @@ import javax.inject.Inject
 
 data class SavedUiState(
     val articles: List<NewsArticle> = emptyList(),
-    val searchQuery: String = ""
+    val searchQuery: String = "",
+    val loadImages: Boolean = true
 )
 
 @HiltViewModel
 class SavedViewModel @Inject constructor(
     private val getSavedArticlesUseCase: GetSavedArticlesUseCase,
-    private val toggleSavedArticleUseCase: ToggleSavedArticleUseCase
+    private val toggleSavedArticleUseCase: ToggleSavedArticleUseCase,
+    private val getUserPreferencesUseCase: GetUserPreferencesUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SavedUiState())
@@ -31,6 +34,11 @@ class SavedViewModel @Inject constructor(
         viewModelScope.launch {
             getSavedArticlesUseCase().collect { saved ->
                 _uiState.update { it.copy(articles = saved) }
+            }
+        }
+        viewModelScope.launch {
+            getUserPreferencesUseCase().collect { preferences ->
+                _uiState.update { it.copy(loadImages = preferences.loadImages) }
             }
         }
     }

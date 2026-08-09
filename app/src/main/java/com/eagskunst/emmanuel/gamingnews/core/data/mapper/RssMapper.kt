@@ -1,8 +1,9 @@
 package com.eagskunst.emmanuel.gamingnews.core.data.mapper
 
 import android.text.Html
+import android.util.Log
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.NewsArticle
-import com.prof.rssparser.Article
+import com.prof18.rssparser.model.RssItem
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -16,7 +17,7 @@ private val RSS_DATE_PATTERNS = listOf(
     "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
 )
 
-fun Article.toNewsArticle(sourceName: String): NewsArticle {
+fun RssItem.toNewsArticle(sourceName: String): NewsArticle {
     val content = description ?: ""
     return NewsArticle(
         link = link ?: "",
