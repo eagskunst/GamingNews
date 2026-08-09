@@ -104,10 +104,6 @@ dependencies {
     // AndroidX
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.constraintlayout)
-    implementation(libs.androidx.cardview)
-    implementation(libs.androidx.recyclerview)
-    implementation(libs.androidx.swiperefreshlayout)
     implementation(libs.androidx.vectordrawable)
     implementation(libs.androidx.browser)
     implementation(libs.google.android.material)
@@ -134,8 +130,6 @@ dependencies {
 
     // Navigation
     implementation(libs.androidx.navigation.compose)
-    implementation(libs.androidx.navigation.fragment)
-    implementation(libs.androidx.navigation.ui)
 
     // DataStore & Room
     implementation(libs.androidx.datastore.preferences)
@@ -148,7 +142,6 @@ dependencies {
 
     // Networking
     implementation(libs.retrofit)
-    implementation(libs.retrofit.converter.gson) // temporary, until IGDB module is migrated
     implementation(libs.retrofit.kotlinx.serialization.converter)
     implementation(libs.okhttp)
     implementation(libs.okhttp.logging)
@@ -160,10 +153,8 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
 
-    // RSS / legacy image loading / serialization (to be removed during migration)
+    // RSS
     implementation(libs.rssparser)
-    implementation(libs.gson)
-    implementation(libs.picasso)
 
     // Firebase
     implementation(platform(libs.firebase.bom))

@@ -3,10 +3,4 @@
     <color name="colorPrimary">#F44336</color>
     <color name="colorPrimaryDark">#D32F2F</color>
     <color name="colorAccent">#536DFE</color>
-    <color name="colorPrimaryLight">#FFCDD2</color>
-    <color name="colorTextAndIcons">#FFFFFF</color>
-    <color name="colorPrimaryText">#212121</color>
-    <color name="colorSecondaryText">#99FFFFFF</color>
-    <color name="colorDivider">#BDBDBD</color>
-    <color name="colorBackgroundNightMode">#303030</color>
 </resources>

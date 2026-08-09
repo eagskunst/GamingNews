@@ -7,18 +7,13 @@ ksp = "2.3.11"
 activityCompose = "1.13.0"
 appcompat = "1.7.1"
 browser = "1.10.0"
-cardview = "1.0.0"
-constraintlayout = "2.2.1"
 coreKtx = "1.18.0"
 datastore = "1.2.1"
 espresso = "3.7.0"
-fragment = "1.11.1"
 lifecycle = "2.11.0"
 material = "1.14.0"
 navigation = "2.9.8"
-recyclerview = "1.4.0"
 room = "2.8.4"
-swiperefreshlayout = "1.1.0"
 vectordrawable = "1.2.0"
 work = "2.11.2"
 
@@ -54,9 +49,7 @@ junit = "4.13.2"
 junitExt = "1.3.0"
 turbine = "1.2.0"
 
-# Legacy (to be removed during the migration)
-gson = "2.13.2"
-picasso = "2.71828"
+
 
 [libraries]
 android-gradlePlugin = { group = "com.android.tools.build", name = "gradle", version.ref = "agp" }
@@ -64,22 +57,15 @@ android-gradlePlugin = { group = "com.android.tools.build", name = "gradle", ver
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 androidx-browser = { group = "androidx.browser", name = "browser", version.ref = "browser" }
-androidx-cardview = { group = "androidx.cardview", name = "cardview", version.ref = "cardview" }
-androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
-androidx-fragment-ktx = { group = "androidx.fragment", name = "fragment-ktx", version.ref = "fragment" }
 androidx-lifecycle-runtime-compose = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "lifecycle" }
 androidx-lifecycle-viewmodel-compose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycle" }
 androidx-lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycle" }
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigation" }
-androidx-navigation-fragment = { group = "androidx.navigation", name = "navigation-fragment", version.ref = "navigation" }
-androidx-navigation-ui = { group = "androidx.navigation", name = "navigation-ui", version.ref = "navigation" }
-androidx-recyclerview = { group = "androidx.recyclerview", name = "recyclerview", version.ref = "recyclerview" }
 androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
-androidx-swiperefreshlayout = { group = "androidx.swiperefreshlayout", name = "swiperefreshlayout", version.ref = "swiperefreshlayout" }
 androidx-vectordrawable = { group = "androidx.vectordrawable", name = "vectordrawable", version.ref = "vectordrawable" }
 androidx-work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "work" }
 
@@ -130,14 +116,9 @@ okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhtt
 okhttp-logging = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp" }
 
 retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
-retrofit-converter-gson = { group = "com.squareup.retrofit2", name = "converter-gson", version.ref = "retrofit" }
 retrofit-kotlinx-serialization-converter = { group = "com.squareup.retrofit2", name = "converter-kotlinx-serialization", version.ref = "retrofitKotlinxSerialization" }
 
 rssparser = { group = "com.prof18.rssparser", name = "rssparser", version.ref = "rssparser" }
-
-# Legacy (to be removed)
-gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
-picasso = { group = "com.squareup.picasso", name = "picasso", version.ref = "picasso" }
 
 # Test
 junit = { group = "junit", name = "junit", version.ref = "junit" }

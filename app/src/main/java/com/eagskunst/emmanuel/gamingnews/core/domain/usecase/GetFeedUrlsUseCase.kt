@@ -30,7 +30,7 @@ class GetFeedUrlsUseCase @Inject constructor(
     }
 
     private fun loadCategories(): List<FeedUrlsCategoryDto> {
-        return context.assets.open("Urls.json").use { input ->
+        return context.assets.open("urls.json").use { input ->
             json.decodeFromString<List<FeedUrlsCategoryDto>>(input.bufferedReader().use { it.readText() })
         }
     }
