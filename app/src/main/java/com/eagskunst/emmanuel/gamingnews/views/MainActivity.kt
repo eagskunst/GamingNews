@@ -5,7 +5,9 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.annotation.StringRes
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.padding
@@ -33,6 +35,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -40,6 +43,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.eagskunst.emmanuel.gamingnews.R
+import com.eagskunst.emmanuel.gamingnews.ui.main.MainActivityViewModel
 import com.eagskunst.emmanuel.gamingnews.ui.news.NewsScreen
 import com.eagskunst.emmanuel.gamingnews.ui.news.NewsViewModel
 import com.eagskunst.emmanuel.gamingnews.ui.releases.ReleasesScreen
@@ -53,11 +57,14 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
+    private val viewModel: MainActivityViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            GamingNewsTheme {
+            val darkTheme by viewModel.darkThemeEnabled.collectAsStateWithLifecycle(initialValue = isSystemInDarkTheme())
+            GamingNewsTheme(darkTheme = darkTheme) {
                 MainScreen(
                     activity = this,
                     onOpenArticle = { url -> openCustomTab(url.toUri()) },

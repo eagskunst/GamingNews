@@ -42,6 +42,8 @@ import com.eagskunst.emmanuel.gamingnews.R
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.Topic
 import com.eagskunst.emmanuel.gamingnews.ui.components.TopicChip
 
+private const val SHOW_NOTIFICATION_TOPICS = false
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
@@ -108,40 +110,42 @@ private fun SettingsContent(
             onCheckedChange = onDailyReminderChange
         )
 
-        HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+        if (SHOW_NOTIFICATION_TOPICS) {
+            HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
 
-        Text(
-            text = "Notification topics",
-            style = MaterialTheme.typography.titleMedium
-        )
-        Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Notification topics",
+                style = MaterialTheme.typography.titleMedium
+            )
+            Spacer(modifier = Modifier.height(8.dp))
 
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            uiState.topics.forEach { topic ->
-                TopicChip(
-                    topic = topic,
-                    onRemove = { onRemoveTopic(topic) }
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                uiState.topics.forEach { topic ->
+                    TopicChip(
+                        topic = topic,
+                        onRemove = { onRemoveTopic(topic) }
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+            var showDialog by remember { mutableStateOf(false) }
+            Button(onClick = { showDialog = true }) {
+                Text("Add topic")
+            }
+
+            if (showDialog) {
+                AddTopicDialog(
+                    onDismiss = { showDialog = false },
+                    onConfirm = { name ->
+                        onAddTopic(name)
+                        showDialog = false
+                    }
                 )
             }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-        var showDialog by remember { mutableStateOf(false) }
-        Button(onClick = { showDialog = true }) {
-            Text("Add topic")
-        }
-
-        if (showDialog) {
-            AddTopicDialog(
-                onDismiss = { showDialog = false },
-                onConfirm = { name ->
-                    onAddTopic(name)
-                    showDialog = false
-                }
-            )
         }
     }
 }

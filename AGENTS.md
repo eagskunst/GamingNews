@@ -25,7 +25,7 @@ GamingNews is an Android app that aggregates RSS gaming news and upcoming game r
 
 ## Important Configuration
 
-- `compileSdk = 37`, `targetSdk = 36`, `minSdk = 23`.
+- `compileSdk = 37`, `targetSdk = 37`, `minSdk = 24`.
 - IGDB v4 requires Twitch OAuth credentials. Add to `local.properties`:
 
 ```properties

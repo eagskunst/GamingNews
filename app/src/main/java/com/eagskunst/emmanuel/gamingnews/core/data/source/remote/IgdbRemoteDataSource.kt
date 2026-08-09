@@ -20,7 +20,7 @@ class IgdbRemoteDataSource @Inject constructor(
 
     private val platforms = listOf(6, 49, 48, 130)
 
-    suspend fun fetchUpcomingReleases(): List<IgdbReleaseDateDto> = withContext(dispatchers.io) {
+    suspend fun fetchUpcomingReleases(offset: Int = 0): List<IgdbReleaseDateDto> = withContext(dispatchers.io) {
         val token = getValidAccessToken()
         val authorization = "Bearer $token"
         val timestamp = System.currentTimeMillis() / 1000
@@ -29,7 +29,8 @@ class IgdbRemoteDataSource @Inject constructor(
             appendLine("fields id,date,human,platform,game.name,game.url,game.cover.url;")
             appendLine("where platform = (${platforms.joinToString(",")}) & date > $timestamp;")
             appendLine("sort date asc;")
-            appendLine("limit 50;")
+            appendLine("limit $PAGE_LIMIT;")
+            appendLine("offset $offset;")
         }
 
         val body = query.toRequestBody(MEDIA_TYPE)
@@ -47,5 +48,6 @@ class IgdbRemoteDataSource @Inject constructor(
 
     companion object {
         private val MEDIA_TYPE = "text/plain".toMediaType()
+        const val PAGE_LIMIT = 50
     }
 }

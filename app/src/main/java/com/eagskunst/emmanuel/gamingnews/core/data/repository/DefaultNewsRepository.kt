@@ -1,5 +1,6 @@
 package com.eagskunst.emmanuel.gamingnews.core.data.repository
 
+import android.util.Log
 import com.eagskunst.emmanuel.gamingnews.core.common.DispatcherProvider
 import com.eagskunst.emmanuel.gamingnews.core.common.Result
 import com.eagskunst.emmanuel.gamingnews.core.data.mapper.toArticleEntity
@@ -12,11 +13,11 @@ import com.prof.rssparser.Channel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.supervisorScope
+import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 
 class DefaultNewsRepository @Inject constructor(
@@ -25,16 +26,29 @@ class DefaultNewsRepository @Inject constructor(
     private val dispatchers: DispatcherProvider
 ) : NewsRepository {
 
+    private val feedCache = ConcurrentHashMap<String, List<NewsArticle>>()
+
     override fun newsStream(urls: List<String>): Flow<Result<List<NewsArticle>>> = flow {
-        emit(Result.Loading)
-        val channels = fetchChannels(urls)
-        val articles = channels.flatMap { channel ->
-            val sourceName = channel.title ?: ""
-            channel.articles.map { it.toNewsArticle(sourceName) }
-        }.sortedByDescending { it.publicationDate }
-        emit(Result.Success(articles))
-    }.catch { e ->
-        emit(Result.Error(e))
+        val key = cacheKey(urls)
+        val cached = feedCache[key]
+
+        if (!cached.isNullOrEmpty()) {
+            emit(Result.Success(cached))
+        }
+
+        if (cached == null) {
+            emit(Result.Loading)
+        }
+
+        try {
+            val articles = fetchAndMergeArticles(urls)
+            feedCache[key] = articles
+            emit(Result.Success(articles))
+        } catch (e: Exception) {
+            if (cached == null) {
+                emit(Result.Error(e))
+            }
+        }
     }.flowOn(dispatchers.io)
 
     override fun savedArticlesStream(): Flow<List<NewsArticle>> =
@@ -54,15 +68,27 @@ class DefaultNewsRepository @Inject constructor(
         return articleDao.getByLink(article.link) != null
     }
 
+    private suspend fun fetchAndMergeArticles(urls: List<String>): List<NewsArticle> {
+        val channels = fetchChannels(urls)
+        return channels.flatMap { channel ->
+            val sourceName = channel.title ?: ""
+            channel.articles.map { it.toNewsArticle(sourceName) }
+        }.sortedByDescending { it.publicationDate }
+    }
+
     private suspend fun fetchChannels(urls: List<String>): List<Channel> = supervisorScope {
         urls.map { url ->
             async {
                 try {
-                    rssRemoteDataSource.fetchChannel(url)
+                    val channel = rssRemoteDataSource.fetchChannel(url)
+                    Log.i("Channel response", "Channel articles: ${channel.articles}")
+                    channel
                 } catch (e: Exception) {
                     null
                 }
             }
         }.awaitAll().filterNotNull()
     }
+
+    private fun cacheKey(urls: List<String>): String = urls.sorted().joinToString(",")
 }

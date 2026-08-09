@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0-beta03] - 2026-08-09
+
+### Fixed
+- Fixed dark theme not applying by wiring the `UserPreferences.darkTheme` setting into `GamingNewsTheme`.
+- Fixed dark theme colors being too pale/washed out; card backgrounds now use a distinct `surfaceVariant` color instead of blending into the page background.
+- Fixed releases pagination: releases are no longer filtered down to the current month only, and the release list now paginates through the current year (or up to 8 months ahead) using IGDB's offset/limit.
+- Fixed news feeds being re-fetched every time a category tab was reselected by adding an in-memory cache to `DefaultNewsRepository`.
+
+### Changed
+- Raised `minSdk` to 24 and `targetSdk` to 37.
+- Temporarily hidden the "Notification topics" section in Settings.
+
 ## [2.0.0-beta02] - 2026-08-09
 
 ### Changed
