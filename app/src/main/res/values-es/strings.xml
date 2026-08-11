@@ -10,4 +10,15 @@
     <string name="add_topic">Añadir un tema</string>
     <string name="add">AÑADIR</string>
     <string name="cancel">CANCELAR</string>
+    <string name="about_and_contact">Acerca de y contacto</string>
+    <string name="about_app_description">Gaming News es un agregador de noticias: reúne titulares desde los feeds RSS públicos de medios de videojuegos y lista los próximos lanzamientos. Los artículos se abren en el sitio web del medio original.</string>
+    <string name="contact_email_title">Contáctanos por correo</string>
+    <string name="contact_website_title">Página de contacto y sitio web</string>
+    <string name="privacy_policy_title">Política de privacidad</string>
+    <string name="email_chooser_title">Enviar correo</string>
+    <string name="email_subject">Soporte de Gaming News</string>
+    <string name="app_version">Versión %1$s</string>
+    <string name="developer_name">Desarrollador: Emmanuel (eagskunst)</string>
+    <string name="contact_website_url">https://eagskunst.github.io/GamingNews/es/contact.html</string>
+    <string name="privacy_policy_url">https://eagskunst.github.io/GamingNews/es/privacy.html</string>
 </resources>
