@@ -10,4 +10,15 @@
     <string name="add_topic">Add a topic</string>
     <string name="add">add</string>
     <string name="cancel">CANCEL</string>
+    <string name="about_and_contact">About &amp; contact</string>
+    <string name="about_app_description">Gaming News is a news aggregator: it gathers headlines from the public RSS feeds of gaming news outlets and lists upcoming game releases. Articles open on the original publisher\'s website.</string>
+    <string name="contact_email_title">Contact us by email</string>
+    <string name="contact_website_title">Contact page and website</string>
+    <string name="privacy_policy_title">Privacy policy</string>
+    <string name="email_chooser_title">Send email</string>
+    <string name="email_subject">Gaming News support</string>
+    <string name="app_version">Version %1$s</string>
+    <string name="developer_name">Developer: Emmanuel (eagskunst)</string>
+    <string name="contact_website_url">https://eagskunst.github.io/GamingNews/contact.html</string>
+    <string name="privacy_policy_url">https://eagskunst.github.io/GamingNews/privacy.html</string>
 </resources>
