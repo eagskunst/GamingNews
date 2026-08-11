@@ -52,7 +52,7 @@ class SettingsActivity : ComponentActivity() {
             putExtra(Intent.EXTRA_SUBJECT, getString(R.string.email_subject))
         }
         try {
-            startActivity(Intent.createChooser(intent, getString(R.string.email_chooser_title)))
+            startActivity(intent)
         } catch (e: ActivityNotFoundException) {
             Toast.makeText(this, ContactInfo.EMAIL, Toast.LENGTH_LONG).show()
             openCustomTab(getString(R.string.contact_website_url).toUri())
