@@ -15,7 +15,6 @@
     <string name="contact_email_title">Contáctanos por correo</string>
     <string name="contact_website_title">Página de contacto y sitio web</string>
     <string name="privacy_policy_title">Política de privacidad</string>
-    <string name="email_chooser_title">Enviar correo</string>
     <string name="email_subject">Soporte de Gaming News</string>
     <string name="app_version">Versión %1$s</string>
     <string name="developer_name">Desarrollador: Emmanuel Guerra</string>
