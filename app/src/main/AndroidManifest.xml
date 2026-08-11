@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -12,12 +13,25 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme"
-        >
+        android:theme="@style/AppTheme">
 
 
-        <meta-data android:name="android.webkit.WebView.EnableSafeBrowsing"
+        <meta-data
+            android:name="android.webkit.WebView.EnableSafeBrowsing"
             android:value="true" />
+
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false"
+            tools:node="merge">
+
+            <meta-data
+                android:name="androidx.work.WorkManagerInitializer"
+                android:value="androidx.startup"
+                tools:node="remove" />
+
+        </provider>
 
         <!-- AdMob integration is disabled for now (the app previously initialized ads
              programmatically via a now-removed MobileAds.initialize(Context, String) overload).
@@ -27,9 +41,8 @@
 
         <activity
             android:name=".views.MainActivity"
-            android:launchMode="singleTask"
             android:exported="true"
-            android:screenOrientation="portrait">
+            android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -38,11 +51,10 @@
         </activity>
         <activity
             android:name=".views.SettingsActivity"
+            android:exported="false"
             android:label="@string/title_activity_settings"
             android:launchMode="singleTop"
-            android:exported="false"
-            android:parentActivityName=".views.MainActivity"
-            android:screenOrientation="portrait">
+            android:parentActivityName=".views.MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.eagskunst.emmanuel.gamingnews.views.MainActivity" />
