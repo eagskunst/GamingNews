@@ -18,7 +18,7 @@
     <string name="email_chooser_title">Send email</string>
     <string name="email_subject">Gaming News support</string>
     <string name="app_version">Version %1$s</string>
-    <string name="developer_name">Developer: Emmanuel (eagskunst)</string>
+    <string name="developer_name">Developer: Emmanuel Guerra</string>
     <string name="contact_website_url">https://eagskunst.github.io/GamingNews/contact.html</string>
     <string name="privacy_policy_url">https://eagskunst.github.io/GamingNews/privacy.html</string>
 </resources>
