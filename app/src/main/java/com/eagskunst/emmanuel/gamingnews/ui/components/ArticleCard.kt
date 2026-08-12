@@ -2,6 +2,7 @@ package com.eagskunst.emmanuel.gamingnews.ui.components
 
 import android.text.format.DateUtils
 import android.util.Log
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -13,8 +14,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.Book
-import androidx.compose.material.icons.filled.Bookmark
-import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.OpenInBrowser
@@ -25,6 +24,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
@@ -38,6 +38,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -171,56 +172,50 @@ private fun ArticleActionsBottomSheet(
         sheetState = sheetState
     ) {
         Column(
-            modifier = Modifier.padding(bottom = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+            modifier = Modifier.padding(vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(0.dp)
         ) {
-            Text(
-                text = stringResource(R.string.article_menu_title),
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+            MenuListItem(
+                label = stringResource(R.string.article_open_custom_tab),
+                icon = Icons.AutoMirrored.Filled.OpenInNew,
+                onClick = { onAction(ArticleMenuAction.OPEN_CUSTOM_TAB) }
             )
-            ListItem(
-                headlineContent = { Text(stringResource(R.string.article_open_custom_tab)) },
-                leadingContent = { Icon(Icons.AutoMirrored.Filled.OpenInNew, contentDescription = null) },
-                modifier = Modifier.combinedClickable(
-                    onClick = { onAction(ArticleMenuAction.OPEN_CUSTOM_TAB) }
-                )
+            MenuListItem(
+                label = stringResource(R.string.article_open_external_browser),
+                icon = Icons.Default.OpenInBrowser,
+                onClick = { onAction(ArticleMenuAction.OPEN_EXTERNAL_BROWSER) }
             )
-            ListItem(
-                headlineContent = { Text(stringResource(R.string.article_open_external_browser)) },
-                leadingContent = { Icon(Icons.Default.OpenInBrowser, contentDescription = null) },
-                modifier = Modifier.combinedClickable(
-                    onClick = { onAction(ArticleMenuAction.OPEN_EXTERNAL_BROWSER) }
-                )
+            MenuListItem(
+                label = stringResource(R.string.article_open_reader_mode),
+                icon = Icons.Default.Book,
+                onClick = { onAction(ArticleMenuAction.OPEN_READER_MODE) }
             )
-            ListItem(
-                headlineContent = { Text(stringResource(R.string.article_open_reader_mode)) },
-                leadingContent = { Icon(Icons.Default.Book, contentDescription = null) },
-                modifier = Modifier.combinedClickable(
-                    onClick = { onAction(ArticleMenuAction.OPEN_READER_MODE) }
-                )
+            MenuListItem(
+                label = stringResource(R.string.article_share),
+                icon = Icons.Default.Share,
+                onClick = { onAction(ArticleMenuAction.SHARE) }
             )
-            ListItem(
-                headlineContent = { Text(stringResource(R.string.article_share)) },
-                leadingContent = { Icon(Icons.Default.Share, contentDescription = null) },
-                modifier = Modifier.combinedClickable(
-                    onClick = { onAction(ArticleMenuAction.SHARE) }
-                )
-            )
-            ListItem(
-                headlineContent = { Text(stringResource(if (isSaved) R.string.article_remove_save else R.string.article_save)) },
-                leadingContent = {
-                    Icon(
-                        imageVector = if (isSaved) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
-                        contentDescription = null
-                    )
-                },
-                modifier = Modifier.combinedClickable(
-                    onClick = { onAction(ArticleMenuAction.TOGGLE_SAVE) }
-                )
+            MenuListItem(
+                label = stringResource(if (isSaved) R.string.article_remove_save else R.string.article_save),
+                icon = if (isSaved) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                onClick = { onAction(ArticleMenuAction.TOGGLE_SAVE) }
             )
         }
     }
+}
+
+@Composable
+private fun MenuListItem(
+    label: String,
+    icon: ImageVector,
+    onClick: () -> Unit
+) {
+    ListItem(
+        headlineContent = { Text(label) },
+        leadingContent = { Icon(icon, contentDescription = null) },
+        colors = ListItemDefaults.colors(containerColor = androidx.compose.ui.graphics.Color.Transparent),
+        modifier = Modifier.clickable(onClick = onClick)
+    )
 }
 
 private fun NewsArticle.timeAgo(): CharSequence = DateUtils.getRelativeTimeSpanString(
