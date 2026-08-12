@@ -52,6 +52,6 @@ class UserPreferencesLocalDataSource(context: Context) {
         private fun parseArticleOpenMode(value: String?): ArticleOpenMode =
             value?.let { name ->
                 ArticleOpenMode.entries.find { it.name == name }
-            } ?: ArticleOpenMode.CUSTOM_TAB
+            } ?: ArticleOpenMode.EXTERNAL_BROWSER
     }
 }
