@@ -22,7 +22,9 @@ class OpenArticleUseCase @Inject constructor(
 
     private fun openExternalBrowser(url: String) {
         val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         val chooser = Intent.createChooser(intent, null)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         if (chooser.resolveActivity(context.packageManager) != null) {
             context.startActivity(chooser)
         } else {
@@ -31,6 +33,9 @@ class OpenArticleUseCase @Inject constructor(
     }
 
     private fun openReaderMode(url: String) {
-        context.startActivity(ReaderActivity.newIntent(context, url))
+        context.startActivity(
+            ReaderActivity.newIntent(context, url)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        )
     }
 }

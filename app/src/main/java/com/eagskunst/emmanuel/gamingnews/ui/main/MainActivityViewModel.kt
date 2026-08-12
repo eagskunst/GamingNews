@@ -4,16 +4,21 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.ArticleOpenMode
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetUserPreferencesUseCase
+import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.OpenArticleUseCase
+import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateArticleOpenModeUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class MainActivityViewModel @Inject constructor(
-    getUserPreferencesUseCase: GetUserPreferencesUseCase
+    getUserPreferencesUseCase: GetUserPreferencesUseCase,
+    private val openArticleUseCase: OpenArticleUseCase,
+    private val updateArticleOpenModeUseCase: UpdateArticleOpenModeUseCase
 ) : ViewModel() {
 
     val darkThemeEnabled: StateFlow<Boolean> = getUserPreferencesUseCase()
@@ -31,4 +36,13 @@ class MainActivityViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = ArticleOpenMode.CUSTOM_TAB
         )
+
+    fun openArticle(url: String) {
+        openArticleUseCase(url, articleOpenMode.value)
+    }
+
+    fun openArticleWithMode(url: String, mode: ArticleOpenMode) {
+        viewModelScope.launch { updateArticleOpenModeUseCase(mode) }
+        openArticleUseCase(url, mode)
+    }
 }
