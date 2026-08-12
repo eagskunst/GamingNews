@@ -64,10 +64,11 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             val darkTheme by viewModel.darkThemeEnabled.collectAsStateWithLifecycle(initialValue = isSystemInDarkTheme())
+            val articleOpenMode by viewModel.articleOpenMode.collectAsStateWithLifecycle(initialValue = ArticleOpenMode.CUSTOM_TAB)
             GamingNewsTheme(darkTheme = darkTheme) {
                 MainScreen(
                     activity = this,
-                    onOpenArticle = viewModel::openArticle,
+                    onOpenArticle = { url -> viewModel.openArticle(url, articleOpenMode) },
                     onOpenArticleWithMode = viewModel::openArticleWithMode,
                     onShareArticle = { url -> shareArticle(url) },
                     onOpenGameUrl = { url -> viewModel.openArticleWithMode(url, ArticleOpenMode.CUSTOM_TAB) },

@@ -33,12 +33,12 @@ class MainActivityViewModel @Inject constructor(
         .map { it.articleOpenMode }
         .stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
+            started = SharingStarted.Eagerly,
             initialValue = ArticleOpenMode.CUSTOM_TAB
         )
 
-    fun openArticle(url: String) {
-        openArticleUseCase(url, articleOpenMode.value)
+    fun openArticle(url: String, mode: ArticleOpenMode) {
+        openArticleUseCase(url, mode)
     }
 
     fun openArticleWithMode(url: String, mode: ArticleOpenMode) {
