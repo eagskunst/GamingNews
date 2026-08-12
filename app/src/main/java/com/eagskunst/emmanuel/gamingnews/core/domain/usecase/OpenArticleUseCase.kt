@@ -16,7 +16,7 @@ class OpenArticleUseCase @Inject constructor(
         when (mode) {
             ArticleOpenMode.CUSTOM_TAB -> context.openCustomTab(Uri.parse(url))
             ArticleOpenMode.EXTERNAL_BROWSER -> openExternalBrowser(url)
-            ArticleOpenMode.READER_MODE -> openReaderMode(url)
+            ArticleOpenMode.READER_MODE -> context.openCustomTab(Uri.parse(url))
         }
     }
 

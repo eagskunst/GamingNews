@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
-import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.OpenInBrowser
@@ -184,11 +183,6 @@ private fun ArticleActionsBottomSheet(
                 label = stringResource(R.string.article_open_external_browser),
                 icon = Icons.Default.OpenInBrowser,
                 onClick = { onAction(ArticleMenuAction.OPEN_EXTERNAL_BROWSER) }
-            )
-            MenuListItem(
-                label = stringResource(R.string.article_open_reader_mode),
-                icon = Icons.Default.Book,
-                onClick = { onAction(ArticleMenuAction.OPEN_READER_MODE) }
             )
             MenuListItem(
                 label = stringResource(R.string.article_share),
