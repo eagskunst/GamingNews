@@ -3,6 +3,7 @@ package com.eagskunst.emmanuel.gamingnews.ui.reader
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.eagskunst.emmanuel.gamingnews.core.common.DispatcherProvider
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetUserPreferencesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,6 +13,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import javax.inject.Inject
@@ -20,6 +22,7 @@ import javax.inject.Inject
 class ReaderViewModel @Inject constructor(
     getUserPreferencesUseCase: GetUserPreferencesUseCase,
     private val okHttpClient: OkHttpClient,
+    private val dispatchers: DispatcherProvider,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -46,18 +49,20 @@ class ReaderViewModel @Inject constructor(
 
     private suspend fun fetchArticleHtml() {
         try {
-            val request = Request.Builder()
-                .url(articleUrl)
-                .header("User-Agent", "Mozilla/5.0 (Linux; Android 10; Mobile) AppleWebKit/537.36")
-                .build()
-            val response = okHttpClient.newCall(request).execute()
-            if (response.isSuccessful) {
-                val html = response.body.string()
-                if (html.isNotBlank()) {
-                    _uiState.value = ReaderUiState.Content(articleUrl, html)
+            val html = withContext(dispatchers.io) {
+                val request = Request.Builder()
+                    .url(articleUrl)
+                    .header("User-Agent", "Mozilla/5.0 (Linux; Android 10; Mobile) AppleWebKit/537.36")
+                    .build()
+                val response = okHttpClient.newCall(request).execute()
+                if (response.isSuccessful) {
+                    response.body.string().takeIf { it.isNotBlank() }
                 } else {
-                    _uiState.value = ReaderUiState.Error
+                    null
                 }
+            }
+            if (html != null) {
+                _uiState.value = ReaderUiState.Content(articleUrl, html)
             } else {
                 _uiState.value = ReaderUiState.Error
             }
