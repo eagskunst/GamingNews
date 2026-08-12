@@ -38,6 +38,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.net.toUri
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.eagskunst.emmanuel.gamingnews.R
 import com.eagskunst.emmanuel.gamingnews.utility.openCustomTab
 import kotlinx.serialization.SerialName
@@ -95,15 +96,13 @@ private data class ReaderArticle(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReaderScreen(
-    url: String,
+    viewModel: ReaderViewModel,
     isDarkTheme: Boolean,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    var isLoading by remember { mutableStateOf(true) }
-    var hasError by remember { mutableStateOf(false) }
-    var retryCount by remember { mutableStateOf(0) }
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     BackHandler(enabled = true, onBack = onBackClick)
 
@@ -128,31 +127,34 @@ fun ReaderScreen(
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            ReaderWebView(
-                url = url,
-                isDarkTheme = isDarkTheme,
-                retryCount = retryCount,
-                onLoadingFinished = { success ->
-                    isLoading = false
-                    hasError = !success
-                },
-                onFallbackRequested = { context.openCustomTab(url.toUri()) }
-            )
-
-            if (isLoading) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-            }
-
-            if (hasError) {
-                ReaderError(
-                    onRetry = {
-                        isLoading = true
-                        hasError = false
-                        retryCount++
-                    },
-                    onOpenInBrowser = { context.openCustomTab(url.toUri()) },
-                    modifier = Modifier.align(Alignment.Center)
-                )
+            when (val state = uiState) {
+                is ReaderUiState.Loading -> {
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                }
+                is ReaderUiState.Error -> {
+                    ReaderError(
+                        onRetry = { viewModel.retry() },
+                        onOpenInBrowser = { context.openCustomTab(viewModel.articleUrl.toUri()) },
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+                }
+                is ReaderUiState.Content -> {
+                    var isParsed by remember { mutableStateOf(false) }
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        ReaderWebView(
+                            articleUrl = state.url,
+                            html = state.html,
+                            isDarkTheme = isDarkTheme,
+                            onParsed = { isParsed = true },
+                            onParseFailed = {
+                                context.openCustomTab(state.url.toUri())
+                            }
+                        )
+                        if (!isParsed) {
+                            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                        }
+                    }
+                }
             }
         }
     }
@@ -161,15 +163,15 @@ fun ReaderScreen(
 @SuppressLint("SetJavaScriptEnabled", "JavascriptInterface")
 @Composable
 private fun ReaderWebView(
-    url: String,
+    articleUrl: String,
+    html: String,
     isDarkTheme: Boolean,
-    retryCount: Int,
-    onLoadingFinished: (success: Boolean) -> Unit,
-    onFallbackRequested: () -> Unit
+    onParsed: () -> Unit,
+    onParseFailed: () -> Unit
 ) {
     val context = LocalContext.current
-    val articleUrl = url
     var webView by remember { mutableStateOf<WebView?>(null) }
+    var hasParsed by remember { mutableStateOf(false) }
 
     DisposableEffect(Unit) {
         onDispose {
@@ -192,32 +194,34 @@ private fun ReaderWebView(
 
                     override fun onPageFinished(view: WebView, url: String?) {
                         super.onPageFinished(view, url)
-                        if (view.getTag(R.id.reader_parsed_tag) == true) return
-                        injectReaderScripts(view, url ?: articleUrl, isDarkTheme)
+                        if (hasParsed) return
+                        injectReaderScripts(view, articleUrl, isDarkTheme)
                     }
                 }
                 addJavascriptInterface(
                     ReaderBridge(
                         view = this,
-                        onParsed = { onLoadingFinished(true) },
-                        onParseFailed = onFallbackRequested
+                        onParsed = {
+                            hasParsed = true
+                            onParsed()
+                        },
+                        onParseFailed = onParseFailed
                     ),
                     READER_SCRIPT_NAME
                 )
-                loadUrl(articleUrl)
+                loadDataWithBaseURL(articleUrl, html, "text/html", "UTF-8", null)
             }.also { webView = it }
         },
-        update = { currentWebView ->
-            if (retryCount > 0 && currentWebView.url == articleUrl) {
-                currentWebView.setTag(R.id.reader_parsed_tag, null)
-                currentWebView.reload()
-            }
-        },
+        update = { /* no-op; the same WebView is reused */ },
         modifier = Modifier.fillMaxSize()
     )
 }
 
-private fun injectReaderScripts(view: WebView, articleUrl: String, isDarkTheme: Boolean) {
+private fun injectReaderScripts(
+    view: WebView,
+    articleUrl: String,
+    isDarkTheme: Boolean
+) {
     try {
         val readabilityJs = view.context.assets.open("readability.js").bufferedReader().use { it.readText() }
         view.evaluateJavascript(readabilityJs, null)
@@ -284,7 +288,6 @@ private class ReaderBridge(
             try {
                 val article = Json.decodeFromString(ReaderArticle.serializer(), json)
                 val html = buildReaderHtml(article, isDarkTheme)
-                view.setTag(R.id.reader_parsed_tag, true)
                 loadCleanHtml(view, html, isDarkTheme)
                 onParsed()
             } catch (e: Exception) {

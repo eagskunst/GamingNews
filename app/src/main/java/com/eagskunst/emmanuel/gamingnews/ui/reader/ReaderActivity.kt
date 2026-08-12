@@ -27,7 +27,7 @@ class ReaderActivity : ComponentActivity() {
             val darkTheme by viewModel.darkThemeEnabled.collectAsStateWithLifecycle(initialValue = isSystemInDarkTheme())
             GamingNewsTheme(darkTheme = darkTheme) {
                 ReaderScreen(
-                    url = url,
+                    viewModel = viewModel,
                     isDarkTheme = darkTheme,
                     onBackClick = { finish() }
                 )
@@ -36,7 +36,7 @@ class ReaderActivity : ComponentActivity() {
     }
 
     companion object {
-        private const val EXTRA_URL = "extra_url"
+        const val EXTRA_URL = "extra_url"
 
         fun newIntent(context: Context, url: String): Intent {
             return Intent(context, ReaderActivity::class.java).apply {
