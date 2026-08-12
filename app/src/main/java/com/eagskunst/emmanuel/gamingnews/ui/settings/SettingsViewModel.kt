@@ -3,11 +3,13 @@ package com.eagskunst.emmanuel.gamingnews.ui.settings
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.eagskunst.emmanuel.gamingnews.core.domain.model.ArticleOpenMode
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.Topic
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.AddTopicUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetTopicsUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetUserPreferencesUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.RemoveTopicUseCase
+import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateArticleOpenModeUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateDailyReminderUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateDarkThemeUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateLoadImagesUseCase
@@ -25,6 +27,7 @@ data class SettingsUiState(
     val darkTheme: Boolean = false,
     val loadImages: Boolean = true,
     val dailyReminder: Boolean = false,
+    val articleOpenMode: ArticleOpenMode = ArticleOpenMode.CUSTOM_TAB,
     val topics: List<Topic> = emptyList(),
     val isLoading: Boolean = true
 )
@@ -37,6 +40,7 @@ class SettingsViewModel @Inject constructor(
     private val updateDarkThemeUseCase: UpdateDarkThemeUseCase,
     private val updateLoadImagesUseCase: UpdateLoadImagesUseCase,
     private val updateDailyReminderUseCase: UpdateDailyReminderUseCase,
+    private val updateArticleOpenModeUseCase: UpdateArticleOpenModeUseCase,
     private val addTopicUseCase: AddTopicUseCase,
     private val removeTopicUseCase: RemoveTopicUseCase
 ) : ViewModel() {
@@ -49,6 +53,7 @@ class SettingsViewModel @Inject constructor(
             darkTheme = preferences.darkTheme,
             loadImages = preferences.loadImages,
             dailyReminder = preferences.dailyReminder,
+            articleOpenMode = preferences.articleOpenMode,
             topics = topics,
             isLoading = false
         )
@@ -86,5 +91,9 @@ class SettingsViewModel @Inject constructor(
 
     fun removeTopic(topic: Topic) {
         viewModelScope.launch { removeTopicUseCase(topic) }
+    }
+
+    fun setArticleOpenMode(mode: ArticleOpenMode) {
+        viewModelScope.launch { updateArticleOpenModeUseCase(mode) }
     }
 }

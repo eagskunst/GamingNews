@@ -36,6 +36,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -43,6 +44,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.eagskunst.emmanuel.gamingnews.R
+import com.eagskunst.emmanuel.gamingnews.core.domain.model.ArticleOpenMode
+import com.eagskunst.emmanuel.gamingnews.core.domain.model.NewsArticle
+import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.OpenArticleUseCase
+import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateArticleOpenModeUseCase
+import com.eagskunst.emmanuel.gamingnews.ui.components.ArticleMenuAction
 import com.eagskunst.emmanuel.gamingnews.ui.main.MainActivityViewModel
 import com.eagskunst.emmanuel.gamingnews.ui.news.NewsScreen
 import com.eagskunst.emmanuel.gamingnews.ui.news.NewsViewModel
@@ -51,28 +57,49 @@ import com.eagskunst.emmanuel.gamingnews.ui.releases.ReleasesViewModel
 import com.eagskunst.emmanuel.gamingnews.ui.saved.SavedScreen
 import com.eagskunst.emmanuel.gamingnews.ui.saved.SavedViewModel
 import com.eagskunst.emmanuel.gamingnews.ui.theme.GamingNewsTheme
-import com.eagskunst.emmanuel.gamingnews.utility.openCustomTab
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     private val viewModel: MainActivityViewModel by viewModels()
 
+    @Inject
+    lateinit var openArticleUseCase: OpenArticleUseCase
+
+    @Inject
+    lateinit var updateArticleOpenModeUseCase: UpdateArticleOpenModeUseCase
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             val darkTheme by viewModel.darkThemeEnabled.collectAsStateWithLifecycle(initialValue = isSystemInDarkTheme())
+            val articleOpenMode by viewModel.articleOpenMode.collectAsStateWithLifecycle(initialValue = ArticleOpenMode.CUSTOM_TAB)
             GamingNewsTheme(darkTheme = darkTheme) {
                 MainScreen(
                     activity = this,
-                    onOpenArticle = { url -> openCustomTab(url.toUri()) },
-                    onOpenGameUrl = { url -> openCustomTab(url.toUri()) },
+                    onOpenArticle = { url -> openArticleUseCase(url, articleOpenMode) },
+                    onOpenArticleWithMode = { url, mode ->
+                        lifecycleScope.launch { updateArticleOpenModeUseCase(mode) }
+                        openArticleUseCase(url, mode)
+                    },
+                    onShareArticle = { url -> shareArticle(url) },
+                    onOpenGameUrl = { url -> openArticleUseCase(url, ArticleOpenMode.CUSTOM_TAB) },
                     onSettingsClick = { startActivity(Intent(this, SettingsActivity::class.java)) }
                 )
             }
         }
+    }
+
+    private fun shareArticle(url: String) {
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, url)
+        }
+        startActivity(Intent.createChooser(intent, null))
     }
 }
 
@@ -81,6 +108,8 @@ class MainActivity : ComponentActivity() {
 private fun MainScreen(
     activity: ComponentActivity,
     onOpenArticle: (String) -> Unit,
+    onOpenArticleWithMode: (String, ArticleOpenMode) -> Unit,
+    onShareArticle: (String) -> Unit,
     onOpenGameUrl: (String) -> Unit,
     onSettingsClick: () -> Unit
 ) {
@@ -112,7 +141,9 @@ private fun MainScreen(
                     NewsScreen(
                         viewModel = viewModel,
                         onSettingsClick = onSettingsClick,
-                        onOpenArticle = onOpenArticle
+                        onOpenArticle = onOpenArticle,
+                        onOpenArticleWithMode = onOpenArticleWithMode,
+                        onShareArticle = onShareArticle
                     )
                 }
                 composable(BottomNavRoute.Saved.route) {
@@ -120,7 +151,9 @@ private fun MainScreen(
                     SavedScreen(
                         viewModel = viewModel,
                         onSettingsClick = onSettingsClick,
-                        onOpenArticle = onOpenArticle
+                        onOpenArticle = onOpenArticle,
+                        onOpenArticleWithMode = onOpenArticleWithMode,
+                        onShareArticle = onShareArticle
                     )
                 }
                 composable(BottomNavRoute.Releases.route) {

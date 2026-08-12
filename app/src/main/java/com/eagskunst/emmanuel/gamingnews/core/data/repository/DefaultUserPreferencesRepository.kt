@@ -1,6 +1,7 @@
 package com.eagskunst.emmanuel.gamingnews.core.data.repository
 
 import com.eagskunst.emmanuel.gamingnews.core.data.source.local.UserPreferencesLocalDataSource
+import com.eagskunst.emmanuel.gamingnews.core.domain.model.ArticleOpenMode
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.UserPreferences
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.UserPreferencesRepository
 import kotlinx.coroutines.flow.Flow
@@ -22,5 +23,9 @@ class DefaultUserPreferencesRepository @Inject constructor(
 
     override suspend fun updateDailyReminder(enabled: Boolean) {
         localDataSource.updateDailyReminder(enabled)
+    }
+
+    override suspend fun updateArticleOpenMode(mode: ArticleOpenMode) {
+        localDataSource.updateArticleOpenMode(mode)
     }
 }

@@ -1,5 +1,6 @@
 package com.eagskunst.emmanuel.gamingnews.core.domain.repository
 
+import com.eagskunst.emmanuel.gamingnews.core.domain.model.ArticleOpenMode
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.UserPreferences
 import kotlinx.coroutines.flow.Flow
 
@@ -8,4 +9,5 @@ interface UserPreferencesRepository {
     suspend fun updateDarkTheme(enabled: Boolean)
     suspend fun updateLoadImages(enabled: Boolean)
     suspend fun updateDailyReminder(enabled: Boolean)
+    suspend fun updateArticleOpenMode(mode: ArticleOpenMode)
 }

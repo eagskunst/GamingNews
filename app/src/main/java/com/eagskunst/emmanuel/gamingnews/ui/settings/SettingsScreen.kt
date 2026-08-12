@@ -16,6 +16,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.PrivacyTip
@@ -47,6 +48,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.eagskunst.emmanuel.gamingnews.BuildConfig
 import com.eagskunst.emmanuel.gamingnews.R
 import com.eagskunst.emmanuel.gamingnews.core.common.ContactInfo
+import com.eagskunst.emmanuel.gamingnews.core.domain.model.ArticleOpenMode
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.Topic
 import com.eagskunst.emmanuel.gamingnews.ui.components.TopicChip
 
@@ -87,6 +89,7 @@ fun SettingsScreen(
             onDarkThemeChange = viewModel::toggleDarkTheme,
             onLoadImagesChange = viewModel::toggleLoadImages,
             onDailyReminderChange = viewModel::toggleDailyReminder,
+            onArticleOpenModeChange = viewModel::setArticleOpenMode,
             onAddTopic = viewModel::addTopic,
             onRemoveTopic = viewModel::removeTopic,
             onContactEmailClick = onContactEmailClick,
@@ -104,6 +107,7 @@ private fun SettingsContent(
     onDarkThemeChange: (Boolean) -> Unit = {},
     onLoadImagesChange: (Boolean) -> Unit = {},
     onDailyReminderChange: (Boolean) -> Unit = {},
+    onArticleOpenModeChange: (ArticleOpenMode) -> Unit = {},
     onAddTopic: (String) -> Unit = {},
     onRemoveTopic: (Topic) -> Unit = {},
     onContactEmailClick: () -> Unit = {},
@@ -125,6 +129,10 @@ private fun SettingsContent(
             title = "Daily reminder",
             checked = uiState.dailyReminder,
             onCheckedChange = onDailyReminderChange
+        )
+        ArticleOpenModeRow(
+            selectedMode = uiState.articleOpenMode,
+            onModeSelected = onArticleOpenModeChange
         )
 
         if (SHOW_NOTIFICATION_TOPICS) {
@@ -249,6 +257,79 @@ private fun LinkRow(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
+    }
+}
+
+@Composable
+private fun ArticleOpenModeRow(
+    selectedMode: ArticleOpenMode,
+    onModeSelected: (ArticleOpenMode) -> Unit
+) {
+    var showDialog by remember { mutableStateOf(false) }
+    val modeLabel = stringResource(
+        when (selectedMode) {
+            ArticleOpenMode.CUSTOM_TAB -> R.string.article_open_custom_tab
+            ArticleOpenMode.EXTERNAL_BROWSER -> R.string.article_open_external_browser
+            ArticleOpenMode.READER_MODE -> R.string.article_open_reader_mode
+        }
+    )
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { showDialog = true }
+            .padding(vertical = 12.dp)
+    ) {
+        Text(text = stringResource(R.string.settings_article_open_mode), style = MaterialTheme.typography.bodyLarge)
+        Text(
+            text = modeLabel,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text(stringResource(R.string.settings_article_open_mode)) },
+            text = {
+                Column {
+                    ArticleOpenMode.entries.forEach { mode ->
+                        val label = stringResource(
+                            when (mode) {
+                                ArticleOpenMode.CUSTOM_TAB -> R.string.article_open_custom_tab
+                                ArticleOpenMode.EXTERNAL_BROWSER -> R.string.article_open_external_browser
+                                ArticleOpenMode.READER_MODE -> R.string.article_open_reader_mode
+                            }
+                        )
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    onModeSelected(mode)
+                                    showDialog = false
+                                }
+                                .padding(vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(text = label, modifier = Modifier.weight(1f))
+                            if (mode == selectedMode) {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showDialog = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
     }
 }
 

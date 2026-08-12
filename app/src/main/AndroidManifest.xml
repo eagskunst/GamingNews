@@ -59,6 +59,15 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.eagskunst.emmanuel.gamingnews.views.MainActivity" />
         </activity>
+        <activity
+            android:name=".ui.reader.ReaderActivity"
+            android:exported="false"
+            android:label="@string/reader_mode_title"
+            android:parentActivityName=".views.MainActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.eagskunst.emmanuel.gamingnews.views.MainActivity" />
+        </activity>
     </application>
 
 </manifest>

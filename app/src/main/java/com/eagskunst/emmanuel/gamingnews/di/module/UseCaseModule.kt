@@ -9,19 +9,22 @@ import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetNewsUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetReleasesUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetSavedArticlesUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetTopicsUseCase
+import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetArticleOpenModeUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetUserPreferencesUseCase
+import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.OpenArticleUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.RemoveTopicUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.ToggleSavedArticleUseCase
+import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateArticleOpenModeUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateDailyReminderUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateDarkThemeUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateLoadImagesUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.components.ViewModelComponent
+import dagger.hilt.components.SingletonComponent
 
 @Module
-@InstallIn(ViewModelComponent::class)
+@InstallIn(SingletonComponent::class)
 object UseCaseModule {
 
     @Provides
@@ -55,6 +58,14 @@ object UseCaseModule {
     @Provides
     fun provideGetUserPreferencesUseCase(repository: UserPreferencesRepository): GetUserPreferencesUseCase =
         GetUserPreferencesUseCase(repository)
+
+    @Provides
+    fun provideGetArticleOpenModeUseCase(repository: UserPreferencesRepository): GetArticleOpenModeUseCase =
+        GetArticleOpenModeUseCase(repository)
+
+    @Provides
+    fun provideUpdateArticleOpenModeUseCase(repository: UserPreferencesRepository): UpdateArticleOpenModeUseCase =
+        UpdateArticleOpenModeUseCase(repository)
 
     @Provides
     fun provideUpdateDarkThemeUseCase(repository: UserPreferencesRepository): UpdateDarkThemeUseCase =

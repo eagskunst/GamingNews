@@ -20,4 +20,20 @@
     <string name="developer_name">Desarrollador: Emmanuel Guerra</string>
     <string name="contact_website_url">https://eagskunst.github.io/GamingNews/es/contact.html</string>
     <string name="privacy_policy_url">https://eagskunst.github.io/GamingNews/es/privacy.html</string>
+
+    <string name="reader_mode_title">Modo lectura</string>
+    <string name="reader_error_message">No se pudo cargar el artículo en modo lectura.</string>
+    <string name="reader_retry_button">Reintentar</string>
+    <string name="reader_open_browser_button">Abrir en navegador</string>
+
+    <string name="article_menu_title">Abrir artículo</string>
+    <string name="article_open_custom_tab">Abrir en pestaña personalizada</string>
+    <string name="article_open_external_browser">Abrir en navegador externo</string>
+    <string name="article_open_reader_mode">Abrir en modo lectura</string>
+    <string name="article_share">Compartir</string>
+    <string name="article_save">Guardar</string>
+    <string name="article_remove_save">Quitar de guardados</string>
+
+    <string name="settings_article_open_mode">Apertura predeterminada</string>
+    <string name="settings_article_open_mode_summary">Se usa al tocar un artículo</string>
 </resources>

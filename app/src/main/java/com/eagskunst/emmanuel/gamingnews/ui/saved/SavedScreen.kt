@@ -22,15 +22,20 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.eagskunst.emmanuel.gamingnews.R
+import com.eagskunst.emmanuel.gamingnews.core.domain.model.ArticleOpenMode
 import com.eagskunst.emmanuel.gamingnews.ui.components.ArticleCard
+import com.eagskunst.emmanuel.gamingnews.ui.components.ArticleMenuAction
 import com.eagskunst.emmanuel.gamingnews.ui.components.MainTopAppBar
+import com.eagskunst.emmanuel.gamingnews.ui.components.handleArticleMenuAction
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SavedScreen(
     viewModel: SavedViewModel,
     onSettingsClick: () -> Unit,
-    onOpenArticle: (String) -> Unit
+    onOpenArticle: (String) -> Unit,
+    onOpenArticleWithMode: (String, ArticleOpenMode) -> Unit,
+    onShareArticle: (String) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val filteredArticles = remember(uiState.articles, uiState.searchQuery) {
@@ -80,7 +85,16 @@ fun SavedScreen(
                         isSaved = true,
                         loadImages = uiState.loadImages,
                         onToggleSave = { viewModel.toggleSavedArticle(article) },
-                        onClick = { onOpenArticle(article.link) }
+                        onClick = { onOpenArticle(article.link) },
+                        onMenuAction = { action ->
+                            handleArticleMenuAction(
+                                article = article,
+                                action = action,
+                                onOpenArticleWithMode = onOpenArticleWithMode,
+                                onShareArticle = onShareArticle,
+                                onToggleSave = { viewModel.toggleSavedArticle(article) }
+                            )
+                        }
                     )
                 }
             }

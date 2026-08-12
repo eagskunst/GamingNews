@@ -5,7 +5,9 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.eagskunst.emmanuel.gamingnews.core.domain.model.ArticleOpenMode
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.UserPreferences
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -20,7 +22,8 @@ class UserPreferencesLocalDataSource(context: Context) {
         UserPreferences(
             darkTheme = prefs[DARK_THEME] ?: false,
             loadImages = prefs[LOAD_IMAGES] ?: true,
-            dailyReminder = prefs[DAILY_REMINDER] ?: false
+            dailyReminder = prefs[DAILY_REMINDER] ?: false,
+            articleOpenMode = parseArticleOpenMode(prefs[ARTICLE_OPEN_MODE])
         )
     }
 
@@ -36,9 +39,19 @@ class UserPreferencesLocalDataSource(context: Context) {
         dataStore.edit { prefs -> prefs[DAILY_REMINDER] = enabled }
     }
 
+    suspend fun updateArticleOpenMode(mode: ArticleOpenMode) {
+        dataStore.edit { prefs -> prefs[ARTICLE_OPEN_MODE] = mode.name }
+    }
+
     companion object {
         private val DARK_THEME = booleanPreferencesKey("dark_theme")
         private val LOAD_IMAGES = booleanPreferencesKey("load_images")
         private val DAILY_REMINDER = booleanPreferencesKey("daily_reminder")
+        private val ARTICLE_OPEN_MODE = stringPreferencesKey("article_open_mode")
+
+        private fun parseArticleOpenMode(value: String?): ArticleOpenMode =
+            value?.let { name ->
+                ArticleOpenMode.entries.find { it.name == name }
+            } ?: ArticleOpenMode.CUSTOM_TAB
     }
 }

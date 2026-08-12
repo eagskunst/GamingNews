@@ -20,4 +20,20 @@
     <string name="developer_name">Developer: Emmanuel Guerra</string>
     <string name="contact_website_url">https://eagskunst.github.io/GamingNews/contact.html</string>
     <string name="privacy_policy_url">https://eagskunst.github.io/GamingNews/privacy.html</string>
+
+    <string name="reader_mode_title">Reader mode</string>
+    <string name="reader_error_message">Couldn\'t load the article in reader mode.</string>
+    <string name="reader_retry_button">Retry</string>
+    <string name="reader_open_browser_button">Open in browser</string>
+
+    <string name="article_menu_title">Open article</string>
+    <string name="article_open_custom_tab">Open in custom tab</string>
+    <string name="article_open_external_browser">Open in external browser</string>
+    <string name="article_open_reader_mode">Open in reader mode</string>
+    <string name="article_share">Share</string>
+    <string name="article_save">Save</string>
+    <string name="article_remove_save">Remove from saved</string>
+
+    <string name="settings_article_open_mode">Default article opener</string>
+    <string name="settings_article_open_mode_summary">Used when you tap an article</string>
 </resources>
