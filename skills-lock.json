@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "skills": {
+    "android-cli": {
+      "source": "android/skills",
+      "sourceType": "github",
+      "skillPath": "devtools/android-cli/SKILL.md",
+      "computedHash": "593bf793123af51c94c080b10ea1d10da38895fe3c8b335daa139bdde43289bb"
+    },
+    "android-kotlin": {
+      "source": "alinaqi/maggy",
+      "sourceType": "github",
+      "skillPath": "skills/android-kotlin/SKILL.md",
+      "computedHash": "0bb451490ccb9e02daed97d9cd2e84071a874ba46ed5ecf5a491c2fa27f0828f"
+    },
+    "mobile-android-design": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "skillPath": "plugins/ui-design/skills/mobile-android-design/SKILL.md",
+      "computedHash": "bcb274bcc4e0ad076b5947f90e5a247f370ed4da1274b2b7347dc293ee396309"
+    },
+    "testing-setup": {
+      "source": "android/skills",
+      "sourceType": "github",
+      "skillPath": "testing/testing-setup/SKILL.md",
+      "computedHash": "567cf2c44d72abd7d418a254b2ee09d84d0d010b5e2ed9cbccd1e715b4d7aa55"
+    }
+  }
+}
