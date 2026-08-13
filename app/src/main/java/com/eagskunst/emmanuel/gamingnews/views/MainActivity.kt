@@ -9,6 +9,7 @@ import androidx.activity.viewModels
 import androidx.annotation.StringRes
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -102,6 +103,10 @@ private fun MainScreen(
     val useNavigationRail = windowSizeClass.widthSizeClass != WindowWidthSizeClass.Compact
 
     Scaffold(
+        // No topBar here: each screen renders its own TopAppBar which already
+        // consumes the status bar inset. Reserving it again here would push
+        // the toolbar down twice, leaving a big gap under the status bar.
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         bottomBar = {
             if (!useNavigationRail) {
                 BottomNavigationBar(navController)

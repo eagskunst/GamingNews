@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-08-13
+
+### Added
+- Pull-to-refresh on the news feed screen.
+
+### Fixed
+- Fixed a large gap between the status bar and the toolbar caused by the outer `Scaffold` and each screen's `Scaffold` both reserving space for the status bar inset.
+- Fixed the status bar/navigation bar icon contrast not following the app's selected theme (it now updates reactively instead of relying on the system dark mode setting).
+
 ## [2.0.0-beta04] - 2026-08-09
 
 ### Changed
