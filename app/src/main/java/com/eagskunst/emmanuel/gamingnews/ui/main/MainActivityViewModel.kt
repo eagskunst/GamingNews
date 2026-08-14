@@ -3,7 +3,9 @@ package com.eagskunst.emmanuel.gamingnews.ui.main
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.ArticleOpenMode
+import com.eagskunst.emmanuel.gamingnews.core.domain.model.ThemeMode
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetUserPreferencesUseCase
+
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.OpenArticleUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateArticleOpenModeUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -21,8 +23,24 @@ class MainActivityViewModel @Inject constructor(
     private val updateArticleOpenModeUseCase: UpdateArticleOpenModeUseCase
 ) : ViewModel() {
 
+    val themeMode: StateFlow<ThemeMode> = getUserPreferencesUseCase()
+        .map { it.themeMode }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = ThemeMode.SYSTEM
+        )
+
+    val dynamicColor: StateFlow<Boolean> = getUserPreferencesUseCase()
+        .map { it.dynamicColor }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = true
+        )
+
     val darkThemeEnabled: StateFlow<Boolean> = getUserPreferencesUseCase()
-        .map { it.darkTheme }
+        .map { it.themeMode == ThemeMode.DARK }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
@@ -36,6 +54,7 @@ class MainActivityViewModel @Inject constructor(
             started = SharingStarted.Eagerly,
             initialValue = ArticleOpenMode.CUSTOM_TAB
         )
+
 
     fun openArticle(url: String, mode: ArticleOpenMode) {
         openArticleUseCase(url, mode)

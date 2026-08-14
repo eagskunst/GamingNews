@@ -36,4 +36,12 @@
 
     <string name="settings_article_open_mode">Apertura predeterminada</string>
     <string name="settings_article_open_mode_summary">Se usa al tocar un artículo</string>
+
+    <string name="settings_theme">Tema</string>
+    <string name="settings_theme_system">Predeterminado del sistema</string>
+    <string name="settings_theme_light">Claro</string>
+    <string name="settings_theme_dark">Oscuro</string>
+    <string name="settings_dynamic_color">Color dinámico</string>
+    <string name="settings_dynamic_color_summary">Obtener tema del fondo de pantalla en Android 12+</string>
 </resources>
+

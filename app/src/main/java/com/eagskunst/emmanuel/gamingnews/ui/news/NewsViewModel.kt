@@ -40,6 +40,8 @@ class NewsViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(NewsUiState())
     val uiState: StateFlow<NewsUiState> = _uiState.asStateFlow()
 
+    private var refreshJob: kotlinx.coroutines.Job? = null
+
     init {
         viewModelScope.launch {
             getSavedArticlesUseCase().collect { saved ->
@@ -51,19 +53,20 @@ class NewsViewModel @Inject constructor(
                 _uiState.update { it.copy(loadImages = preferences.loadImages) }
             }
         }
-        refresh()
+        refresh(forceRefresh = false)
     }
 
     fun selectCategory(category: NewsCategory) {
         _uiState.update { it.copy(selectedCategory = category) }
-        refresh()
+        refresh(forceRefresh = true)
     }
 
-    fun refresh() {
-        viewModelScope.launch {
+    fun refresh(forceRefresh: Boolean = true) {
+        refreshJob?.cancel()
+        refreshJob = viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
             val urls = getFeedUrlsUseCase(_uiState.value.selectedCategory)
-            getNewsUseCase(urls).collect { result ->
+            getNewsUseCase(urls, forceRefresh).collect { result ->
                 when (result) {
                     is Result.Loading -> _uiState.update { it.copy(isLoading = true) }
                     is Result.Success -> _uiState.update {
@@ -76,6 +79,7 @@ class NewsViewModel @Inject constructor(
             }
         }
     }
+
 
     fun toggleSavedArticle(article: NewsArticle) {
         viewModelScope.launch { toggleSavedArticleUseCase(article) }

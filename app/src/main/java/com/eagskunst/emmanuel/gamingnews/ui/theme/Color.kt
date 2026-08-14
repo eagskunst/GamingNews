@@ -2,23 +2,74 @@ package com.eagskunst.emmanuel.gamingnews.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Brand red palette
-val CrimsonPrimaryLight = Color(0xFFD32F2F)
-val CrimsonOnPrimaryLight = Color(0xFFFFFFFF)
-val CrimsonPrimaryContainerLight = Color(0xFFFFDAD9)
-val CrimsonOnPrimaryContainerLight = Color(0xFF410004)
-val CrimsonSecondaryLight = Color(0xFF775656)
-val CrimsonBackgroundLight = Color(0xFFFFF8F7)
-val CrimsonSurfaceVariantLight = Color(0xFFF2DEDD)
-val CrimsonOnSurfaceVariantLight = Color(0xFF534342)
-val CrimsonOutlineLight = Color(0xFF857372)
+// Brand Seed: #D32F2F (Crimson Red)
 
-val CrimsonPrimaryDark = Color(0xFFE8362F)
-val CrimsonOnPrimaryDark = Color(0xFFFFFFFF)
-val CrimsonPrimaryContainerDark = Color(0xFF930006)
-val CrimsonOnPrimaryContainerDark = Color(0xFFFFDAD9)
-val CrimsonSecondaryDark = Color(0xFFE7BDBB)
-val CrimsonBackgroundDark = Color(0xFF121212)
-val CrimsonSurfaceVariantDark = Color(0xFF242121)
-val CrimsonOnSurfaceVariantDark = Color(0xFFB3ABAB)
-val CrimsonOutlineDark = Color(0xFF3D3838)
+// Light Theme Tokens
+val PrimaryLight = Color(0xFFBA1A1A)
+val OnPrimaryLight = Color(0xFFFFFFFF)
+val PrimaryContainerLight = Color(0xFFFFDAD6)
+val OnPrimaryContainerLight = Color(0xFF410002)
+
+val SecondaryLight = Color(0xFF775652)
+val OnSecondaryLight = Color(0xFFFFFFFF)
+val SecondaryContainerLight = Color(0xFFFFDAD6)
+val OnSecondaryContainerLight = Color(0xFF2C1512)
+
+val TertiaryLight = Color(0xFF705C2E)
+val OnTertiaryLight = Color(0xFFFFFFFF)
+val TertiaryContainerLight = Color(0xFFFCE0A2)
+val OnTertiaryContainerLight = Color(0xFF251A00)
+
+val ErrorLight = Color(0xFFBA1A1A)
+val OnErrorLight = Color(0xFFFFFFFF)
+val ErrorContainerLight = Color(0xFFFFDAD6)
+val OnErrorContainerLight = Color(0xFF410002)
+
+val BackgroundLight = Color(0xFFFFF8F6)
+val OnBackgroundLight = Color(0xFF231918)
+val SurfaceLight = Color(0xFFFFF8F6)
+val OnSurfaceLight = Color(0xFF231918)
+val SurfaceVariantLight = Color(0xFFF5DDDA)
+val OnSurfaceVariantLight = Color(0xFF534341)
+
+val OutlineLight = Color(0xFF857371)
+val OutlineVariantLight = Color(0xFFD8C2BF)
+val ScrimLight = Color(0xFF000000)
+val InverseSurfaceLight = Color(0xFF392E2D)
+val InverseOnSurfaceLight = Color(0xFFFEEDE9)
+val InversePrimaryLight = Color(0xFFFFB4AB)
+
+// Dark Theme Tokens
+val PrimaryDark = Color(0xFFFFB4AB)
+val OnPrimaryDark = Color(0xFF690005)
+val PrimaryContainerDark = Color(0xFF93000A)
+val OnPrimaryContainerDark = Color(0xFFFFDAD6)
+
+val SecondaryDark = Color(0xFFE7BDB8)
+val OnSecondaryDark = Color(0xFF442926)
+val SecondaryContainerDark = Color(0xFF5D3F3C)
+val OnSecondaryContainerDark = Color(0xFFFFDAD6)
+
+val TertiaryDark = Color(0xFFDEC488)
+val OnTertiaryDark = Color(0xFF3E2E04)
+val TertiaryContainerDark = Color(0xFF564419)
+val OnTertiaryContainerDark = Color(0xFFFCE0A2)
+
+val ErrorDark = Color(0xFFFFB4AB)
+val OnErrorDark = Color(0xFF690005)
+val ErrorContainerDark = Color(0xFF93000A)
+val OnErrorContainerDark = Color(0xFFFFDAD6)
+
+val BackgroundDark = Color(0xFF141212)
+val OnBackgroundDark = Color(0xFFEDE0DE)
+val SurfaceDark = Color(0xFF141212)
+val OnSurfaceDark = Color(0xFFEDE0DE)
+val SurfaceVariantDark = Color(0xFF2B2525)
+val OnSurfaceVariantDark = Color(0xFFD8C2BF)
+
+val OutlineDark = Color(0xFFA08C8A)
+val OutlineVariantDark = Color(0xFF534341)
+val ScrimDark = Color(0xFF000000)
+val InverseSurfaceDark = Color(0xFFEDE0DE)
+val InverseOnSurfaceDark = Color(0xFF392E2D)
+val InversePrimaryDark = Color(0xFFBA1A1A)

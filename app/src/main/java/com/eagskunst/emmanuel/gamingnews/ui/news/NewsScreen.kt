@@ -86,9 +86,10 @@ fun NewsScreen(
 
             PullToRefreshBox(
                 isRefreshing = uiState.isLoading,
-                onRefresh = viewModel::refresh,
+                onRefresh = { viewModel.refresh(forceRefresh = true) },
                 modifier = Modifier.fillMaxSize()
             ) {
+
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(16.dp),

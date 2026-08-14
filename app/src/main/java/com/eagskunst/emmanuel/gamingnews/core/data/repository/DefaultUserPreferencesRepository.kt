@@ -2,6 +2,7 @@ package com.eagskunst.emmanuel.gamingnews.core.data.repository
 
 import com.eagskunst.emmanuel.gamingnews.core.data.source.local.UserPreferencesLocalDataSource
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.ArticleOpenMode
+import com.eagskunst.emmanuel.gamingnews.core.domain.model.ThemeMode
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.UserPreferences
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.UserPreferencesRepository
 import kotlinx.coroutines.flow.Flow
@@ -12,6 +13,14 @@ class DefaultUserPreferencesRepository @Inject constructor(
 ) : UserPreferencesRepository {
 
     override val userPreferences: Flow<UserPreferences> = localDataSource.userPreferences
+
+    override suspend fun updateThemeMode(mode: ThemeMode) {
+        localDataSource.updateThemeMode(mode)
+    }
+
+    override suspend fun updateDynamicColor(enabled: Boolean) {
+        localDataSource.updateDynamicColor(enabled)
+    }
 
     override suspend fun updateDarkTheme(enabled: Boolean) {
         localDataSource.updateDarkTheme(enabled)
@@ -29,3 +38,4 @@ class DefaultUserPreferencesRepository @Inject constructor(
         localDataSource.updateArticleOpenMode(mode)
     }
 }
+

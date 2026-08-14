@@ -17,11 +17,14 @@ import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.ToggleSavedArticleU
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateArticleOpenModeUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateDailyReminderUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateDarkThemeUseCase
+import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateDynamicColorUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateLoadImagesUseCase
+import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateThemeModeUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ViewModelComponent
+
 
 @Module
 @InstallIn(ViewModelComponent::class)
@@ -72,6 +75,14 @@ object UseCaseModule {
         UpdateDarkThemeUseCase(repository)
 
     @Provides
+    fun provideUpdateThemeModeUseCase(repository: UserPreferencesRepository): UpdateThemeModeUseCase =
+        UpdateThemeModeUseCase(repository)
+
+    @Provides
+    fun provideUpdateDynamicColorUseCase(repository: UserPreferencesRepository): UpdateDynamicColorUseCase =
+        UpdateDynamicColorUseCase(repository)
+
+    @Provides
     fun provideUpdateLoadImagesUseCase(repository: UserPreferencesRepository): UpdateLoadImagesUseCase =
         UpdateLoadImagesUseCase(repository)
 
@@ -79,3 +90,4 @@ object UseCaseModule {
     fun provideUpdateDailyReminderUseCase(repository: UserPreferencesRepository): UpdateDailyReminderUseCase =
         UpdateDailyReminderUseCase(repository)
 }
+

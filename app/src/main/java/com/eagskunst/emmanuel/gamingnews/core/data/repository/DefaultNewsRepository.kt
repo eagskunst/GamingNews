@@ -28,15 +28,15 @@ class DefaultNewsRepository @Inject constructor(
 
     private val feedCache = ConcurrentHashMap<String, List<NewsArticle>>()
 
-    override fun newsStream(urls: List<String>): Flow<Result<List<NewsArticle>>> = flow {
+    override fun newsStream(urls: List<String>, forceRefresh: Boolean): Flow<Result<List<NewsArticle>>> = flow {
         val key = cacheKey(urls)
         val cached = feedCache[key]
 
-        if (!cached.isNullOrEmpty()) {
+        if (!forceRefresh && !cached.isNullOrEmpty()) {
             emit(Result.Success(cached))
         }
 
-        if (cached == null) {
+        if (forceRefresh || cached == null) {
             emit(Result.Loading)
         }
 
@@ -45,11 +45,14 @@ class DefaultNewsRepository @Inject constructor(
             feedCache[key] = articles
             emit(Result.Success(articles))
         } catch (e: Exception) {
-            if (cached == null) {
+            if (!cached.isNullOrEmpty()) {
+                emit(Result.Success(cached))
+            } else {
                 emit(Result.Error(e))
             }
         }
     }.flowOn(dispatchers.io)
+
 
     override fun savedArticlesStream(): Flow<List<NewsArticle>> =
         articleDao.observeAll()

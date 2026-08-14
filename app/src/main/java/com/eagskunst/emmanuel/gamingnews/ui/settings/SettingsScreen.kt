@@ -1,5 +1,6 @@
 package com.eagskunst.emmanuel.gamingnews.ui.settings
 
+import android.os.Build
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -28,6 +29,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -49,6 +51,7 @@ import com.eagskunst.emmanuel.gamingnews.BuildConfig
 import com.eagskunst.emmanuel.gamingnews.R
 import com.eagskunst.emmanuel.gamingnews.core.common.ContactInfo
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.ArticleOpenMode
+import com.eagskunst.emmanuel.gamingnews.core.domain.model.ThemeMode
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.Topic
 import com.eagskunst.emmanuel.gamingnews.ui.components.TopicChip
 
@@ -86,7 +89,8 @@ fun SettingsScreen(
                 .fillMaxSize()
                 .padding(padding)
                 .verticalScroll(rememberScrollState()),
-            onDarkThemeChange = viewModel::toggleDarkTheme,
+            onThemeModeChange = viewModel::setThemeMode,
+            onDynamicColorChange = viewModel::toggleDynamicColor,
             onLoadImagesChange = viewModel::toggleLoadImages,
             onDailyReminderChange = viewModel::toggleDailyReminder,
             onArticleOpenModeChange = viewModel::setArticleOpenMode,
@@ -104,7 +108,8 @@ fun SettingsScreen(
 private fun SettingsContent(
     uiState: SettingsUiState,
     modifier: Modifier = Modifier,
-    onDarkThemeChange: (Boolean) -> Unit = {},
+    onThemeModeChange: (ThemeMode) -> Unit = {},
+    onDynamicColorChange: (Boolean) -> Unit = {},
     onLoadImagesChange: (Boolean) -> Unit = {},
     onDailyReminderChange: (Boolean) -> Unit = {},
     onArticleOpenModeChange: (ArticleOpenMode) -> Unit = {},
@@ -115,11 +120,20 @@ private fun SettingsContent(
     onPrivacyPolicyClick: () -> Unit = {}
 ) {
     Column(modifier = modifier.padding(16.dp)) {
-        PreferenceSwitch(
-            title = "Dark theme",
-            checked = uiState.darkTheme,
-            onCheckedChange = onDarkThemeChange
+        ThemeModePreferenceRow(
+            selectedThemeMode = uiState.themeMode,
+            onThemeModeSelected = onThemeModeChange
         )
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            PreferenceSwitchWithSummary(
+                title = stringResource(R.string.settings_dynamic_color),
+                summary = stringResource(R.string.settings_dynamic_color_summary),
+                checked = uiState.dynamicColor,
+                onCheckedChange = onDynamicColorChange
+            )
+        }
+
         PreferenceSwitch(
             title = "Load images",
             checked = uiState.loadImages,
@@ -180,6 +194,105 @@ private fun SettingsContent(
             onContactWebsiteClick = onContactWebsiteClick,
             onPrivacyPolicyClick = onPrivacyPolicyClick
         )
+    }
+}
+
+@Composable
+private fun ThemeModePreferenceRow(
+    selectedThemeMode: ThemeMode,
+    onThemeModeSelected: (ThemeMode) -> Unit
+) {
+    var showDialog by remember { mutableStateOf(false) }
+    val themeLabel = stringResource(
+        when (selectedThemeMode) {
+            ThemeMode.SYSTEM -> R.string.settings_theme_system
+            ThemeMode.LIGHT -> R.string.settings_theme_light
+            ThemeMode.DARK -> R.string.settings_theme_dark
+        }
+    )
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { showDialog = true }
+            .padding(vertical = 12.dp)
+    ) {
+        Text(text = stringResource(R.string.settings_theme), style = MaterialTheme.typography.bodyLarge)
+        Text(
+            text = themeLabel,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text(stringResource(R.string.settings_theme)) },
+            text = {
+                Column {
+                    ThemeMode.entries.forEach { mode ->
+                        val label = stringResource(
+                            when (mode) {
+                                ThemeMode.SYSTEM -> R.string.settings_theme_system
+                                ThemeMode.LIGHT -> R.string.settings_theme_light
+                                ThemeMode.DARK -> R.string.settings_theme_dark
+                            }
+                        )
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    onThemeModeSelected(mode)
+                                    showDialog = false
+                                }
+                                .padding(vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(text = label, modifier = Modifier.weight(1f))
+                            if (mode == selectedThemeMode) {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showDialog = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
+}
+
+@Composable
+private fun PreferenceSwitchWithSummary(
+    title: String,
+    summary: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Column(modifier = Modifier.weight(1f).padding(end = 16.dp)) {
+            Text(text = title, style = MaterialTheme.typography.bodyLarge)
+            Text(
+                text = summary,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        Switch(checked = checked, onCheckedChange = onCheckedChange)
     }
 }
 

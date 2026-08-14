@@ -36,4 +36,12 @@
 
     <string name="settings_article_open_mode">Default article opener</string>
     <string name="settings_article_open_mode_summary">Used when you tap an article</string>
+
+    <string name="settings_theme">Theme</string>
+    <string name="settings_theme_system">System default</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_theme_dark">Dark</string>
+    <string name="settings_dynamic_color">Dynamic color</string>
+    <string name="settings_dynamic_color_summary">Derive theme from your wallpaper on Android 12+</string>
 </resources>
+

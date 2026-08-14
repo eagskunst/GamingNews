@@ -6,6 +6,7 @@ import com.eagskunst.emmanuel.gamingnews.core.domain.repository.NewsRepository
 import kotlinx.coroutines.flow.Flow
 
 class GetNewsUseCase(private val repository: NewsRepository) {
-    operator fun invoke(urls: List<String>): Flow<Result<List<NewsArticle>>> =
-        repository.newsStream(urls)
+    operator fun invoke(urls: List<String>, forceRefresh: Boolean = false): Flow<Result<List<NewsArticle>>> =
+        repository.newsStream(urls, forceRefresh)
 }
+

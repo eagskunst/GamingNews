@@ -9,12 +9,18 @@ GamingNews is an Android app that aggregates RSS gaming news and upcoming game r
 # Debug build
 ./gradlew :app:assembleDebug
 
-# Run unit tests
+# Run unit tests (includes Robolectric-based DataStore/Compose tests)
 ./gradlew :app:testDebugUnitTest
+
+# Run instrumented tests (Room DAO tests; requires a connected device/emulator)
+./gradlew :app:connectedDebugAndroidTest
 
 # Clean build
 ./gradlew clean :app:assembleDebug
 ```
+
+See `docs/testing.md` for the full testing strategy (frameworks, folder layout, conventions,
+known limitations).
 
 ## Architecture
 
@@ -43,10 +49,11 @@ These are exposed as `BuildConfig.TWITCH_CLIENT_ID` and `BuildConfig.TWITCH_CLIE
 4. Main screens rewritten in Compose with Navigation Component and adaptive navigation.
 5. Edge-to-edge rendering enabled.
 6. Daily reminder WorkManager scheduled from settings.
-7. Basic unit tests added for IGDB mapping.
+7. Unit test coverage added across mappers, data sources, repositories, use cases, ViewModels,
+   and Compose UI (screens/components), plus instrumented Room DAO tests. See `docs/testing.md`.
 
 ## Remaining Cleanup
 
-- Legacy MVP/Dagger code in `fragments/`, `adapter/`, `mvp/`, and `di/` is no longer used but still compiles.
-- `SaveArticleReceiver` and `NotificationMaker` still use old models/preferences.
-- Add more unit + instrumentation tests and lint baseline before release.
+- Add a lint baseline before release.
+- `RssRemoteDataSource` constructs `RssParser()` internally rather than taking it as a
+  dependency, which limits how thoroughly it can be unit tested — consider injecting it.

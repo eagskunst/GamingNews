@@ -30,7 +30,7 @@ class SettingsActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-            GamingNewsTheme(darkTheme = uiState.darkTheme) {
+            GamingNewsTheme(themeMode = uiState.themeMode, dynamicColor = uiState.dynamicColor) {
                 SettingsScreen(
                     viewModel = viewModel,
                     onBackClick = { finish() },
@@ -44,6 +44,7 @@ class SettingsActivity : ComponentActivity() {
                 )
             }
         }
+
     }
 
     private fun sendContactEmail() {

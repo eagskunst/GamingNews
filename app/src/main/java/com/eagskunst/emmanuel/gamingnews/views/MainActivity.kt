@@ -45,7 +45,9 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.eagskunst.emmanuel.gamingnews.R
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.ArticleOpenMode
+import com.eagskunst.emmanuel.gamingnews.core.domain.model.ThemeMode
 import com.eagskunst.emmanuel.gamingnews.ui.main.MainActivityViewModel
+
 import com.eagskunst.emmanuel.gamingnews.ui.news.NewsScreen
 import com.eagskunst.emmanuel.gamingnews.ui.news.NewsViewModel
 import com.eagskunst.emmanuel.gamingnews.ui.releases.ReleasesScreen
@@ -64,9 +66,10 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            val darkTheme by viewModel.darkThemeEnabled.collectAsStateWithLifecycle(initialValue = isSystemInDarkTheme())
+            val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
+            val dynamicColor by viewModel.dynamicColor.collectAsStateWithLifecycle()
             val articleOpenMode by viewModel.articleOpenMode.collectAsStateWithLifecycle(initialValue = ArticleOpenMode.CUSTOM_TAB)
-            GamingNewsTheme(darkTheme = darkTheme) {
+            GamingNewsTheme(themeMode = themeMode, dynamicColor = dynamicColor) {
                 MainScreen(
                     activity = this,
                     onOpenArticle = { url -> viewModel.openArticle(url, articleOpenMode) },
@@ -77,6 +80,7 @@ class MainActivity : ComponentActivity() {
                 )
             }
         }
+
     }
 
     private fun shareArticle(url: String) {

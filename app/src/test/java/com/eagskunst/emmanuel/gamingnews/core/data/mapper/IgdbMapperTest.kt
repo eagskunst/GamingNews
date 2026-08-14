@@ -10,7 +10,7 @@ import org.junit.Test
 class IgdbMapperTest {
 
     @Test
-    fun `maps release date to game release`() {
+    fun `when the dto has all fields then it maps to a game release`() {
         val dto = IgdbReleaseDateDto(
             id = 123,
             date = 1_700_000_000,
@@ -34,7 +34,7 @@ class IgdbMapperTest {
     }
 
     @Test
-    fun `returns null when game has no name`() {
+    fun `when the game has no name then it returns null`() {
         val dto = IgdbReleaseDateDto(
             id = 123,
             date = 1_700_000_000,
@@ -47,7 +47,7 @@ class IgdbMapperTest {
     }
 
     @Test
-    fun `ignores unknown platform ids`() {
+    fun `when the platform id is unknown then it is ignored`() {
         val dto = IgdbReleaseDateDto(
             id = 123,
             date = 1_700_000_000,
@@ -57,5 +57,57 @@ class IgdbMapperTest {
         )
 
         assertEquals(emptyList<String>(), dto.toGameRelease()?.platforms)
+    }
+
+    @Test
+    fun `when the game name is blank then it returns null`() {
+        val dto = IgdbReleaseDateDto(
+            id = 123,
+            date = 1_700_000_000,
+            human = "Nov 2023",
+            platform = 48,
+            game = IgdbGameDto(id = 456, name = "   ", url = null, cover = null)
+        )
+
+        assertNull(dto.toGameRelease())
+    }
+
+    @Test
+    fun `when the release date is null then it returns null`() {
+        val dto = IgdbReleaseDateDto(
+            id = 123,
+            date = null,
+            human = "Nov 2023",
+            platform = 48,
+            game = IgdbGameDto(id = 456, name = "Test Game", url = null, cover = null)
+        )
+
+        assertNull(dto.toGameRelease())
+    }
+
+    @Test
+    fun `when the cover is null then the cover url is null`() {
+        val dto = IgdbReleaseDateDto(
+            id = 123,
+            date = 1_700_000_000,
+            human = "Nov 2023",
+            platform = 48,
+            game = IgdbGameDto(id = 456, name = "Test Game", url = null, cover = null)
+        )
+
+        assertNull(dto.toGameRelease()?.coverUrl)
+    }
+
+    @Test
+    fun `when the cover url is null then the returned cover url is null`() {
+        val dto = IgdbReleaseDateDto(
+            id = 123,
+            date = 1_700_000_000,
+            human = "Nov 2023",
+            platform = 48,
+            game = IgdbGameDto(id = 456, name = "Test Game", url = null, cover = IgdbCoverDto(id = 1, url = null))
+        )
+
+        assertNull(dto.toGameRelease()?.coverUrl)
     }
 }

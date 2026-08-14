@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.ArticleOpenMode
+import com.eagskunst.emmanuel.gamingnews.core.domain.model.ThemeMode
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.UserPreferences
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -20,15 +21,24 @@ class UserPreferencesLocalDataSource(context: Context) {
 
     val userPreferences: Flow<UserPreferences> = dataStore.data.map { prefs ->
         UserPreferences(
-            darkTheme = prefs[DARK_THEME] ?: false,
+            themeMode = parseThemeMode(prefs[THEME_MODE], prefs[DARK_THEME]),
+            dynamicColor = prefs[DYNAMIC_COLOR] ?: true,
             loadImages = prefs[LOAD_IMAGES] ?: true,
             dailyReminder = prefs[DAILY_REMINDER] ?: false,
             articleOpenMode = parseArticleOpenMode(prefs[ARTICLE_OPEN_MODE])
         )
     }
 
+    suspend fun updateThemeMode(mode: ThemeMode) {
+        dataStore.edit { prefs -> prefs[THEME_MODE] = mode.name }
+    }
+
+    suspend fun updateDynamicColor(enabled: Boolean) {
+        dataStore.edit { prefs -> prefs[DYNAMIC_COLOR] = enabled }
+    }
+
     suspend fun updateDarkTheme(enabled: Boolean) {
-        dataStore.edit { prefs -> prefs[DARK_THEME] = enabled }
+        updateThemeMode(if (enabled) ThemeMode.DARK else ThemeMode.LIGHT)
     }
 
     suspend fun updateLoadImages(enabled: Boolean) {
@@ -44,10 +54,22 @@ class UserPreferencesLocalDataSource(context: Context) {
     }
 
     companion object {
+        private val THEME_MODE = stringPreferencesKey("theme_mode")
+        private val DYNAMIC_COLOR = booleanPreferencesKey("dynamic_color")
         private val DARK_THEME = booleanPreferencesKey("dark_theme")
         private val LOAD_IMAGES = booleanPreferencesKey("load_images")
         private val DAILY_REMINDER = booleanPreferencesKey("daily_reminder")
         private val ARTICLE_OPEN_MODE = stringPreferencesKey("article_open_mode")
+
+        private fun parseThemeMode(themeModeName: String?, legacyDarkTheme: Boolean?): ThemeMode {
+            if (themeModeName != null) {
+                return ThemeMode.entries.find { it.name == themeModeName } ?: ThemeMode.SYSTEM
+            }
+            if (legacyDarkTheme != null) {
+                return if (legacyDarkTheme) ThemeMode.DARK else ThemeMode.LIGHT
+            }
+            return ThemeMode.SYSTEM
+        }
 
         private fun parseArticleOpenMode(value: String?): ArticleOpenMode =
             value?.let { name ->
@@ -55,3 +77,4 @@ class UserPreferencesLocalDataSource(context: Context) {
             } ?: ArticleOpenMode.EXTERNAL_BROWSER
     }
 }
+

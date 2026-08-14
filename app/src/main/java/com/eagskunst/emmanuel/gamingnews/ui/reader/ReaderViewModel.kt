@@ -4,7 +4,9 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.eagskunst.emmanuel.gamingnews.core.common.DispatcherProvider
+import com.eagskunst.emmanuel.gamingnews.core.domain.model.ThemeMode
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetUserPreferencesUseCase
+
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -30,13 +32,30 @@ class ReaderViewModel @Inject constructor(
         "ReaderActivity started without article URL"
     }
 
+    val themeMode: StateFlow<ThemeMode> = getUserPreferencesUseCase()
+        .map { it.themeMode }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = ThemeMode.SYSTEM
+        )
+
+    val dynamicColor: StateFlow<Boolean> = getUserPreferencesUseCase()
+        .map { it.dynamicColor }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = true
+        )
+
     val darkThemeEnabled: StateFlow<Boolean> = getUserPreferencesUseCase()
-        .map { it.darkTheme }
+        .map { it.themeMode == ThemeMode.DARK }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = false
         )
+
 
     private val _uiState = MutableStateFlow<ReaderUiState>(ReaderUiState.Loading)
     val uiState: StateFlow<ReaderUiState> = _uiState.asStateFlow()

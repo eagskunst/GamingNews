@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.ArticleOpenMode
+import com.eagskunst.emmanuel.gamingnews.core.domain.model.ThemeMode
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.Topic
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.AddTopicUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetTopicsUseCase
@@ -12,7 +13,9 @@ import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.RemoveTopicUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateArticleOpenModeUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateDailyReminderUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateDarkThemeUseCase
+import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateDynamicColorUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateLoadImagesUseCase
+import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateThemeModeUseCase
 import com.eagskunst.emmanuel.gamingnews.worker.DailyReminderScheduler
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -24,6 +27,8 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class SettingsUiState(
+    val themeMode: ThemeMode = ThemeMode.SYSTEM,
+    val dynamicColor: Boolean = true,
     val darkTheme: Boolean = false,
     val loadImages: Boolean = true,
     val dailyReminder: Boolean = false,
@@ -37,6 +42,8 @@ class SettingsViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     getUserPreferencesUseCase: GetUserPreferencesUseCase,
     getTopicsUseCase: GetTopicsUseCase,
+    private val updateThemeModeUseCase: UpdateThemeModeUseCase,
+    private val updateDynamicColorUseCase: UpdateDynamicColorUseCase,
     private val updateDarkThemeUseCase: UpdateDarkThemeUseCase,
     private val updateLoadImagesUseCase: UpdateLoadImagesUseCase,
     private val updateDailyReminderUseCase: UpdateDailyReminderUseCase,
@@ -50,7 +57,9 @@ class SettingsViewModel @Inject constructor(
         getTopicsUseCase()
     ) { preferences, topics ->
         SettingsUiState(
-            darkTheme = preferences.darkTheme,
+            themeMode = preferences.themeMode,
+            dynamicColor = preferences.dynamicColor,
+            darkTheme = preferences.themeMode == ThemeMode.DARK,
             loadImages = preferences.loadImages,
             dailyReminder = preferences.dailyReminder,
             articleOpenMode = preferences.articleOpenMode,
@@ -62,6 +71,14 @@ class SettingsViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = SettingsUiState()
     )
+
+    fun setThemeMode(mode: ThemeMode) {
+        viewModelScope.launch { updateThemeModeUseCase(mode) }
+    }
+
+    fun toggleDynamicColor(enabled: Boolean) {
+        viewModelScope.launch { updateDynamicColorUseCase(enabled) }
+    }
 
     fun toggleDarkTheme(enabled: Boolean) {
         viewModelScope.launch { updateDarkThemeUseCase(enabled) }
@@ -97,3 +114,4 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch { updateArticleOpenModeUseCase(mode) }
     }
 }
+
