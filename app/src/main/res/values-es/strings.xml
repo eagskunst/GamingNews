@@ -43,5 +43,12 @@
     <string name="settings_theme_dark">Oscuro</string>
     <string name="settings_dynamic_color">Color dinámico</string>
     <string name="settings_dynamic_color_summary">Obtener tema del fondo de pantalla en Android 12+</string>
+
+    <string name="settings_daily_reminder">Recordatorio diario</string>
+    <string name="settings_daily_reminder_time">Hora del recordatorio diario</string>
+    <string name="settings_next_reminder">Próximo recordatorio a las %1$s</string>
+    <string name="settings_daily_reminder_disclosure">Los recordatorios se programan al inicio de la hora seleccionada. Android puede retrasar la entrega ligeramente para ahorrar batería.</string>
+    <string name="notification_permission_rationale">Se necesita permiso de notificaciones para recibir recordatorios.</string>
+    <string name="confirm">Aceptar</string>
 </resources>
 
