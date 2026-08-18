@@ -491,7 +491,7 @@ private fun ArticleOpenModeRow(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { showDialog = true }
-            .padding(vertical = 12.dp)
+            .padding(top = 12.dp)
     ) {
         Text(text = stringResource(R.string.settings_article_open_mode), style = MaterialTheme.typography.bodyLarge)
         Text(
