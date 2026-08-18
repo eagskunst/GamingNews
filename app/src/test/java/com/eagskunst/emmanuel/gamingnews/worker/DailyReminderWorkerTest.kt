@@ -9,6 +9,7 @@ import androidx.work.WorkerParameters
 import androidx.work.testing.TestListenableWorkerBuilder
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -41,5 +42,8 @@ class DailyReminderWorkerTest {
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val shadowNotificationManager: ShadowNotificationManager = Shadows.shadowOf(notificationManager)
         assertTrue(shadowNotificationManager.allNotifications.isNotEmpty())
+
+        val notification = shadowNotificationManager.allNotifications.first()
+        assertNotNull(notification.contentIntent)
     }
 }

@@ -2,10 +2,13 @@ package com.eagskunst.emmanuel.gamingnews.utility
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import com.eagskunst.emmanuel.gamingnews.R
+import com.eagskunst.emmanuel.gamingnews.views.MainActivity
 
 object NotificationHelper {
 
@@ -20,11 +23,24 @@ object NotificationHelper {
             .setContentText("Check out today's gaming news!")
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
+            .setContentIntent(createOpenAppPendingIntent(context))
             .setAutoCancel(true)
             .build()
 
         val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         manager.notify(1, notification)
+    }
+
+    private fun createOpenAppPendingIntent(context: Context): PendingIntent {
+        val openAppIntent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        }
+        return PendingIntent.getActivity(
+            context,
+            0,
+            openAppIntent,
+            PendingIntent.FLAG_IMMUTABLE
+        )
     }
 
     private fun createChannel(context: Context) {
