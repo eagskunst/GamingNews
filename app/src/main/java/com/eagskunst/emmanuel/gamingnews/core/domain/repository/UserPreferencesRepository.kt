@@ -12,6 +12,7 @@ interface UserPreferencesRepository {
     suspend fun updateDarkTheme(enabled: Boolean)
     suspend fun updateLoadImages(enabled: Boolean)
     suspend fun updateDailyReminder(enabled: Boolean)
+    suspend fun updateDailyReminderHour(hour: Int)
     suspend fun updateArticleOpenMode(mode: ArticleOpenMode)
 }
 

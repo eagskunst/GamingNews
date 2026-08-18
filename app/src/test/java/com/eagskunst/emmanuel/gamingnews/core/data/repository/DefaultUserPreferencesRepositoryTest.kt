@@ -72,6 +72,15 @@ class DefaultUserPreferencesRepositoryTest {
     }
 
     @Test
+    fun `when updateDailyReminderHour is called then it delegates the same value to the local data source`() = runTest {
+        val repository = DefaultUserPreferencesRepository(localDataSource)
+
+        repository.updateDailyReminderHour(21)
+
+        coVerify { localDataSource.updateDailyReminderHour(21) }
+    }
+
+    @Test
     fun `when updateArticleOpenMode is called then it delegates the same value to the local data source`() = runTest {
         val repository = DefaultUserPreferencesRepository(localDataSource)
 

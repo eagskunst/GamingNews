@@ -11,17 +11,8 @@ object DailyReminderScheduler {
 
     private const val WORK_NAME = "daily_reminder"
 
-    fun schedule(context: Context) {
-        val current = Calendar.getInstance()
-        val target = Calendar.getInstance().apply {
-            set(Calendar.HOUR_OF_DAY, 9)
-            set(Calendar.MINUTE, 0)
-            set(Calendar.SECOND, 0)
-            if (before(current)) {
-                add(Calendar.DAY_OF_YEAR, 1)
-            }
-        }
-        val initialDelay = target.timeInMillis - current.timeInMillis
+    fun schedule(context: Context, hour: Int) {
+        val initialDelay = computeInitialDelay(hour)
 
         val request = PeriodicWorkRequestBuilder<DailyReminderWorker>(1, TimeUnit.DAYS)
             .setInitialDelay(initialDelay, TimeUnit.MILLISECONDS)
@@ -30,12 +21,26 @@ object DailyReminderScheduler {
         WorkManager.getInstance(context)
             .enqueueUniquePeriodicWork(
                 WORK_NAME,
-                ExistingPeriodicWorkPolicy.UPDATE,
+                ExistingPeriodicWorkPolicy.REPLACE,
                 request
             )
     }
 
     fun cancel(context: Context) {
         WorkManager.getInstance(context).cancelUniqueWork(WORK_NAME)
+    }
+
+    internal fun computeInitialDelay(hour: Int): Long {
+        val current = Calendar.getInstance()
+        val target = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, hour)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+            if (before(current)) {
+                add(Calendar.DAY_OF_YEAR, 1)
+            }
+        }
+        return target.timeInMillis - current.timeInMillis
     }
 }

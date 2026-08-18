@@ -43,5 +43,12 @@
     <string name="settings_theme_dark">Dark</string>
     <string name="settings_dynamic_color">Dynamic color</string>
     <string name="settings_dynamic_color_summary">Derive theme from your wallpaper on Android 12+</string>
+
+    <string name="settings_daily_reminder">Daily reminder</string>
+    <string name="settings_daily_reminder_time">Daily reminder time</string>
+    <string name="settings_next_reminder">Next reminder at %1$s</string>
+    <string name="settings_daily_reminder_disclosure">Reminders are scheduled for the start of the selected hour. Android may delay delivery slightly to save battery.</string>
+    <string name="notification_permission_rationale">Notifications permission is required to receive reminders.</string>
+    <string name="confirm">OK</string>
 </resources>
 

@@ -1,6 +1,9 @@
 package com.eagskunst.emmanuel.gamingnews.ui.settings
 
+import android.Manifest
 import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -31,16 +34,23 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TimePicker
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -67,6 +77,30 @@ fun SettingsScreen(
     onPrivacyPolicyClick: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
+
+    val requestPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        viewModel.onNotificationPermissionResult(isGranted)
+    }
+
+    LaunchedEffect(viewModel) {
+        viewModel.uiEvent.collect { event ->
+            when (event) {
+                is SettingsUiEvent.RequestNotificationPermission -> {
+                    requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                }
+
+                is SettingsUiEvent.ShowMessage -> {
+                    coroutineScope.launch {
+                        snackbarHostState.showSnackbar(event.message)
+                    }
+                }
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -81,7 +115,8 @@ fun SettingsScreen(
                     }
                 }
             )
-        }
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
         SettingsContent(
             uiState = uiState,
@@ -93,6 +128,7 @@ fun SettingsScreen(
             onDynamicColorChange = viewModel::toggleDynamicColor,
             onLoadImagesChange = viewModel::toggleLoadImages,
             onDailyReminderChange = viewModel::toggleDailyReminder,
+            onDailyReminderHourChange = viewModel::setDailyReminderHour,
             onArticleOpenModeChange = viewModel::setArticleOpenMode,
             onAddTopic = viewModel::addTopic,
             onRemoveTopic = viewModel::removeTopic,
@@ -112,6 +148,7 @@ private fun SettingsContent(
     onDynamicColorChange: (Boolean) -> Unit = {},
     onLoadImagesChange: (Boolean) -> Unit = {},
     onDailyReminderChange: (Boolean) -> Unit = {},
+    onDailyReminderHourChange: (Int) -> Unit = {},
     onArticleOpenModeChange: (ArticleOpenMode) -> Unit = {},
     onAddTopic: (String) -> Unit = {},
     onRemoveTopic: (Topic) -> Unit = {},
@@ -140,9 +177,19 @@ private fun SettingsContent(
             onCheckedChange = onLoadImagesChange
         )
         PreferenceSwitch(
-            title = "Daily reminder",
+            title = stringResource(R.string.settings_daily_reminder),
             checked = uiState.dailyReminder,
             onCheckedChange = onDailyReminderChange
+        )
+        DailyReminderTimeRow(
+            hour = uiState.dailyReminderHour,
+            summary = stringResource(R.string.settings_next_reminder, uiState.nextReminderLabel),
+            onHourSelected = onDailyReminderHourChange
+        )
+        Text(
+            text = stringResource(R.string.settings_daily_reminder_disclosure),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         ArticleOpenModeRow(
             selectedMode = uiState.articleOpenMode,
@@ -293,6 +340,59 @@ private fun PreferenceSwitchWithSummary(
             )
         }
         Switch(checked = checked, onCheckedChange = onCheckedChange)
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun DailyReminderTimeRow(
+    hour: Int,
+    summary: String,
+    onHourSelected: (Int) -> Unit
+) {
+    var showDialog by remember { mutableStateOf(false) }
+    val timePickerState = rememberTimePickerState(initialHour = hour, initialMinute = 0)
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { showDialog = true }
+            .padding(vertical = 12.dp)
+    ) {
+        Text(
+            text = stringResource(R.string.settings_daily_reminder_time),
+            style = MaterialTheme.typography.bodyLarge
+        )
+        Text(
+            text = summary,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text(stringResource(R.string.settings_daily_reminder_time)) },
+            text = {
+                TimePicker(state = timePickerState)
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onHourSelected(timePickerState.hour)
+                        showDialog = false
+                    }
+                ) {
+                    Text(stringResource(R.string.confirm))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDialog = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
     }
 }
 

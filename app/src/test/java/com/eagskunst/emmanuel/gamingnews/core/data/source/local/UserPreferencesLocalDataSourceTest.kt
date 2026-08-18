@@ -25,6 +25,7 @@ class UserPreferencesLocalDataSourceTest {
         dataSource.updateDynamicColor(true)
         dataSource.updateLoadImages(true)
         dataSource.updateDailyReminder(false)
+        dataSource.updateDailyReminderHour(9)
         dataSource.updateArticleOpenMode(ArticleOpenMode.EXTERNAL_BROWSER)
     }
 
@@ -36,6 +37,7 @@ class UserPreferencesLocalDataSourceTest {
         assertEquals(true, preferences.dynamicColor)
         assertEquals(true, preferences.loadImages)
         assertEquals(false, preferences.dailyReminder)
+        assertEquals(9, preferences.dailyReminderHour)
         assertEquals(ArticleOpenMode.EXTERNAL_BROWSER, preferences.articleOpenMode)
     }
 
@@ -72,6 +74,13 @@ class UserPreferencesLocalDataSourceTest {
         dataSource.updateDailyReminder(true)
 
         assertEquals(true, dataSource.userPreferences.first().dailyReminder)
+    }
+
+    @Test
+    fun `given updateDailyReminderHour when userPreferences then reflects new value`() = runTest {
+        dataSource.updateDailyReminderHour(21)
+
+        assertEquals(21, dataSource.userPreferences.first().dailyReminderHour)
     }
 
     @Test

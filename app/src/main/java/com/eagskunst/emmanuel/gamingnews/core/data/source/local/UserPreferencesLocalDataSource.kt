@@ -5,9 +5,11 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.ArticleOpenMode
+import com.eagskunst.emmanuel.gamingnews.core.domain.model.DEFAULT_REMINDER_HOUR
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.ThemeMode
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.UserPreferences
 import kotlinx.coroutines.flow.Flow
@@ -25,6 +27,7 @@ class UserPreferencesLocalDataSource(context: Context) {
             dynamicColor = prefs[DYNAMIC_COLOR] ?: true,
             loadImages = prefs[LOAD_IMAGES] ?: true,
             dailyReminder = prefs[DAILY_REMINDER] ?: false,
+            dailyReminderHour = prefs[DAILY_REMINDER_HOUR] ?: DEFAULT_REMINDER_HOUR,
             articleOpenMode = parseArticleOpenMode(prefs[ARTICLE_OPEN_MODE])
         )
     }
@@ -49,6 +52,10 @@ class UserPreferencesLocalDataSource(context: Context) {
         dataStore.edit { prefs -> prefs[DAILY_REMINDER] = enabled }
     }
 
+    suspend fun updateDailyReminderHour(hour: Int) {
+        dataStore.edit { prefs -> prefs[DAILY_REMINDER_HOUR] = hour }
+    }
+
     suspend fun updateArticleOpenMode(mode: ArticleOpenMode) {
         dataStore.edit { prefs -> prefs[ARTICLE_OPEN_MODE] = mode.name }
     }
@@ -59,6 +66,7 @@ class UserPreferencesLocalDataSource(context: Context) {
         private val DARK_THEME = booleanPreferencesKey("dark_theme")
         private val LOAD_IMAGES = booleanPreferencesKey("load_images")
         private val DAILY_REMINDER = booleanPreferencesKey("daily_reminder")
+        private val DAILY_REMINDER_HOUR = intPreferencesKey("daily_reminder_hour")
         private val ARTICLE_OPEN_MODE = stringPreferencesKey("article_open_mode")
 
         private fun parseThemeMode(themeModeName: String?, legacyDarkTheme: Boolean?): ThemeMode {

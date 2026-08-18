@@ -41,6 +41,10 @@ class FakeUserPreferencesRepository(
         preferencesFlow.update { it.copy(dailyReminder = enabled) }
     }
 
+    override suspend fun updateDailyReminderHour(hour: Int) {
+        preferencesFlow.update { it.copy(dailyReminderHour = hour) }
+    }
+
     override suspend fun updateArticleOpenMode(mode: ArticleOpenMode) {
         preferencesFlow.update { it.copy(articleOpenMode = mode) }
     }

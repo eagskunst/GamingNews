@@ -15,6 +15,7 @@ import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.OpenArticleUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.RemoveTopicUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.ToggleSavedArticleUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateArticleOpenModeUseCase
+import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateDailyReminderHourUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateDailyReminderUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateDarkThemeUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateDynamicColorUseCase
@@ -89,5 +90,9 @@ object UseCaseModule {
     @Provides
     fun provideUpdateDailyReminderUseCase(repository: UserPreferencesRepository): UpdateDailyReminderUseCase =
         UpdateDailyReminderUseCase(repository)
+
+    @Provides
+    fun provideUpdateDailyReminderHourUseCase(repository: UserPreferencesRepository): UpdateDailyReminderHourUseCase =
+        UpdateDailyReminderHourUseCase(repository)
 }
 

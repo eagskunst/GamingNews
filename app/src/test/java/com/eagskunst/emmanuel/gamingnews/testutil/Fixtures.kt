@@ -52,12 +52,14 @@ object Fixtures {
         darkTheme: Boolean? = null,
         loadImages: Boolean = true,
         dailyReminder: Boolean = false,
+        dailyReminderHour: Int = 9,
         articleOpenMode: ArticleOpenMode = ArticleOpenMode.CUSTOM_TAB
     ) = UserPreferences(
         themeMode = darkTheme?.let { if (it) com.eagskunst.emmanuel.gamingnews.core.domain.model.ThemeMode.DARK else com.eagskunst.emmanuel.gamingnews.core.domain.model.ThemeMode.LIGHT } ?: themeMode,
         dynamicColor = dynamicColor,
         loadImages = loadImages,
         dailyReminder = dailyReminder,
+        dailyReminderHour = dailyReminderHour,
         articleOpenMode = articleOpenMode
     )
 

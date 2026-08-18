@@ -39,6 +39,14 @@
              a com.google.android.gms.ads.APPLICATION_ID meta-data entry here pointing at a real
              AdMob app ID string resource, and MobileAds.initialize(...) in MainActivity. -->
 
+        <receiver
+            android:name=".receiver.TimeZoneChangedReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+            </intent-filter>
+        </receiver>
+
         <activity
             android:name=".views.MainActivity"
             android:exported="true"

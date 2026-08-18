@@ -24,6 +24,7 @@ class UserPreferencesUseCasesTest {
         assertEquals(true, preferences.dynamicColor)
         assertEquals(true, preferences.loadImages)
         assertEquals(false, preferences.dailyReminder)
+        assertEquals(9, preferences.dailyReminderHour)
         assertEquals(ArticleOpenMode.CUSTOM_TAB, preferences.articleOpenMode)
     }
 
@@ -38,6 +39,7 @@ class UserPreferencesUseCasesTest {
         assertEquals(false, preferences.dynamicColor)
         assertEquals(true, preferences.loadImages)
         assertEquals(false, preferences.dailyReminder)
+        assertEquals(9, preferences.dailyReminderHour)
         assertEquals(ArticleOpenMode.CUSTOM_TAB, preferences.articleOpenMode)
     }
 
@@ -63,6 +65,7 @@ class UserPreferencesUseCasesTest {
         assertEquals(true, preferences.dynamicColor)
         assertEquals(false, preferences.loadImages)
         assertEquals(false, preferences.dailyReminder)
+        assertEquals(9, preferences.dailyReminderHour)
         assertEquals(ArticleOpenMode.CUSTOM_TAB, preferences.articleOpenMode)
     }
 
@@ -77,6 +80,22 @@ class UserPreferencesUseCasesTest {
         assertEquals(true, preferences.dynamicColor)
         assertEquals(true, preferences.loadImages)
         assertEquals(true, preferences.dailyReminder)
+        assertEquals(9, preferences.dailyReminderHour)
+        assertEquals(ArticleOpenMode.CUSTOM_TAB, preferences.articleOpenMode)
+    }
+
+    @Test
+    fun `when updateDailyReminderHourUseCase is invoked then daily reminder hour is updated and other preferences are untouched`() = runTest {
+        val useCase = UpdateDailyReminderHourUseCase(fakeRepository)
+
+        useCase(21)
+
+        val preferences = fakeRepository.userPreferences.first()
+        assertEquals(ThemeMode.SYSTEM, preferences.themeMode)
+        assertEquals(true, preferences.dynamicColor)
+        assertEquals(true, preferences.loadImages)
+        assertEquals(false, preferences.dailyReminder)
+        assertEquals(21, preferences.dailyReminderHour)
         assertEquals(ArticleOpenMode.CUSTOM_TAB, preferences.articleOpenMode)
     }
 

@@ -34,6 +34,10 @@ class DefaultUserPreferencesRepository @Inject constructor(
         localDataSource.updateDailyReminder(enabled)
     }
 
+    override suspend fun updateDailyReminderHour(hour: Int) {
+        localDataSource.updateDailyReminderHour(hour)
+    }
+
     override suspend fun updateArticleOpenMode(mode: ArticleOpenMode) {
         localDataSource.updateArticleOpenMode(mode)
     }

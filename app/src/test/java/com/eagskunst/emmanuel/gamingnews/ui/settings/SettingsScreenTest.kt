@@ -1,5 +1,6 @@
 package com.eagskunst.emmanuel.gamingnews.ui.settings
 
+import android.Manifest
 import android.app.Application
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsOff
@@ -10,12 +11,14 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ApplicationProvider
 import androidx.work.testing.WorkManagerTestInitHelper
+import org.robolectric.Shadows
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.ThemeMode
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.AddTopicUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetTopicsUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetUserPreferencesUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.RemoveTopicUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateArticleOpenModeUseCase
+import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateDailyReminderHourUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateDailyReminderUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateDarkThemeUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateDynamicColorUseCase
@@ -51,6 +54,7 @@ class SettingsScreenTest {
     @Before
     fun setUp() {
         val context = ApplicationProvider.getApplicationContext<Application>()
+        Shadows.shadowOf(context).grantPermissions(Manifest.permission.POST_NOTIFICATIONS)
         try {
             WorkManagerTestInitHelper.initializeTestWorkManager(context)
         } catch (_: IllegalStateException) {
@@ -69,6 +73,7 @@ class SettingsScreenTest {
             updateDarkThemeUseCase = UpdateDarkThemeUseCase(fakeUserPreferencesRepository),
             updateLoadImagesUseCase = UpdateLoadImagesUseCase(fakeUserPreferencesRepository),
             updateDailyReminderUseCase = UpdateDailyReminderUseCase(fakeUserPreferencesRepository),
+            updateDailyReminderHourUseCase = UpdateDailyReminderHourUseCase(fakeUserPreferencesRepository),
             updateArticleOpenModeUseCase = UpdateArticleOpenModeUseCase(fakeUserPreferencesRepository),
             addTopicUseCase = AddTopicUseCase(fakeTopicsRepository),
             removeTopicUseCase = RemoveTopicUseCase(fakeTopicsRepository)
@@ -141,5 +146,14 @@ class SettingsScreenTest {
 
         assertTrue(fakeUserPreferencesRepository.preferencesFlow.value.dailyReminder)
         composeTestRule.onAllNodes(isToggleable())[2].assertIsOn()
+    }
+
+    @Test
+    fun `given daily reminder hour is 21 when screen is shown then time row displays 21_00 and next reminder`() {
+        fakeUserPreferencesRepository.preferencesFlow.value = Fixtures.userPreferences(dailyReminderHour = 21)
+        setContent()
+
+        composeTestRule.onNodeWithText("Daily reminder time").assertExists()
+        composeTestRule.onNodeWithText("21:00", substring = true).assertExists()
     }
 }
