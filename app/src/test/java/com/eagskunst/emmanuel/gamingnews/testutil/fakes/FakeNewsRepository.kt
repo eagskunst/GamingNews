@@ -5,6 +5,7 @@ import com.eagskunst.emmanuel.gamingnews.core.domain.model.NewsArticle
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.NewsRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.update
 
 /**
@@ -27,7 +28,7 @@ class FakeNewsRepository(
     override fun newsStream(urls: List<String>, forceRefresh: Boolean): Flow<Result<List<NewsArticle>>> {
         lastRequestedUrls = urls
         lastForceRefresh = forceRefresh
-        return newsResultFlow
+        return flow { emit(newsResultFlow.value) }
     }
 
 

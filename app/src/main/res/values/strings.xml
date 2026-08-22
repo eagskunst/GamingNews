@@ -50,5 +50,10 @@
     <string name="settings_daily_reminder_disclosure">Reminders are scheduled for the start of the selected hour. Android may delay delivery slightly to save battery.</string>
     <string name="notification_permission_rationale">Notifications permission is required to receive reminders.</string>
     <string name="confirm">OK</string>
+
+    <plurals name="new_articles_available">
+        <item quantity="one">%1$d new article</item>
+        <item quantity="other">%1$d new articles</item>
+    </plurals>
 </resources>
 

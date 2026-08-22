@@ -144,4 +144,68 @@ class NewsViewModelTest {
             assertEquals("zelda", state.searchQuery)
         }
     }
+
+    @Test
+    fun `given new articles when refresh is called with notifyNewArticles then newArticlesCount reflects added articles`() = runTest {
+        val existingArticle = Fixtures.newsArticle(link = "https://example.com/existing")
+        fakeNewsRepository.newsResultFlow.value = Result.Success(listOf(existingArticle))
+        val viewModel = createViewModel()
+
+        val newArticle = Fixtures.newsArticle(link = "https://example.com/new")
+        fakeNewsRepository.newsResultFlow.value = Result.Success(listOf(newArticle, existingArticle))
+        viewModel.refresh(forceRefresh = true, notifyNewArticles = true)
+
+        viewModel.uiState.test {
+            val state = expectMostRecentItem()
+            assertEquals(1, state.newArticlesCount)
+        }
+    }
+
+    @Test
+    fun `given no new articles when refresh is called with notifyNewArticles then newArticlesCount is null`() = runTest {
+        val existingArticle = Fixtures.newsArticle(link = "https://example.com/existing")
+        fakeNewsRepository.newsResultFlow.value = Result.Success(listOf(existingArticle))
+        val viewModel = createViewModel()
+
+        viewModel.refresh(forceRefresh = true, notifyNewArticles = true)
+
+        viewModel.uiState.test {
+            val state = expectMostRecentItem()
+            assertEquals(null, state.newArticlesCount)
+        }
+    }
+
+    @Test
+    fun `given new articles when refresh is called without notifyNewArticles then newArticlesCount stays null`() = runTest {
+        val existingArticle = Fixtures.newsArticle(link = "https://example.com/existing")
+        fakeNewsRepository.newsResultFlow.value = Result.Success(listOf(existingArticle))
+        val viewModel = createViewModel()
+
+        val newArticle = Fixtures.newsArticle(link = "https://example.com/new")
+        fakeNewsRepository.newsResultFlow.value = Result.Success(listOf(newArticle, existingArticle))
+        viewModel.selectCategory(NewsCategory.SONY)
+
+        viewModel.uiState.test {
+            val state = expectMostRecentItem()
+            assertEquals(null, state.newArticlesCount)
+        }
+    }
+
+    @Test
+    fun `given a shown banner when dismissNewArticlesBanner is called then newArticlesCount is cleared`() = runTest {
+        val existingArticle = Fixtures.newsArticle(link = "https://example.com/existing")
+        fakeNewsRepository.newsResultFlow.value = Result.Success(listOf(existingArticle))
+        val viewModel = createViewModel()
+
+        val newArticle = Fixtures.newsArticle(link = "https://example.com/new")
+        fakeNewsRepository.newsResultFlow.value = Result.Success(listOf(newArticle, existingArticle))
+        viewModel.refresh(forceRefresh = true, notifyNewArticles = true)
+
+        viewModel.dismissNewArticlesBanner()
+
+        viewModel.uiState.test {
+            val state = expectMostRecentItem()
+            assertEquals(null, state.newArticlesCount)
+        }
+    }
 }

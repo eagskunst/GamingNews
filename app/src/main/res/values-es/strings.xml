@@ -50,5 +50,10 @@
     <string name="settings_daily_reminder_disclosure">Los recordatorios se programan al inicio de la hora seleccionada. Android puede retrasar la entrega ligeramente para ahorrar batería.</string>
     <string name="notification_permission_rationale">Se necesita permiso de notificaciones para recibir recordatorios.</string>
     <string name="confirm">Aceptar</string>
+
+    <plurals name="new_articles_available">
+        <item quantity="one">%1$d noticia nueva</item>
+        <item quantity="other">%1$d noticias nuevas</item>
+    </plurals>
 </resources>
 

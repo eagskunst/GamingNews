@@ -59,7 +59,8 @@ import java.util.Locale
 fun ReleasesScreen(
     viewModel: ReleasesViewModel,
     onSettingsClick: () -> Unit,
-    onOpenGameUrl: (String) -> Unit
+    onOpenGameUrl: (String) -> Unit,
+    scrollToTopSignal: Int = 0
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val filteredReleases = remember(uiState.releases, uiState.searchQuery) {
@@ -86,6 +87,9 @@ fun ReleasesScreen(
         snapshotFlow { shouldLoadMore.value }
             .distinctUntilChanged()
             .collect { if (it) viewModel.loadMore() }
+    }
+    LaunchedEffect(scrollToTopSignal) {
+        if (scrollToTopSignal > 0) listState.animateScrollToItem(0)
     }
 
     Scaffold(

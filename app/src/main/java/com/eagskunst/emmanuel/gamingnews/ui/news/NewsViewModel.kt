@@ -25,7 +25,8 @@ data class NewsUiState(
     val searchQuery: String = "",
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
-    val loadImages: Boolean = true
+    val loadImages: Boolean = true,
+    val newArticlesCount: Int? = null
 )
 
 @HiltViewModel
@@ -61,16 +62,29 @@ class NewsViewModel @Inject constructor(
         refresh(forceRefresh = true)
     }
 
-    fun refresh(forceRefresh: Boolean = true) {
+    fun refresh(forceRefresh: Boolean = true, notifyNewArticles: Boolean = false) {
         refreshJob?.cancel()
+        val previousLinks = _uiState.value.articles.map { it.link }.toSet()
         refreshJob = viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
             val urls = getFeedUrlsUseCase(_uiState.value.selectedCategory)
             getNewsUseCase(urls, forceRefresh).collect { result ->
                 when (result) {
                     is Result.Loading -> _uiState.update { it.copy(isLoading = true) }
-                    is Result.Success -> _uiState.update {
-                        it.copy(articles = result.data, isLoading = false, errorMessage = null)
+                    is Result.Success -> {
+                        val newArticlesCount = if (notifyNewArticles) {
+                            result.data.count { it.link !in previousLinks }
+                        } else {
+                            0
+                        }
+                        _uiState.update {
+                            it.copy(
+                                articles = result.data,
+                                isLoading = false,
+                                errorMessage = null,
+                                newArticlesCount = newArticlesCount.takeIf { count -> count > 0 }
+                            )
+                        }
                     }
                     is Result.Error -> _uiState.update {
                         it.copy(isLoading = false, errorMessage = result.exception.localizedMessage)
@@ -80,6 +94,9 @@ class NewsViewModel @Inject constructor(
         }
     }
 
+    fun dismissNewArticlesBanner() {
+        _uiState.update { it.copy(newArticlesCount = null) }
+    }
 
     fun toggleSavedArticle(article: NewsArticle) {
         viewModelScope.launch { toggleSavedArticleUseCase(article) }

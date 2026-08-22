@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [2.4.0] - 2026-08-22
+
+### Added
+- Reselecting an already-active bottom navigation / rail tab now scrolls that tab's list back to the top.
+- A short-lived bubble appears at the top of the news feed after a pull-to-refresh when new articles are available, themed with the current Material color scheme and auto-dismissing after 3 seconds.
+
+### Fixed
+- Overextended article titles in `ArticleCard` now use `TextOverflow.Ellipsis` on the second line instead of being clipped.
+
 ## 2.2.0
 
 ### Added

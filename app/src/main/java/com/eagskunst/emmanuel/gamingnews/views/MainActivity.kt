@@ -31,6 +31,9 @@ import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
@@ -106,6 +109,18 @@ private fun MainScreen(
     val navController = rememberNavController()
     val useNavigationRail = windowSizeClass.widthSizeClass != WindowWidthSizeClass.Compact
 
+    var newsScrollToTopEvent by remember { mutableIntStateOf(0) }
+    var savedScrollToTopEvent by remember { mutableIntStateOf(0) }
+    var releasesScrollToTopEvent by remember { mutableIntStateOf(0) }
+
+    fun onTabReselected(route: String) {
+        when (route) {
+            BottomNavRoute.News.route -> newsScrollToTopEvent++
+            BottomNavRoute.Saved.route -> savedScrollToTopEvent++
+            BottomNavRoute.Releases.route -> releasesScrollToTopEvent++
+        }
+    }
+
     Scaffold(
         // No topBar here: each screen renders its own TopAppBar which already
         // consumes the status bar inset. Reserving it again here would push
@@ -113,7 +128,7 @@ private fun MainScreen(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         bottomBar = {
             if (!useNavigationRail) {
-                BottomNavigationBar(navController)
+                BottomNavigationBar(navController, onTabReselected = ::onTabReselected)
             }
         }
     ) { padding ->
@@ -121,6 +136,7 @@ private fun MainScreen(
             if (useNavigationRail) {
                 NavigationSideBar(
                     navController = navController,
+                    onTabReselected = ::onTabReselected,
                     modifier = Modifier.fillMaxHeight()
                 )
             }
@@ -136,7 +152,8 @@ private fun MainScreen(
                         onSettingsClick = onSettingsClick,
                         onOpenArticle = onOpenArticle,
                         onOpenArticleWithMode = onOpenArticleWithMode,
-                        onShareArticle = onShareArticle
+                        onShareArticle = onShareArticle,
+                        scrollToTopSignal = newsScrollToTopEvent
                     )
                 }
                 composable(BottomNavRoute.Saved.route) {
@@ -146,7 +163,8 @@ private fun MainScreen(
                         onSettingsClick = onSettingsClick,
                         onOpenArticle = onOpenArticle,
                         onOpenArticleWithMode = onOpenArticleWithMode,
-                        onShareArticle = onShareArticle
+                        onShareArticle = onShareArticle,
+                        scrollToTopSignal = savedScrollToTopEvent
                     )
                 }
                 composable(BottomNavRoute.Releases.route) {
@@ -154,7 +172,8 @@ private fun MainScreen(
                     ReleasesScreen(
                         viewModel = viewModel,
                         onSettingsClick = onSettingsClick,
-                        onOpenGameUrl = onOpenGameUrl
+                        onOpenGameUrl = onOpenGameUrl,
+                        scrollToTopSignal = releasesScrollToTopEvent
                     )
                 }
             }
@@ -163,7 +182,10 @@ private fun MainScreen(
 }
 
 @Composable
-private fun BottomNavigationBar(navController: NavHostController) {
+private fun BottomNavigationBar(
+    navController: NavHostController,
+    onTabReselected: (String) -> Unit
+) {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
 
@@ -179,7 +201,13 @@ private fun BottomNavigationBar(navController: NavHostController) {
                 },
                 label = { Text(stringResource(item.labelRes)) },
                 selected = selected,
-                onClick = { navController.navigateToTopLevel(item.route) }
+                onClick = {
+                    if (selected) {
+                        onTabReselected(item.route)
+                    } else {
+                        navController.navigateToTopLevel(item.route)
+                    }
+                }
             )
         }
     }
@@ -188,6 +216,7 @@ private fun BottomNavigationBar(navController: NavHostController) {
 @Composable
 private fun NavigationSideBar(
     navController: NavHostController,
+    onTabReselected: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val backStackEntry by navController.currentBackStackEntryAsState()
@@ -195,16 +224,23 @@ private fun NavigationSideBar(
 
     NavigationRail(modifier = modifier) {
         BottomNavRoute.entries.forEach { item ->
+            val selected = currentRoute == item.route
             NavigationRailItem(
                 icon = {
                     Icon(
-                        imageVector = if (currentRoute == item.route) item.selectedIcon else item.unselectedIcon,
+                        imageVector = if (selected) item.selectedIcon else item.unselectedIcon,
                         contentDescription = stringResource(item.labelRes)
                     )
                 },
                 label = { Text(stringResource(item.labelRes)) },
-                selected = currentRoute == item.route,
-                onClick = { navController.navigateToTopLevel(item.route) }
+                selected = selected,
+                onClick = {
+                    if (selected) {
+                        onTabReselected(item.route)
+                    } else {
+                        navController.navigateToTopLevel(item.route)
+                    }
+                }
             )
         }
     }
