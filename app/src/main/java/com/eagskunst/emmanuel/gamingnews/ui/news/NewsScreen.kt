@@ -33,6 +33,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
@@ -47,6 +48,7 @@ import com.eagskunst.emmanuel.gamingnews.ui.components.ArticleMenuAction
 import com.eagskunst.emmanuel.gamingnews.ui.components.MainTopAppBar
 import com.eagskunst.emmanuel.gamingnews.ui.components.handleArticleMenuAction
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 private val categories = NewsCategory.entries.toTypedArray()
 
@@ -69,8 +71,13 @@ fun NewsScreen(
         }
     }
     val listState = rememberLazyListState()
+    val coroutineScope = rememberCoroutineScope()
     LaunchedEffect(scrollToTopSignal) {
         if (scrollToTopSignal > 0) listState.animateScrollToItem(0)
+    }
+    val onNewArticlesBannerClick = {
+        coroutineScope.launch { listState.animateScrollToItem(0) }
+        viewModel.dismissNewArticlesBanner()
     }
 
     Scaffold(
@@ -141,6 +148,7 @@ fun NewsScreen(
 
                 NewArticlesBanner(
                     newArticlesCount = uiState.newArticlesCount,
+                    onClick = onNewArticlesBannerClick,
                     onDismiss = viewModel::dismissNewArticlesBanner,
                     modifier = Modifier
                         .align(Alignment.TopCenter)
@@ -154,6 +162,7 @@ fun NewsScreen(
 @Composable
 private fun NewArticlesBanner(
     newArticlesCount: Int?,
+    onClick: () -> Unit,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -173,7 +182,11 @@ private fun NewArticlesBanner(
                 shape = MaterialTheme.shapes.extraLarge,
                 color = MaterialTheme.colorScheme.primaryContainer,
                 contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                shadowElevation = 4.dp
+                shadowElevation = 4.dp,
+                onClick = {
+                    onClick()
+                    onDismiss()
+                }
             ) {
                 Row(
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),

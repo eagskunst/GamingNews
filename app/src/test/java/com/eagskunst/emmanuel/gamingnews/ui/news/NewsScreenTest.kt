@@ -114,4 +114,30 @@ class NewsScreenTest {
         assertFalse(fakeNewsRepository.savedArticlesFlow.value.contains(article))
         composeTestRule.onNodeWithContentDescription("Save article").assertIsDisplayed()
     }
+
+    @Test
+    fun `given a new articles banner when it is tapped then it is dismissed`() {
+        val existingArticle = Fixtures.newsArticle(
+            title = "Existing Article",
+            link = "https://example.com/existing"
+        )
+        fakeNewsRepository.newsResultFlow.value = Result.Success(listOf(existingArticle))
+        val viewModel = createViewModel()
+        setContent(viewModel)
+        composeTestRule.waitForIdle()
+
+        val newArticle = Fixtures.newsArticle(
+            title = "New Article",
+            link = "https://example.com/new"
+        )
+        fakeNewsRepository.newsResultFlow.value = Result.Success(listOf(existingArticle, newArticle))
+        viewModel.refresh(forceRefresh = true, notifyNewArticles = true)
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onNodeWithText("1 new article").assertIsDisplayed()
+        composeTestRule.onNodeWithText("1 new article").performClick()
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onNodeWithText("1 new article").assertDoesNotExist()
+    }
 }

@@ -110,4 +110,33 @@ class IgdbMapperTest {
 
         assertNull(dto.toGameRelease()?.coverUrl)
     }
+
+    @Test
+    fun `when the platform id is 167 then it maps to PS5`() {
+        val dto = releaseDateDtoWithPlatform(167)
+
+        assertEquals(listOf("PS5"), dto.toGameRelease()?.platforms)
+    }
+
+    @Test
+    fun `when the platform id is 169 then it maps to Xbox Series`() {
+        val dto = releaseDateDtoWithPlatform(169)
+
+        assertEquals(listOf("Xbox Series"), dto.toGameRelease()?.platforms)
+    }
+
+    @Test
+    fun `when the platform id is 508 then it maps to Switch 2`() {
+        val dto = releaseDateDtoWithPlatform(508)
+
+        assertEquals(listOf("Switch 2"), dto.toGameRelease()?.platforms)
+    }
+
+    private fun releaseDateDtoWithPlatform(platform: Int) = IgdbReleaseDateDto(
+        id = 123,
+        date = 1_700_000_000,
+        human = "Nov 2023",
+        platform = platform,
+        game = IgdbGameDto(id = 456, name = "Test Game", url = null, cover = null)
+    )
 }

@@ -34,5 +34,8 @@ private fun Int.toPlatformName(): String? = when (this) {
     48 -> "PS4"
     49 -> "Xbox One"
     130 -> "Nintendo Switch"
+    167 -> "PS5"
+    169 -> "Xbox Series"
+    508 -> "Switch 2"
     else -> null
 }

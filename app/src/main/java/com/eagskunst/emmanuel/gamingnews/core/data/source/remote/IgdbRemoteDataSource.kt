@@ -18,7 +18,7 @@ class IgdbRemoteDataSource @Inject constructor(
     private val dispatchers: DispatcherProvider
 ) {
 
-    private val platforms = listOf(6, 49, 48, 130)
+    private val platforms = listOf(6, 49, 48, 130, 167, 169, 508)
 
     suspend fun fetchUpcomingReleases(offset: Int = 0): List<IgdbReleaseDateDto> = withContext(dispatchers.io) {
         val token = getValidAccessToken()

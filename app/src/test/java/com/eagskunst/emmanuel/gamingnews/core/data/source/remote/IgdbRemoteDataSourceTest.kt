@@ -115,6 +115,7 @@ class IgdbRemoteDataSourceTest {
         assertTrue(text.contains("fields id,date,human,platform,game.name,game.url,game.cover.url"))
         assertTrue(text.contains("limit ${IgdbRemoteDataSource.PAGE_LIMIT}"))
         assertTrue(text.contains("offset $offset"))
+        assertTrue(text.contains("platform = (6,49,48,130,167,169,508)"))
     }
 
     private fun RequestBody.bodyString(): String {
