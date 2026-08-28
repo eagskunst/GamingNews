@@ -43,8 +43,8 @@ android {
         applicationId = "com.eagskunst.emmanuel.gamingnews"
         minSdk = 24
         targetSdk = 37
-        versionCode = 30
-        versionName = "2.4.1"
+        versionCode = 31
+        versionName = "2.5.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
         buildConfigField("String", "TWITCH_CLIENT_ID", "\"${localProperty("twitch.client.id")}\"")
@@ -73,6 +73,7 @@ android {
     }
 
     compileOptions {
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
@@ -162,6 +163,13 @@ dependencies {
 
     // RSS
     implementation(libs.rssparser)
+
+    // Reader / HTML parsing
+    coreLibraryDesugaring(libs.desugar.jdk.libs.nio)
+    implementation(libs.readability4j) {
+        exclude(group = "org.jsoup", module = "jsoup")
+    }
+    implementation(libs.jsoup)
 
     // Firebase
     implementation(platform(libs.firebase.bom))

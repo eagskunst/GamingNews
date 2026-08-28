@@ -1,11 +1,13 @@
 package com.eagskunst.emmanuel.gamingnews.di.module
 
+import com.eagskunst.emmanuel.gamingnews.core.domain.repository.ArticleReaderRepository
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.NewsRepository
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.ReleasesRepository
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.TopicsRepository
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.UserPreferencesRepository
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.AddTopicUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetNewsUseCase
+import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetReaderArticleUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetReleasesUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetSavedArticlesUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetTopicsUseCase
@@ -94,5 +96,9 @@ object UseCaseModule {
     @Provides
     fun provideUpdateDailyReminderHourUseCase(repository: UserPreferencesRepository): UpdateDailyReminderHourUseCase =
         UpdateDailyReminderHourUseCase(repository)
+
+    @Provides
+    fun provideGetReaderArticleUseCase(repository: ArticleReaderRepository): GetReaderArticleUseCase =
+        GetReaderArticleUseCase(repository)
 }
 

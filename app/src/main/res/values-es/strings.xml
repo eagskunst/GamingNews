@@ -25,6 +25,8 @@
     <string name="reader_error_message">No se pudo cargar el artículo en modo lectura.</string>
     <string name="reader_retry_button">Reintentar</string>
     <string name="reader_open_browser_button">Abrir en navegador</string>
+    <string name="reader_image_content_description">Imagen del artículo</string>
+    <string name="reader_image_hidden">Imagen oculta mientras el ahorro de datos está activado</string>
 
     <string name="article_menu_title">Abrir artículo</string>
     <string name="article_open_custom_tab">Abrir en pestaña personalizada</string>

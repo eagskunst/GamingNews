@@ -25,6 +25,8 @@
     <string name="reader_error_message">Couldn\'t load the article in reader mode.</string>
     <string name="reader_retry_button">Retry</string>
     <string name="reader_open_browser_button">Open in browser</string>
+    <string name="reader_image_content_description">Article image</string>
+    <string name="reader_image_hidden">Image hidden while data saver is on</string>
 
     <string name="article_menu_title">Open article</string>
     <string name="article_open_custom_tab">Open in custom tab</string>

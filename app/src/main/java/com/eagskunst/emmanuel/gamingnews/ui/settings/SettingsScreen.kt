@@ -483,7 +483,7 @@ private fun ArticleOpenModeRow(
         when (selectedMode) {
             ArticleOpenMode.CUSTOM_TAB -> R.string.article_open_custom_tab
             ArticleOpenMode.EXTERNAL_BROWSER -> R.string.article_open_external_browser
-            ArticleOpenMode.READER_MODE -> R.string.article_open_custom_tab
+            ArticleOpenMode.READER_MODE -> R.string.article_open_reader_mode
         }
     )
 
@@ -507,12 +507,12 @@ private fun ArticleOpenModeRow(
             title = { Text(stringResource(R.string.settings_article_open_mode)) },
             text = {
                 Column {
-                    ArticleOpenMode.entries.filter { it != ArticleOpenMode.READER_MODE }.forEach { mode ->
+                    ArticleOpenMode.entries.forEach { mode ->
                         val label = stringResource(
                             when (mode) {
                                 ArticleOpenMode.CUSTOM_TAB -> R.string.article_open_custom_tab
                                 ArticleOpenMode.EXTERNAL_BROWSER -> R.string.article_open_external_browser
-                                ArticleOpenMode.READER_MODE -> R.string.article_open_custom_tab
+                                ArticleOpenMode.READER_MODE -> R.string.article_open_reader_mode
                             }
                         )
                         Row(

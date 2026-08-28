@@ -1,97 +1,50 @@
 package com.eagskunst.emmanuel.gamingnews.ui.reader
 
-import android.annotation.SuppressLint
-import android.os.Looper
-import android.util.Log
-import android.webkit.JavascriptInterface
-import android.webkit.WebChromeClient
-import android.webkit.WebResourceRequest
-import android.webkit.WebView
-import android.webkit.WebViewClient
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.fromHtml
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil3.compose.AsyncImage
 import com.eagskunst.emmanuel.gamingnews.R
+import com.eagskunst.emmanuel.gamingnews.core.domain.model.reader.ReaderElement
 import com.eagskunst.emmanuel.gamingnews.utility.openCustomTab
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
-
-private const val READER_SCRIPT_NAME = "ReaderBridge"
-private const val READER_CSS_LIGHT = """
-    <style>
-        :root { color-scheme: light; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            line-height: 1.6;
-            color: #1f1f1f;
-            background: #ffffff;
-            max-width: 720px;
-            margin: 0 auto;
-            padding: 16px;
-        }
-        h1 { font-size: 1.6em; margin-bottom: 0.3em; }
-        .byline { color: #666; font-size: 0.9em; margin-bottom: 1.5em; }
-        img { max-width: 100%; height: auto; border-radius: 8px; }
-        a { color: #0066cc; }
-        figure { margin: 1em 0; }
-    </style>
-"""
-private const val READER_CSS_DARK = """
-    <style>
-        :root { color-scheme: dark; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            line-height: 1.6;
-            color: #e3e3e3;
-            background: #121212;
-            max-width: 720px;
-            margin: 0 auto;
-            padding: 16px;
-        }
-        h1 { font-size: 1.6em; margin-bottom: 0.3em; }
-        .byline { color: #9aa0a6; font-size: 0.9em; margin-bottom: 1.5em; }
-        img { max-width: 100%; height: auto; border-radius: 8px; }
-        a { color: #8ab4f8; }
-        figure { margin: 1em 0; }
-    </style>
-"""
-
-@Serializable
-private data class ReaderArticle(
-    val title: String = "",
-    val byline: String? = null,
-    @SerialName("siteName") val siteName: String? = null,
-    val content: String = ""
-)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -103,6 +56,8 @@ fun ReaderScreen(
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val loadImages by viewModel.loadImages.collectAsStateWithLifecycle()
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
 
     BackHandler(enabled = true, onBack = onBackClick)
 
@@ -118,7 +73,8 @@ fun ReaderScreen(
                             contentDescription = stringResource(R.string.cd_back)
                         )
                     }
-                }
+                },
+                scrollBehavior = scrollBehavior
             )
         }
     ) { padding ->
@@ -126,6 +82,7 @@ fun ReaderScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
+                .nestedScroll(scrollBehavior.nestedScrollConnection)
         ) {
             when (val state = uiState) {
                 is ReaderUiState.Loading -> {
@@ -139,175 +96,180 @@ fun ReaderScreen(
                     )
                 }
                 is ReaderUiState.Content -> {
-                    var isParsed by remember { mutableStateOf(false) }
-                    Box(modifier = Modifier.fillMaxSize()) {
-                        ReaderWebView(
-                            articleUrl = state.url,
-                            html = state.html,
-                            isDarkTheme = isDarkTheme,
-                            onParsed = { isParsed = true },
-                            onParseFailed = {
-                                context.openCustomTab(state.url.toUri())
-                            }
-                        )
-                        if (!isParsed) {
-                            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                        }
-                    }
+                    ReaderContent(
+                        article = state.article,
+                        loadImages = loadImages,
+                        modifier = Modifier.fillMaxSize()
+                    )
                 }
             }
         }
     }
 }
 
-@SuppressLint("SetJavaScriptEnabled", "JavascriptInterface")
 @Composable
-private fun ReaderWebView(
-    articleUrl: String,
-    html: String,
-    isDarkTheme: Boolean,
-    onParsed: () -> Unit,
-    onParseFailed: () -> Unit
+private fun ReaderContent(
+    article: com.eagskunst.emmanuel.gamingnews.core.domain.model.reader.ReaderArticle,
+    loadImages: Boolean,
+    modifier: Modifier = Modifier
 ) {
-    val context = LocalContext.current
-    var webView by remember { mutableStateOf<WebView?>(null) }
-    var hasParsed by remember { mutableStateOf(false) }
-
-    DisposableEffect(Unit) {
-        onDispose {
-            webView?.destroy()
-            webView = null
-        }
-    }
-
-    AndroidView(
-        factory = {
-            WebView(context).apply {
-                settings.javaScriptEnabled = true
-                settings.domStorageEnabled = true
-                webChromeClient = WebChromeClient()
-                webViewClient = object : WebViewClient() {
-                    override fun shouldOverrideUrlLoading(
-                        view: WebView,
-                        request: WebResourceRequest
-                    ): Boolean = false
-
-                    override fun onPageFinished(view: WebView, url: String?) {
-                        super.onPageFinished(view, url)
-                        if (hasParsed) return
-                        injectReaderScripts(view, articleUrl, isDarkTheme)
-                    }
-                }
-                addJavascriptInterface(
-                    ReaderBridge(
-                        view = this,
-                        onParsed = {
-                            hasParsed = true
-                            onParsed()
-                        },
-                        onParseFailed = onParseFailed
-                    ),
-                    READER_SCRIPT_NAME
+    LazyColumn(
+        modifier = modifier,
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        item(key = "title") {
+            if (article.title.isNotBlank()) {
+                Text(
+                    text = article.title,
+                    style = MaterialTheme.typography.headlineMedium,
+                    modifier = Modifier.fillMaxWidth()
                 )
-                loadDataWithBaseURL(articleUrl, html, "text/html", "UTF-8", null)
-            }.also { webView = it }
-        },
-        update = { /* no-op; the same WebView is reused */ },
-        modifier = Modifier.fillMaxSize()
-    )
-}
-
-private fun injectReaderScripts(
-    view: WebView,
-    articleUrl: String,
-    isDarkTheme: Boolean
-) {
-    try {
-        val readabilityJs = view.context.assets.open("readability.js").bufferedReader().use { it.readText() }
-        view.evaluateJavascript(readabilityJs, null)
-
-        val parseScript = """
-            (function() {
-                try {
-                    var article = new Readability(document, { uri: '${articleUrl.escapeJsString()}' }).parse();
-                    if (article && article.content && article.content.length > 100) {
-                        window.$READER_SCRIPT_NAME.onReaderContent(
-                            JSON.stringify(article),
-                            $isDarkTheme
-                        );
-                    } else {
-                        window.$READER_SCRIPT_NAME.onReaderError('parse_failed');
-                    }
-                } catch (e) {
-                    window.$READER_SCRIPT_NAME.onReaderError(e.message || 'unknown');
-                }
-            })();
-        """.trimIndent()
-        view.evaluateJavascript(parseScript, null)
-    } catch (e: Exception) {
-        Log.e("ReaderScreen", "Failed to inject reader scripts", e)
-        view.context.openCustomTab(articleUrl.toUri())
-    }
-}
-
-private fun buildReaderHtml(article: ReaderArticle, isDarkTheme: Boolean): String {
-    val css = if (isDarkTheme) READER_CSS_DARK else READER_CSS_LIGHT
-    val byline = article.byline?.takeIf { it.isNotBlank() }
-        ?: article.siteName?.takeIf { it.isNotBlank() } ?: ""
-    val bylineHtml = if (byline.isNotBlank()) "<div class='byline'>${byline.htmlEscape()}</div>" else ""
-
-    return """
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            $css
-        </head>
-        <body>
-            <h1>${article.title.htmlEscape()}</h1>
-            $bylineHtml
-            ${article.content}
-        </body>
-        </html>
-    """.trimIndent()
-}
-
-private fun loadCleanHtml(view: WebView, html: String, isDarkTheme: Boolean) {
-    view.loadDataWithBaseURL(view.url, html, "text/html", "UTF-8", null)
-    view.setBackgroundColor(if (isDarkTheme) 0xff121212.toInt() else 0xffffffff.toInt())
-}
-
-private class ReaderBridge(
-    private val view: WebView,
-    private val onParsed: () -> Unit,
-    private val onParseFailed: () -> Unit
-) {
-    @JavascriptInterface
-    fun onReaderContent(json: String, isDarkTheme: Boolean) {
-        ensureMainThread {
-            try {
-                val article = Json.decodeFromString(ReaderArticle.serializer(), json)
-                val html = buildReaderHtml(article, isDarkTheme)
-                loadCleanHtml(view, html, isDarkTheme)
-                onParsed()
-            } catch (e: Exception) {
-                Log.e("ReaderBridge", "Failed to parse reader content", e)
-                onParseFailed()
             }
         }
-    }
 
-    @JavascriptInterface
-    fun onReaderError(error: String) {
-        Log.e("ReaderBridge", "Readability error: $error")
-        ensureMainThread { onParseFailed() }
-    }
+        item(key = "byline") {
+            val byline = article.byline?.takeIf { it.isNotBlank() }
+                ?: article.siteName?.takeIf { it.isNotBlank() }
+            if (byline != null) {
+                Text(
+                    text = byline,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+            }
+        }
 
-    private fun ensureMainThread(action: () -> Unit) {
-        if (Looper.myLooper() == Looper.getMainLooper()) {
-            action()
-        } else {
-            view.post { action() }
+        items(
+            items = article.elements,
+            key = { element -> element.hashCode() }
+        ) { element ->
+            ReaderElementItem(element = element, loadImages = loadImages)
+        }
+    }
+}
+
+@Composable
+private fun ReaderElementItem(
+    element: ReaderElement,
+    loadImages: Boolean,
+    modifier: Modifier = Modifier
+) {
+    when (element) {
+        is ReaderElement.Heading -> {
+            val style = when (element.level) {
+                1 -> MaterialTheme.typography.headlineLarge
+                2 -> MaterialTheme.typography.headlineMedium
+                3 -> MaterialTheme.typography.headlineSmall
+                4 -> MaterialTheme.typography.titleLarge
+                5 -> MaterialTheme.typography.titleMedium
+                else -> MaterialTheme.typography.titleSmall
+            }
+            Text(
+                text = element.text,
+                style = style,
+                modifier = modifier.fillMaxWidth()
+            )
+        }
+        is ReaderElement.Paragraph -> {
+            val styledText = rememberStyledParagraph(element.html)
+            Text(
+                text = styledText,
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = modifier.fillMaxWidth()
+            )
+        }
+        is ReaderElement.Image -> {
+            if (loadImages) {
+                AsyncImage(
+                    model = element.url,
+                    contentDescription = element.caption
+                        ?: stringResource(R.string.reader_image_content_description),
+                    modifier = modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 120.dp),
+                    contentScale = ContentScale.FillWidth
+                )
+                element.caption?.let { caption ->
+                    Text(
+                        text = caption,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 4.dp)
+                    )
+                }
+            } else {
+                Surface(
+                    modifier = modifier.fillMaxWidth(),
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    shape = MaterialTheme.shapes.small
+                ) {
+                    Text(
+                        text = stringResource(R.string.reader_image_hidden),
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
+            }
+        }
+        is ReaderElement.BulletList -> {
+            Column(
+                modifier = modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                element.items.forEach { item ->
+                    Text(
+                        text = "\u2022\u00A0$item",
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            }
+        }
+        is ReaderElement.OrderedList -> {
+            Column(
+                modifier = modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                element.items.forEachIndexed { index, item ->
+                    Text(
+                        text = "${index + 1}.\u00A0$item",
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            }
+        }
+        is ReaderElement.Quote -> {
+            Surface(
+                modifier = modifier.fillMaxWidth(),
+                color = MaterialTheme.colorScheme.tertiaryContainer,
+                shape = MaterialTheme.shapes.small
+            ) {
+                Text(
+                    text = element.text,
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
+        }
+        is ReaderElement.Divider -> {
+            HorizontalDivider(modifier = Modifier.fillMaxWidth())
+        }
+    }
+}
+
+@Composable
+private fun rememberStyledParagraph(html: String): AnnotatedString {
+    return androidx.compose.runtime.remember(html) {
+        try {
+            AnnotatedString.fromHtml(html)
+        } catch (_: Exception) {
+            AnnotatedString(html)
         }
     }
 }
@@ -335,21 +297,4 @@ private fun ReaderError(
             Text(stringResource(R.string.reader_open_browser_button))
         }
     }
-}
-
-private fun String.htmlEscape(): String {
-    return this
-        .replace("&", "&amp;")
-        .replace("<", "&lt;")
-        .replace(">", "&gt;")
-        .replace("\"", "&quot;")
-        .replace("'", "&#39;")
-}
-
-private fun String.escapeJsString(): String {
-    return this
-        .replace("\\", "\\\\")
-        .replace("'", "\\'")
-        .replace("\n", "\\n")
-        .replace("\r", "\\r")
 }

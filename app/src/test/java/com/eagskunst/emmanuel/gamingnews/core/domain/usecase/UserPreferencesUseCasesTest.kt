@@ -25,7 +25,7 @@ class UserPreferencesUseCasesTest {
         assertEquals(true, preferences.loadImages)
         assertEquals(false, preferences.dailyReminder)
         assertEquals(9, preferences.dailyReminderHour)
-        assertEquals(ArticleOpenMode.CUSTOM_TAB, preferences.articleOpenMode)
+        assertEquals(ArticleOpenMode.READER_MODE, preferences.articleOpenMode)
     }
 
     @Test
@@ -40,7 +40,7 @@ class UserPreferencesUseCasesTest {
         assertEquals(true, preferences.loadImages)
         assertEquals(false, preferences.dailyReminder)
         assertEquals(9, preferences.dailyReminderHour)
-        assertEquals(ArticleOpenMode.CUSTOM_TAB, preferences.articleOpenMode)
+        assertEquals(ArticleOpenMode.READER_MODE, preferences.articleOpenMode)
     }
 
     @Test
@@ -66,7 +66,7 @@ class UserPreferencesUseCasesTest {
         assertEquals(false, preferences.loadImages)
         assertEquals(false, preferences.dailyReminder)
         assertEquals(9, preferences.dailyReminderHour)
-        assertEquals(ArticleOpenMode.CUSTOM_TAB, preferences.articleOpenMode)
+        assertEquals(ArticleOpenMode.READER_MODE, preferences.articleOpenMode)
     }
 
     @Test
@@ -81,7 +81,7 @@ class UserPreferencesUseCasesTest {
         assertEquals(true, preferences.loadImages)
         assertEquals(true, preferences.dailyReminder)
         assertEquals(9, preferences.dailyReminderHour)
-        assertEquals(ArticleOpenMode.CUSTOM_TAB, preferences.articleOpenMode)
+        assertEquals(ArticleOpenMode.READER_MODE, preferences.articleOpenMode)
     }
 
     @Test
@@ -96,7 +96,7 @@ class UserPreferencesUseCasesTest {
         assertEquals(true, preferences.loadImages)
         assertEquals(false, preferences.dailyReminder)
         assertEquals(21, preferences.dailyReminderHour)
-        assertEquals(ArticleOpenMode.CUSTOM_TAB, preferences.articleOpenMode)
+        assertEquals(ArticleOpenMode.READER_MODE, preferences.articleOpenMode)
     }
 
     @Test

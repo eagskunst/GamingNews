@@ -2,22 +2,17 @@ package com.eagskunst.emmanuel.gamingnews.ui.reader
 
 import androidx.lifecycle.SavedStateHandle
 import app.cash.turbine.test
+import com.eagskunst.emmanuel.gamingnews.core.domain.model.ThemeMode
+import com.eagskunst.emmanuel.gamingnews.core.domain.model.reader.ReaderElement
+import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetReaderArticleUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetUserPreferencesUseCase
 import com.eagskunst.emmanuel.gamingnews.testutil.Fixtures
 import com.eagskunst.emmanuel.gamingnews.testutil.MainDispatcherRule
-import com.eagskunst.emmanuel.gamingnews.testutil.TestDispatcherProvider
+import com.eagskunst.emmanuel.gamingnews.testutil.fakes.FakeArticleReaderRepository
 import com.eagskunst.emmanuel.gamingnews.testutil.fakes.FakeUserPreferencesRepository
-import io.mockk.every
-import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
-import okhttp3.Call
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
-import okhttp3.Protocol
-import okhttp3.Request
-import okhttp3.Response
-import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -28,42 +23,20 @@ class ReaderViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private val fakeUserPreferencesRepository = FakeUserPreferencesRepository()
-    private val okHttpClient: OkHttpClient = mockk()
+    private val fakeArticleReaderRepository = FakeArticleReaderRepository()
+
     private val articleUrl = "https://example.com/article"
 
     private fun createViewModel(): ReaderViewModel = ReaderViewModel(
         getUserPreferencesUseCase = GetUserPreferencesUseCase(fakeUserPreferencesRepository),
-        okHttpClient = okHttpClient,
-        dispatchers = TestDispatcherProvider(),
+        getReaderArticleUseCase = GetReaderArticleUseCase(fakeArticleReaderRepository),
         savedStateHandle = SavedStateHandle(mapOf(ReaderActivity.EXTRA_URL to articleUrl))
     )
 
-    private fun buildResponse(code: Int, body: String): Response {
-        val request = Request.Builder().url(articleUrl).build()
-        return Response.Builder()
-            .request(request)
-            .protocol(Protocol.HTTP_1_1)
-            .code(code)
-            .message("message")
-            .body(body.toResponseBody("text/html".toMediaType()))
-            .build()
-    }
-
-    private fun mockResponse(response: Response) {
-        val call = mockk<Call>()
-        every { okHttpClient.newCall(any()) } returns call
-        every { call.execute() } returns response
-    }
-
-    private fun mockException(exception: Exception) {
-        val call = mockk<Call>()
-        every { okHttpClient.newCall(any()) } returns call
-        every { call.execute() } throws exception
-    }
-
     @Test
-    fun `given successful response with non blank body when initialized then uiState is Content`() = runTest {
-        mockResponse(buildResponse(200, "<html>hello</html>"))
+    fun `given successful parse when initialized then uiState is Content`() = runTest {
+        val article = ReaderArticleFixtures.simpleArticle()
+        fakeArticleReaderRepository.articleFlow.value = article
 
         val viewModel = createViewModel()
 
@@ -71,14 +44,13 @@ class ReaderViewModelTest {
             val state = expectMostRecentItem()
             assertTrue(state is ReaderUiState.Content)
             state as ReaderUiState.Content
-            assertEquals(articleUrl, state.url)
-            assertEquals("<html>hello</html>", state.html)
+            assertEquals(article.title, state.article.title)
         }
     }
 
     @Test
-    fun `given unsuccessful response when initialized then uiState is Error`() = runTest {
-        mockResponse(buildResponse(404, "not found"))
+    fun `given null article when initialized then uiState is Error`() = runTest {
+        fakeArticleReaderRepository.articleFlow.value = null
 
         val viewModel = createViewModel()
 
@@ -89,20 +61,8 @@ class ReaderViewModelTest {
     }
 
     @Test
-    fun `given a successful response with a blank body when initialized then uiState is Error`() = runTest {
-        mockResponse(buildResponse(200, ""))
-
-        val viewModel = createViewModel()
-
-        viewModel.uiState.test {
-            val state = expectMostRecentItem()
-            assertTrue(state is ReaderUiState.Error)
-        }
-    }
-
-    @Test
-    fun `given an exception during execute when initialized then uiState is Error`() = runTest {
-        mockException(RuntimeException("network failure"))
+    fun `given exception during fetch when initialized then uiState is Error`() = runTest {
+        fakeArticleReaderRepository.shouldThrow = true
 
         val viewModel = createViewModel()
 
@@ -114,30 +74,55 @@ class ReaderViewModelTest {
 
     @Test
     fun `given a prior error when retry is called then uiState fetches again`() = runTest {
-        mockException(RuntimeException("first failure"))
+        fakeArticleReaderRepository.shouldThrow = true
         val viewModel = createViewModel()
 
-        mockResponse(buildResponse(200, "<html>retried</html>"))
+        fakeArticleReaderRepository.shouldThrow = false
+        val article = ReaderArticleFixtures.simpleArticle()
+        fakeArticleReaderRepository.articleFlow.value = article
         viewModel.retry()
 
         viewModel.uiState.test {
             val state = expectMostRecentItem()
             assertTrue(state is ReaderUiState.Content)
             state as ReaderUiState.Content
-            assertEquals("<html>retried</html>", state.html)
+            assertEquals(article.title, state.article.title)
         }
     }
 
     @Test
-    fun `given preferences when collected then darkThemeEnabled reflects darkTheme`() = runTest {
-        mockResponse(buildResponse(200, "<html>hello</html>"))
+    fun `given preferences when collected then darkThemeEnabled reflects dark theme`() = runTest {
+        fakeArticleReaderRepository.articleFlow.value = ReaderArticleFixtures.simpleArticle()
         fakeUserPreferencesRepository.preferencesFlow.value = Fixtures.userPreferences(darkTheme = true)
 
         val viewModel = createViewModel()
 
         viewModel.darkThemeEnabled.test {
-            val darkTheme = expectMostRecentItem()
-            assertTrue(darkTheme)
+            assertTrue(expectMostRecentItem())
         }
+    }
+
+    @Test
+    fun `given preferences when collected then loadImages reflects user preference`() = runTest {
+        fakeArticleReaderRepository.articleFlow.value = ReaderArticleFixtures.simpleArticle()
+        fakeUserPreferencesRepository.preferencesFlow.value = Fixtures.userPreferences(loadImages = false)
+
+        val viewModel = createViewModel()
+
+        viewModel.loadImages.test {
+            assertFalse(expectMostRecentItem())
+        }
+    }
+
+    private object ReaderArticleFixtures {
+        fun simpleArticle() = com.eagskunst.emmanuel.gamingnews.core.domain.model.reader.ReaderArticle(
+            title = "Test Article",
+            byline = "By Author",
+            siteName = "Example Site",
+            elements = listOf(
+                ReaderElement.Paragraph(html = "<p>Hello world</p>"),
+                ReaderElement.Heading(level = 2, text = "Section")
+            )
+        )
     }
 }

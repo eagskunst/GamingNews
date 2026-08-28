@@ -50,7 +50,7 @@ data class SettingsUiState(
     val dailyReminder: Boolean = false,
     val dailyReminderHour: Int = 9,
     val nextReminderLabel: String = "",
-    val articleOpenMode: ArticleOpenMode = ArticleOpenMode.CUSTOM_TAB,
+    val articleOpenMode: ArticleOpenMode = ArticleOpenMode.READER_MODE,
     val topics: List<Topic> = emptyList(),
     val isLoading: Boolean = true
 )
