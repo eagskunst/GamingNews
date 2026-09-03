@@ -53,6 +53,12 @@
     <string name="notification_permission_rationale">Notifications permission is required to receive reminders.</string>
     <string name="confirm">OK</string>
 
+    <string name="settings_feed_sources_header">Feed &amp; Sources</string>
+    <string name="settings_customize_feed">Customize Feed</string>
+    <string name="settings_customize_feed_summary">Manage enabled news sources per feed tab</string>
+    <string name="feed_sources_title">Customize Feed</string>
+    <string name="feed_sources_restore_defaults">Restore defaults</string>
+
     <plurals name="new_articles_available">
         <item quantity="one">%1$d new article</item>
         <item quantity="other">%1$d new articles</item>
