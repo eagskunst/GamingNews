@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.6.0]
+
+### Added
+- Feed provider selection: users can now enable or disable individual RSS providers from a new "Customize Feed" screen in Settings, accessible via the "Feed & Sources" section.
+- Providers are grouped by category (All, Playstation, Xbox, Nintendo, PC) with filter chips; each provider row shows a name and checkbox.
+- Disabled providers are excluded from all news fetches (initial load, pull-to-refresh, and category switches), reducing bandwidth and battery use.
+- "Restore defaults" action in the top bar re-enables all providers.
+- Provider selections are persisted via DataStore and survive app restarts.
+- Enriched `urls.json` with stable provider IDs and human-readable names.
+- In-Settings NavHost navigation between the settings root and the feed sources screen.
+- Provider ID stability snapshot test to guard against accidental renames or removals that would break users' saved preferences.
+- Comprehensive test coverage: DataStore persistence, repository, use cases, ViewModel, and updated existing NewsViewModel/NewsScreen/SettingsScreen tests.
+
 ## [2.4.0] - 2026-08-22
 
 ### Added
