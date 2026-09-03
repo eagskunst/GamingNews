@@ -1,11 +1,13 @@
 package com.eagskunst.emmanuel.gamingnews.di.module
 
 import com.eagskunst.emmanuel.gamingnews.core.data.repository.DefaultArticleReaderRepository
+import com.eagskunst.emmanuel.gamingnews.core.data.repository.DefaultFeedProvidersRepository
 import com.eagskunst.emmanuel.gamingnews.core.data.repository.DefaultNewsRepository
 import com.eagskunst.emmanuel.gamingnews.core.data.repository.DefaultReleasesRepository
 import com.eagskunst.emmanuel.gamingnews.core.data.repository.DefaultTopicsRepository
 import com.eagskunst.emmanuel.gamingnews.core.data.repository.DefaultUserPreferencesRepository
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.ArticleReaderRepository
+import com.eagskunst.emmanuel.gamingnews.core.domain.repository.FeedProvidersRepository
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.NewsRepository
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.ReleasesRepository
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.TopicsRepository
@@ -49,4 +51,10 @@ abstract class RepositoryModule {
     abstract fun bindArticleReaderRepository(
         impl: DefaultArticleReaderRepository
     ): ArticleReaderRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindFeedProvidersRepository(
+        impl: DefaultFeedProvidersRepository
+    ): FeedProvidersRepository
 }

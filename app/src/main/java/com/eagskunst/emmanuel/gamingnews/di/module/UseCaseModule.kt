@@ -1,11 +1,14 @@
 package com.eagskunst.emmanuel.gamingnews.di.module
 
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.ArticleReaderRepository
+import com.eagskunst.emmanuel.gamingnews.core.domain.repository.FeedProvidersRepository
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.NewsRepository
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.ReleasesRepository
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.TopicsRepository
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.UserPreferencesRepository
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.AddTopicUseCase
+import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetFeedProvidersUseCase
+import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetFeedUrlsUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetNewsUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetReaderArticleUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetReleasesUseCase
@@ -15,6 +18,8 @@ import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetArticleOpenModeU
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetUserPreferencesUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.OpenArticleUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.RemoveTopicUseCase
+import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.RestoreFeedProvidersDefaultsUseCase
+import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.SetFeedProviderEnabledUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.ToggleSavedArticleUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateArticleOpenModeUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateDailyReminderHourUseCase
@@ -100,5 +105,21 @@ object UseCaseModule {
     @Provides
     fun provideGetReaderArticleUseCase(repository: ArticleReaderRepository): GetReaderArticleUseCase =
         GetReaderArticleUseCase(repository)
+
+    @Provides
+    fun provideGetFeedUrlsUseCase(repository: FeedProvidersRepository): GetFeedUrlsUseCase =
+        GetFeedUrlsUseCase(repository)
+
+    @Provides
+    fun provideGetFeedProvidersUseCase(repository: FeedProvidersRepository): GetFeedProvidersUseCase =
+        GetFeedProvidersUseCase(repository)
+
+    @Provides
+    fun provideSetFeedProviderEnabledUseCase(repository: FeedProvidersRepository): SetFeedProviderEnabledUseCase =
+        SetFeedProviderEnabledUseCase(repository)
+
+    @Provides
+    fun provideRestoreFeedProvidersDefaultsUseCase(repository: FeedProvidersRepository): RestoreFeedProvidersDefaultsUseCase =
+        RestoreFeedProvidersDefaultsUseCase(repository)
 }
 
