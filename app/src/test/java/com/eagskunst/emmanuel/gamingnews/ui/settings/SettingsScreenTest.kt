@@ -85,6 +85,7 @@ class SettingsScreenTest {
             SettingsScreen(
                 viewModel = viewModel,
                 onBackClick = {},
+                onCustomizeFeedClick = {},
                 onContactEmailClick = {},
                 onContactWebsiteClick = {},
                 onPrivacyPolicyClick = {}

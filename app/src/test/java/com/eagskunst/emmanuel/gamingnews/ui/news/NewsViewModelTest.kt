@@ -12,7 +12,7 @@ import com.eagskunst.emmanuel.gamingnews.testutil.Fixtures
 import com.eagskunst.emmanuel.gamingnews.testutil.MainDispatcherRule
 import com.eagskunst.emmanuel.gamingnews.testutil.fakes.FakeNewsRepository
 import com.eagskunst.emmanuel.gamingnews.testutil.fakes.FakeUserPreferencesRepository
-import io.mockk.every
+import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -35,7 +35,7 @@ class NewsViewModelTest {
         fakeNewsRepository = FakeNewsRepository()
         fakeUserPreferencesRepository = FakeUserPreferencesRepository()
         feedUrlsUseCase = mockk()
-        every { feedUrlsUseCase.invoke(any()) } returns listOf("https://example.com/feed")
+        coEvery { feedUrlsUseCase.invoke(any()) } returns listOf("https://example.com/feed")
     }
 
     private fun createViewModel(): NewsViewModel = NewsViewModel(

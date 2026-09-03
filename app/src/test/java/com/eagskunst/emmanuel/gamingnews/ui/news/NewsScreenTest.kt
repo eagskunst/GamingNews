@@ -1,6 +1,5 @@
 package com.eagskunst.emmanuel.gamingnews.ui.news
 
-import android.app.Application
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.test.assertIsDisplayed
@@ -9,7 +8,6 @@ import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.test.core.app.ApplicationProvider
 import com.eagskunst.emmanuel.gamingnews.core.common.Result
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetFeedUrlsUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetNewsUseCase
@@ -18,6 +16,7 @@ import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetUserPreferencesU
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.ToggleSavedArticleUseCase
 import com.eagskunst.emmanuel.gamingnews.testutil.Fixtures
 import com.eagskunst.emmanuel.gamingnews.testutil.MainDispatcherRule
+import com.eagskunst.emmanuel.gamingnews.testutil.fakes.FakeFeedProvidersRepository
 import com.eagskunst.emmanuel.gamingnews.testutil.fakes.FakeNewsRepository
 import com.eagskunst.emmanuel.gamingnews.testutil.fakes.FakeUserPreferencesRepository
 import org.junit.Assert.assertFalse
@@ -40,14 +39,14 @@ class NewsScreenTest {
 
     private val fakeNewsRepository = FakeNewsRepository()
     private val fakeUserPreferencesRepository = FakeUserPreferencesRepository(Fixtures.userPreferences(loadImages = false))
+    private val fakeFeedProvidersRepository = FakeFeedProvidersRepository()
 
     private fun createViewModel(): NewsViewModel {
-        val context = ApplicationProvider.getApplicationContext<Application>()
         return NewsViewModel(
             getNewsUseCase = GetNewsUseCase(fakeNewsRepository),
             getSavedArticlesUseCase = GetSavedArticlesUseCase(fakeNewsRepository),
             toggleSavedArticleUseCase = ToggleSavedArticleUseCase(fakeNewsRepository),
-            getFeedUrlsUseCase = GetFeedUrlsUseCase(context),
+            getFeedUrlsUseCase = GetFeedUrlsUseCase(fakeFeedProvidersRepository),
             getUserPreferencesUseCase = GetUserPreferencesUseCase(fakeUserPreferencesRepository)
         )
     }
