@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.7.0] - 2026-09-11
+
+### Added
+- Added Reviews as a fourth adaptive navigation destination with search, pull-to-refresh, retry states, bookmark synchronization, and existing article open/share actions.
+- Added localized Eurogamer review feeds selected by device language: Eurogamer ES for Spanish locales and Eurogamer EN for English and unsupported locales.
+- Added featured, compact-thumbnail, and text-only review cards that respect the existing image-loading preference.
+- Added review feed caching, stale-data fallback, URL deduplication, conservative date handling, and comprehensive repository, ViewModel, Compose, catalog, mapper, and Room migration coverage.
+- Added nullable article authors across RSS mapping, Room persistence, saved article reloads, and shared article metadata.
+
+### Changed
+- Injected the shared RSS parser into the RSS remote data source for improved testability.
+- Bumped the Room database to version 2 with a migration that preserves existing saved articles and releases.
+
+### Fixed
+- Prevented the initial Reviews load from displaying both pull-to-refresh and centered loading indicators.
+- Prevented failed review refreshes from replacing a valid fresh cache entry or displaying an unknown publication date as decades old.
+- Surfaced bookmark persistence failures in the Reviews screen state.
+
 ## [2.6.0]
 
 ### Added

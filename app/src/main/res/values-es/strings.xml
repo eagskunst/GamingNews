@@ -4,6 +4,11 @@
     <string name="search_hint">Busca artículos…</string>
     <string name="saved">Favoritos</string>
     <string name="no_saved_articles">No has guardado ninguna noticia aún</string>
+    <string name="reviews">Análisis</string>
+    <string name="no_reviews">No hay análisis disponibles en este momento</string>
+    <string name="no_review_search_results">Ningún análisis coincide con tu búsqueda</string>
+    <string name="stale_source_message">Parte del contenido puede estar desactualizado. Desliza para actualizar.</string>
+    <string name="retry">Reintentar</string>
     <string name="nextReleases">Lanzamientos</string>
     <string name="title_activity_settings">Configuración</string>
     <string name="summary_topics">Cambia los temas de los cuales quieres recibir notificaciones</string>

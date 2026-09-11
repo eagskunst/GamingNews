@@ -11,7 +11,8 @@ fun ArticleEntity.toNewsArticle(): NewsArticle = NewsArticle(
     description = description,
     imageUrl = imageUrl,
     publicationDate = publicationDate,
-    sourceName = sourceName
+    sourceName = sourceName,
+    author = author
 )
 
 fun NewsArticle.toArticleEntity(): ArticleEntity = ArticleEntity(
@@ -20,7 +21,8 @@ fun NewsArticle.toArticleEntity(): ArticleEntity = ArticleEntity(
     description = description,
     imageUrl = imageUrl,
     publicationDate = publicationDate,
-    sourceName = sourceName
+    sourceName = sourceName,
+    author = author
 )
 
 fun ReleaseEntity.toGameRelease(): GameRelease = GameRelease(

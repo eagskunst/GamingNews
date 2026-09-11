@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.eagskunst.emmanuel.gamingnews.core.data.source.local.AppDatabase
 import com.eagskunst.emmanuel.gamingnews.core.data.source.local.ArticleDao
+import com.eagskunst.emmanuel.gamingnews.core.data.source.local.MIGRATION_1_2
 import com.eagskunst.emmanuel.gamingnews.core.data.source.local.ReleaseDao
 import dagger.Module
 import dagger.Provides
@@ -23,7 +24,9 @@ object DatabaseModule {
             context,
             AppDatabase::class.java,
             "gamingnews.db"
-        ).build()
+        )
+            .addMigrations(MIGRATION_1_2)
+            .build()
     }
 
     @Provides

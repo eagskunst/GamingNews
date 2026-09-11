@@ -4,12 +4,14 @@ import com.eagskunst.emmanuel.gamingnews.core.data.repository.DefaultArticleRead
 import com.eagskunst.emmanuel.gamingnews.core.data.repository.DefaultFeedProvidersRepository
 import com.eagskunst.emmanuel.gamingnews.core.data.repository.DefaultNewsRepository
 import com.eagskunst.emmanuel.gamingnews.core.data.repository.DefaultReleasesRepository
+import com.eagskunst.emmanuel.gamingnews.core.data.repository.DefaultReviewsRepository
 import com.eagskunst.emmanuel.gamingnews.core.data.repository.DefaultTopicsRepository
 import com.eagskunst.emmanuel.gamingnews.core.data.repository.DefaultUserPreferencesRepository
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.ArticleReaderRepository
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.FeedProvidersRepository
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.NewsRepository
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.ReleasesRepository
+import com.eagskunst.emmanuel.gamingnews.core.domain.repository.ReviewsRepository
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.TopicsRepository
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.UserPreferencesRepository
 import dagger.Binds
@@ -57,4 +59,10 @@ abstract class RepositoryModule {
     abstract fun bindFeedProvidersRepository(
         impl: DefaultFeedProvidersRepository
     ): FeedProvidersRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindReviewsRepository(
+        impl: DefaultReviewsRepository
+    ): ReviewsRepository
 }

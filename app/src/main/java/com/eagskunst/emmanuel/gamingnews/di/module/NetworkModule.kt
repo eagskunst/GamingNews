@@ -3,6 +3,7 @@ package com.eagskunst.emmanuel.gamingnews.di.module
 import com.eagskunst.emmanuel.gamingnews.BuildConfig
 import com.eagskunst.emmanuel.gamingnews.core.data.source.remote.api.IgdbApi
 import com.eagskunst.emmanuel.gamingnews.core.data.source.remote.api.TwitchAuthApi
+import com.prof18.rssparser.RssParser
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -21,6 +22,10 @@ import javax.inject.Singleton
 object NetworkModule {
 
     private val json = Json { ignoreUnknownKeys = true }
+
+    @Provides
+    @Singleton
+    fun provideRssParser(): RssParser = RssParser()
 
     @Provides
     @Singleton

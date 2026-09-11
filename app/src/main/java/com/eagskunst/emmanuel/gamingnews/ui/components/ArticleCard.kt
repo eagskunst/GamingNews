@@ -52,6 +52,7 @@ import coil3.compose.AsyncImage
 import com.eagskunst.emmanuel.gamingnews.R
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.ArticleOpenMode
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.NewsArticle
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 private val CardShape = RoundedCornerShape(16.dp)
@@ -78,19 +79,14 @@ fun ArticleCard(
     var imageFailedToLoad by remember(article.imageUrl) { mutableStateOf(false) }
     val showImage = loadImages && !article.imageUrl.isNullOrBlank() && !imageFailedToLoad
     var showMenu by remember { mutableStateOf(false) }
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val scope = rememberCoroutineScope()
 
     if (showMenu) {
         ArticleActionsBottomSheet(
-            sheetState = sheetState,
             isSaved = isSaved,
             onDismiss = { showMenu = false },
             onAction = { action ->
-                scope.launch { sheetState.hide() }.invokeOnCompletion {
-                    showMenu = false
-                    onMenuAction(action)
-                }
+                showMenu = false
+                onMenuAction(action)
             }
         )
     }
@@ -142,6 +138,11 @@ fun ArticleCard(
                         withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary)) {
                             append(article.sourceName)
                         }
+                        article.author?.takeIf { it.isNotBlank() }?.let { author ->
+                            withStyle(SpanStyle(color = MaterialTheme.colorScheme.onSurfaceVariant)) {
+                                append(" · $author")
+                            }
+                        }
                         withStyle(SpanStyle(color = MaterialTheme.colorScheme.onSurfaceVariant)) {
                             append(" · ${article.timeAgo()}")
                         }
@@ -163,12 +164,14 @@ fun ArticleCard(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ArticleActionsBottomSheet(
-    sheetState: androidx.compose.material3.SheetState,
+fun ArticleActionsBottomSheet(
     isSaved: Boolean,
     onDismiss: () -> Unit,
     onAction: (ArticleMenuAction) -> Unit
 ) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val scope = rememberCoroutineScope()
+
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState
@@ -180,29 +183,42 @@ private fun ArticleActionsBottomSheet(
             MenuListItem(
                 label = stringResource(R.string.article_open_custom_tab),
                 icon = Icons.AutoMirrored.Filled.OpenInNew,
-                onClick = { onAction(ArticleMenuAction.OPEN_CUSTOM_TAB) }
+                onClick = { dismissAndEmit(scope, sheetState, onDismiss) { onAction(ArticleMenuAction.OPEN_CUSTOM_TAB) } }
             )
             MenuListItem(
                 label = stringResource(R.string.article_open_external_browser),
                 icon = Icons.Default.OpenInBrowser,
-                onClick = { onAction(ArticleMenuAction.OPEN_EXTERNAL_BROWSER) }
+                onClick = { dismissAndEmit(scope, sheetState, onDismiss) { onAction(ArticleMenuAction.OPEN_EXTERNAL_BROWSER) } }
             )
             MenuListItem(
                 label = stringResource(R.string.article_open_reader_mode),
                 icon = Icons.Default.Book,
-                onClick = { onAction(ArticleMenuAction.OPEN_READER_MODE) }
+                onClick = { dismissAndEmit(scope, sheetState, onDismiss) { onAction(ArticleMenuAction.OPEN_READER_MODE) } }
             )
             MenuListItem(
                 label = stringResource(R.string.article_share),
                 icon = Icons.Default.Share,
-                onClick = { onAction(ArticleMenuAction.SHARE) }
+                onClick = { dismissAndEmit(scope, sheetState, onDismiss) { onAction(ArticleMenuAction.SHARE) } }
             )
             MenuListItem(
                 label = stringResource(if (isSaved) R.string.article_remove_save else R.string.article_save),
                 icon = if (isSaved) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                onClick = { onAction(ArticleMenuAction.TOGGLE_SAVE) }
+                onClick = { dismissAndEmit(scope, sheetState, onDismiss) { onAction(ArticleMenuAction.TOGGLE_SAVE) } }
             )
         }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+private fun dismissAndEmit(
+    scope: CoroutineScope,
+    sheetState: androidx.compose.material3.SheetState,
+    onDismiss: () -> Unit,
+    onEmit: () -> Unit
+) {
+    scope.launch { sheetState.hide() }.invokeOnCompletion {
+        onDismiss()
+        onEmit()
     }
 }
 

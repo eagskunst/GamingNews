@@ -16,9 +16,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -55,6 +57,8 @@ import com.eagskunst.emmanuel.gamingnews.ui.news.NewsScreen
 import com.eagskunst.emmanuel.gamingnews.ui.news.NewsViewModel
 import com.eagskunst.emmanuel.gamingnews.ui.releases.ReleasesScreen
 import com.eagskunst.emmanuel.gamingnews.ui.releases.ReleasesViewModel
+import com.eagskunst.emmanuel.gamingnews.ui.reviews.ReviewsScreen
+import com.eagskunst.emmanuel.gamingnews.ui.reviews.ReviewsViewModel
 import com.eagskunst.emmanuel.gamingnews.ui.saved.SavedScreen
 import com.eagskunst.emmanuel.gamingnews.ui.saved.SavedViewModel
 import com.eagskunst.emmanuel.gamingnews.ui.theme.GamingNewsTheme
@@ -112,12 +116,14 @@ private fun MainScreen(
     var newsScrollToTopEvent by remember { mutableIntStateOf(0) }
     var savedScrollToTopEvent by remember { mutableIntStateOf(0) }
     var releasesScrollToTopEvent by remember { mutableIntStateOf(0) }
+    var reviewsScrollToTopEvent by remember { mutableIntStateOf(0) }
 
     fun onTabReselected(route: String) {
         when (route) {
             BottomNavRoute.News.route -> newsScrollToTopEvent++
             BottomNavRoute.Saved.route -> savedScrollToTopEvent++
             BottomNavRoute.Releases.route -> releasesScrollToTopEvent++
+            BottomNavRoute.Reviews.route -> reviewsScrollToTopEvent++
         }
     }
 
@@ -174,6 +180,17 @@ private fun MainScreen(
                         onSettingsClick = onSettingsClick,
                         onOpenGameUrl = onOpenGameUrl,
                         scrollToTopSignal = releasesScrollToTopEvent
+                    )
+                }
+                composable(BottomNavRoute.Reviews.route) {
+                    val viewModel = hiltViewModel<ReviewsViewModel>()
+                    ReviewsScreen(
+                        viewModel = viewModel,
+                        onSettingsClick = onSettingsClick,
+                        onOpenArticle = onOpenArticle,
+                        onOpenArticleWithMode = onOpenArticleWithMode,
+                        onShareArticle = onShareArticle,
+                        scrollToTopSignal = reviewsScrollToTopEvent
                     )
                 }
             }
@@ -279,5 +296,11 @@ private enum class BottomNavRoute(
         labelRes = R.string.nextReleases,
         selectedIcon = Icons.Filled.DateRange,
         unselectedIcon = Icons.Outlined.DateRange
+    ),
+    Reviews(
+        route = "reviews",
+        labelRes = R.string.reviews,
+        selectedIcon = Icons.Filled.Star,
+        unselectedIcon = Icons.Outlined.StarBorder
     )
 }

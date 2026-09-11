@@ -8,7 +8,7 @@ import com.eagskunst.emmanuel.gamingnews.core.data.source.local.entity.ReleaseEn
 
 @Database(
     entities = [ArticleEntity::class, ReleaseEntity::class],
-    version = 1,
+    version = 2,
     exportSchema = true
 )
 @TypeConverters(Converters::class)

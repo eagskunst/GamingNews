@@ -17,7 +17,8 @@ class EntityMapperTest {
             description = "Description",
             imageUrl = "https://example.com/image.png",
             publicationDate = Date(1_000),
-            sourceName = "IGN"
+            sourceName = "IGN",
+            author = "Jane Doe"
         )
 
         val article = entity.toNewsArticle()
@@ -28,11 +29,12 @@ class EntityMapperTest {
         assertEquals(entity.imageUrl, article.imageUrl)
         assertEquals(entity.publicationDate, article.publicationDate)
         assertEquals(entity.sourceName, article.sourceName)
+        assertEquals(entity.author, article.author)
     }
 
     @Test
     fun `given news article when toArticleEntity then maps every field`() {
-        val article = Fixtures.newsArticle()
+        val article = Fixtures.newsArticle(author = "John Smith")
 
         val entity = article.toArticleEntity()
 
@@ -42,6 +44,23 @@ class EntityMapperTest {
         assertEquals(article.imageUrl, entity.imageUrl)
         assertEquals(article.publicationDate, entity.publicationDate)
         assertEquals(article.sourceName, entity.sourceName)
+        assertEquals(article.author, entity.author)
+    }
+
+    @Test
+    fun `given article entity without author when round tripped through news article then author stays null`() {
+        val entity = ArticleEntity(
+            link = "https://example.com/article",
+            title = "Some article",
+            description = "Description",
+            imageUrl = null,
+            publicationDate = Date(2_000),
+            sourceName = "IGN"
+        )
+
+        val roundTripped = entity.toNewsArticle().toArticleEntity()
+
+        assertEquals(entity.author, roundTripped.author)
     }
 
     @Test

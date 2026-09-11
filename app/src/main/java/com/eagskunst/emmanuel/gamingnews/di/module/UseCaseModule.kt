@@ -4,6 +4,7 @@ import com.eagskunst.emmanuel.gamingnews.core.domain.repository.ArticleReaderRep
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.FeedProvidersRepository
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.NewsRepository
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.ReleasesRepository
+import com.eagskunst.emmanuel.gamingnews.core.domain.repository.ReviewsRepository
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.TopicsRepository
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.UserPreferencesRepository
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.AddTopicUseCase
@@ -12,6 +13,7 @@ import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetFeedUrlsUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetNewsUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetReaderArticleUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetReleasesUseCase
+import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetReviewsUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetSavedArticlesUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetTopicsUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetArticleOpenModeUseCase
@@ -53,6 +55,10 @@ object UseCaseModule {
     @Provides
     fun provideGetReleasesUseCase(repository: ReleasesRepository): GetReleasesUseCase =
         GetReleasesUseCase(repository)
+
+    @Provides
+    fun provideGetReviewsUseCase(repository: ReviewsRepository): GetReviewsUseCase =
+        GetReviewsUseCase(repository)
 
     @Provides
     fun provideGetTopicsUseCase(repository: TopicsRepository): GetTopicsUseCase =

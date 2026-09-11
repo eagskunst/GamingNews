@@ -16,5 +16,6 @@ data class ArticleEntity(
     val imageUrl: String?,
     val publicationDate: Date,
     val sourceName: String,
-    val savedAt: Date = Date()
+    val savedAt: Date = Date(),
+    val author: String? = null
 )

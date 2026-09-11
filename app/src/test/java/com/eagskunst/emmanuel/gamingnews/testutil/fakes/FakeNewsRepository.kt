@@ -24,6 +24,7 @@ class FakeNewsRepository(
         private set
     var lastForceRefresh: Boolean? = null
         private set
+    var saveError: Exception? = null
 
     override fun newsStream(urls: List<String>, forceRefresh: Boolean): Flow<Result<List<NewsArticle>>> {
         lastRequestedUrls = urls
@@ -35,10 +36,12 @@ class FakeNewsRepository(
     override fun savedArticlesStream(): Flow<List<NewsArticle>> = savedArticlesFlow
 
     override suspend fun saveArticle(article: NewsArticle) {
+        saveError?.let { throw it }
         savedArticlesFlow.update { it + article }
     }
 
     override suspend fun removeArticle(article: NewsArticle) {
+        saveError?.let { throw it }
         savedArticlesFlow.update { it - article }
     }
 

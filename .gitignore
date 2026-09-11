@@ -186,3 +186,4 @@ LlaveroGamingNews.jks
 # End of https://www.gitignore.io/api/android,androidstudio
 app/src/main/java/com/eagskunst/emmanuel/gamingnews/credentials/Credentials.java
 app/src/main/res/values/credentials_string.xml
+/plans/

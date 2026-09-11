@@ -18,14 +18,16 @@ object Fixtures {
         description: String = "Description",
         imageUrl: String? = "https://example.com/image.png",
         publicationDate: Date = Date(0),
-        sourceName: String = "IGN"
+        sourceName: String = "IGN",
+        author: String? = null
     ) = NewsArticle(
         link = link,
         title = title,
         description = description,
         imageUrl = imageUrl,
         publicationDate = publicationDate,
-        sourceName = sourceName
+        sourceName = sourceName,
+        author = author
     )
 
     fun gameRelease(

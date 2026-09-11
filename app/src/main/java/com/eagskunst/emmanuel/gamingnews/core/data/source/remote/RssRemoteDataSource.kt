@@ -7,11 +7,11 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class RssRemoteDataSource @Inject constructor(
+    private val rssParser: RssParser,
     private val dispatchers: DispatcherProvider
 ) {
 
     suspend fun fetchChannel(url: String): RssChannel = withContext(dispatchers.io) {
-        val parser = RssParser()
-        parser.getRssChannel(url)
+        rssParser.getRssChannel(url)
     }
 }

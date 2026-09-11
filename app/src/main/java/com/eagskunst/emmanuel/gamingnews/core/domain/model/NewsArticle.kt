@@ -8,5 +8,6 @@ data class NewsArticle(
     val description: String,
     val imageUrl: String?,
     val publicationDate: Date,
-    val sourceName: String
+    val sourceName: String,
+    val author: String? = null
 )

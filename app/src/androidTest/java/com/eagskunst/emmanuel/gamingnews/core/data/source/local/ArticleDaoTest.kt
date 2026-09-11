@@ -36,7 +36,7 @@ class ArticleDaoTest {
     }
 
     @Test
-    fun `when articles are inserted and observed then they are returned ordered by savedAt descending`() = runTest {
+    fun `when_articles_are_inserted_and_observed_then_they_are_returned_ordered_by_savedAt_descending`() = runTest {
         val older = articleEntity(
             link = "https://example.com/older",
             savedAt = Date(1_000L)
@@ -57,7 +57,7 @@ class ArticleDaoTest {
     }
 
     @Test
-    fun `when an article is inserted with the same link then the existing row is replaced`() = runTest {
+    fun `when_an_article_is_inserted_with_the_same_link_then_the_existing_row_is_replaced`() = runTest {
         val original = articleEntity(
             link = "https://example.com/article",
             title = "Original title",
@@ -78,7 +78,7 @@ class ArticleDaoTest {
     }
 
     @Test
-    fun `when getByLink is called with an existing or missing link then it returns the correct entity or null`() = runTest {
+    fun `when_getByLink_is_called_with_an_existing_or_missing_link_then_it_returns_the_correct_entity_or_null`() = runTest {
         val article = articleEntity(link = "https://example.com/article")
 
         articleDao.insert(article)
@@ -88,7 +88,7 @@ class ArticleDaoTest {
     }
 
     @Test
-    fun `when an article is deleted then it is removed from observeAll`() = runTest {
+    fun `when_an_article_is_deleted_then_it_is_removed_from_observeAll`() = runTest {
         val article = articleEntity(link = "https://example.com/article")
 
         articleDao.insert(article)
