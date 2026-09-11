@@ -24,6 +24,14 @@ if (localPropertiesFile.exists()) {
 }
 fun localProperty(name: String, default: String = ""): String = localProperties.getProperty(name, default) ?: default
 
+val validateTwitchReleaseCredentials by tasks.registering {
+    doLast {
+        check(localProperty("twitch.client.id").isNotBlank() && localProperty("twitch.client.secret").isNotBlank()) {
+            "Release builds require non-blank Twitch credentials in local.properties"
+        }
+    }
+}
+
 android {
     namespace = "com.eagskunst.emmanuel.gamingnews"
     compileSdk = 37
@@ -99,6 +107,10 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+}
+
+tasks.matching { it.name == "preReleaseBuild" }.configureEach {
+    dependsOn(validateTwitchReleaseCredentials)
 }
 
 ksp {

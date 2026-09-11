@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Hardened Twitch token caching with an expiration safety margin, client-ID association, and release-only credential validation.
+- Disabled release HTTP logging and limited debug IGDB diagnostics while excluding Twitch authentication traffic.
+
+### Fixed
+- Recovered from rejected IGDB tokens with one coordinated renewal and one bounded retry, including concurrent release requests.
+- Preserved cached releases and displayed localized errors when refresh or pagination fails.
+- Prevented overlapping release refresh and pagination operations.
+
 ## [2.7.0] - 2026-09-11
 
 ### Added

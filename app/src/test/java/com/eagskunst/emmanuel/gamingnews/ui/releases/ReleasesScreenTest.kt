@@ -68,6 +68,8 @@ class ReleasesScreenTest {
         fakeReleasesRepository.releasesResultFlow.value = Result.Error(RuntimeException("Failed to load releases"))
         setContent()
 
-        composeTestRule.onNodeWithText("Failed to load releases").assertIsDisplayed()
+        composeTestRule
+            .onNodeWithText("Couldn’t refresh releases. Showing saved releases when available.")
+            .assertIsDisplayed()
     }
 }

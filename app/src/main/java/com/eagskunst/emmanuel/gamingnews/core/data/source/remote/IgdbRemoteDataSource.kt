@@ -4,9 +4,14 @@ import com.eagskunst.emmanuel.gamingnews.core.common.DispatcherProvider
 import com.eagskunst.emmanuel.gamingnews.core.data.source.local.IgdbAuthLocalDataSource
 import com.eagskunst.emmanuel.gamingnews.core.data.source.remote.api.IgdbApi
 import com.eagskunst.emmanuel.gamingnews.core.data.source.remote.api.IgdbReleaseDateDto
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
+import retrofit2.HttpException
 import javax.inject.Inject
 import javax.inject.Named
 
@@ -19,31 +24,66 @@ class IgdbRemoteDataSource @Inject constructor(
 ) {
 
     private val platforms = listOf(6, 49, 48, 130, 167, 169, 508)
+    private val tokenMutex = Mutex()
 
     suspend fun fetchUpcomingReleases(offset: Int = 0): List<IgdbReleaseDateDto> = withContext(dispatchers.io) {
+        val body = buildQuery(offset).toRequestBody(MEDIA_TYPE)
         val token = getValidAccessToken()
-        val authorization = "Bearer $token"
-        val timestamp = System.currentTimeMillis() / 1000
+        try {
+            requestReleases(token, body)
+        } catch (exception: HttpException) {
+            if (exception.code() != 401) throw exception
+            val replacement = renewRejectedToken(token)
+            try {
+                requestReleases(replacement, body)
+            } catch (retryException: HttpException) {
+                if (retryException.code() == 401) {
+                    throw IgdbRejectedTokenException(retryException)
+                }
+                throw retryException
+            }
+        }
+    }
 
-        val query = buildString {
+    private suspend fun requestReleases(token: String, body: RequestBody): List<IgdbReleaseDateDto> =
+        api.getReleaseDates(clientId, "Bearer $token", body)
+
+    private fun buildQuery(offset: Int): String {
+        val timestamp = System.currentTimeMillis() / 1000
+        return buildString {
             appendLine("fields id,date,human,platform,game.name,game.url,game.cover.url;")
             appendLine("where platform = (${platforms.joinToString(",")}) & date > $timestamp;")
             appendLine("sort date asc;")
             appendLine("limit $PAGE_LIMIT;")
             appendLine("offset $offset;")
         }
-
-        val body = query.toRequestBody(MEDIA_TYPE)
-        api.getReleaseDates(clientId, authorization, body)
     }
 
-    private suspend fun getValidAccessToken(): String {
-        return authLocalDataSource.getAccessToken()
-            ?: run {
-                val (token, expiresIn) = authRemoteDataSource.fetchAccessToken()
-                authLocalDataSource.saveAccessToken(token, expiresIn)
-                token
-            }
+    private suspend fun getValidAccessToken(): String = authLocalDataSource.getAccessToken(clientId)
+        ?: tokenMutex.withLock {
+            authLocalDataSource.getAccessToken(clientId) ?: fetchAndStoreAccessToken()
+        }
+
+    private suspend fun renewRejectedToken(rejectedToken: String): String = tokenMutex.withLock {
+        val currentToken = authLocalDataSource.getAccessToken(clientId)
+        if (currentToken != null && currentToken != rejectedToken) {
+            currentToken
+        } else {
+            authLocalDataSource.invalidateAccessToken(rejectedToken, clientId)
+            fetchAndStoreAccessToken()
+        }
+    }
+
+    private suspend fun fetchAndStoreAccessToken(): String {
+        try {
+            val (token, expiresIn) = authRemoteDataSource.fetchAccessToken()
+            authLocalDataSource.saveAccessToken(token, expiresIn, clientId)
+            return token
+        } catch (exception: CancellationException) {
+            throw exception
+        } catch (exception: Exception) {
+            throw IgdbTokenAcquisitionException(exception)
+        }
     }
 
     companion object {

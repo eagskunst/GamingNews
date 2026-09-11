@@ -6,6 +6,7 @@ import com.eagskunst.emmanuel.gamingnews.testutil.Fixtures
 import com.eagskunst.emmanuel.gamingnews.testutil.MainDispatcherRule
 import com.eagskunst.emmanuel.gamingnews.testutil.fakes.FakeReleasesRepository
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -52,7 +53,7 @@ class ReleasesViewModelTest {
             val state = expectMostRecentItem()
             assertEquals(listOf(release), state.releases)
             assertEquals(false, state.isLoading)
-            assertEquals(null, state.errorMessage)
+            assertEquals(null, state.error)
         }
     }
 
@@ -67,8 +68,39 @@ class ReleasesViewModelTest {
         viewModel.uiState.test {
             val state = expectMostRecentItem()
             assertEquals(false, state.isLoading)
-            assertEquals("network down", state.errorMessage)
+            assertEquals(ReleasesError.REFRESH, state.error)
         }
+    }
+
+    @Test
+    fun `GIVEN cached releases WHEN refresh fails THEN releases remain visible with localized error type`() = runTest {
+        val cachedRelease = Fixtures.gameRelease()
+        fakeRepository = FakeReleasesRepository(Result.Success(listOf(cachedRelease)))
+        val viewModel = ReleasesViewModel(fakeRepository)
+        runCurrent()
+
+        fakeRepository.releasesResultFlow.value = Result.Error(RuntimeException("sensitive detail"))
+        runCurrent()
+
+        val state = viewModel.uiState.value
+        assertEquals(listOf(cachedRelease), state.releases)
+        assertEquals(ReleasesError.REFRESH, state.error)
+    }
+
+    @Test
+    fun `GIVEN pagination in progress WHEN refresh is requested THEN refresh does not overlap`() = runTest {
+        val viewModel = createViewModel()
+        val pendingLoad = CompletableDeferred<Unit>()
+        fakeRepository.loadNextPageBlocker = pendingLoad
+        runCurrent()
+        val refreshCount = fakeRepository.releasesStreamInvocations
+
+        viewModel.loadMore()
+        runCurrent()
+        viewModel.refresh()
+
+        assertEquals(refreshCount, fakeRepository.releasesStreamInvocations)
+        pendingLoad.complete(Unit)
     }
 
     @Test
@@ -109,7 +141,7 @@ class ReleasesViewModelTest {
         viewModel.uiState.test {
             val state = expectMostRecentItem()
             assertEquals(false, state.isLoadingMore)
-            assertEquals("page load failed", state.errorMessage)
+            assertEquals(ReleasesError.PAGINATION, state.error)
         }
     }
 

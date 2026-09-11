@@ -18,6 +18,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.util.Calendar
 import java.util.Date
@@ -30,6 +32,7 @@ class DefaultReleasesRepository @Inject constructor(
 ) : ReleasesRepository {
 
     private val pageLimit = IgdbRemoteDataSource.PAGE_LIMIT
+    private val operationMutex = Mutex()
     private var currentOffset = 0
 
     private val _hasMorePages = MutableStateFlow(true)
@@ -37,9 +40,19 @@ class DefaultReleasesRepository @Inject constructor(
 
     override fun releasesStream(forceRefresh: Boolean): Flow<Result<List<GameRelease>>> = flow {
         emit(Result.Loading)
-        val isEmpty = releaseDao.observeAll().first().isEmpty()
-        if (forceRefresh || isEmpty) {
-            refresh()
+        val cached = releaseDao.observeAll().first()
+        if (forceRefresh || cached.isEmpty()) {
+            try {
+                operationMutex.withLock { refresh() }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                if (cached.isNotEmpty()) {
+                    emit(Result.Success(cached.map { it.toGameRelease() }))
+                }
+                emit(Result.Error(e))
+                return@flow
+            }
         }
         emitAll(
             releaseDao.observeAll().map { entities ->
@@ -51,25 +64,29 @@ class DefaultReleasesRepository @Inject constructor(
     }.flowOn(dispatchers.io)
 
     override suspend fun loadNextPage(): Result<Boolean> = withContext(dispatchers.io) {
-        if (!_hasMorePages.value) {
-            return@withContext Result.Success(false)
-        }
-
-        try {
-            val dtos = igdbRemoteDataSource.fetchUpcomingReleases(currentOffset)
-            val releases = mergeReleases(dtos)
-            releaseDao.insertAll(releases.map { it.toReleaseEntity() })
-
-            if (dtos.size < pageLimit) {
-                _hasMorePages.value = false
-            } else {
-                currentOffset += pageLimit
-                _hasMorePages.value = true
+        operationMutex.withLock {
+            if (!_hasMorePages.value) {
+                return@withLock Result.Success(false)
             }
 
-            Result.Success(_hasMorePages.value)
-        } catch (e: Exception) {
-            Result.Error(e)
+            try {
+                val dtos = igdbRemoteDataSource.fetchUpcomingReleases(currentOffset)
+                val releases = mergeReleases(dtos)
+                releaseDao.insertAll(releases.map { it.toReleaseEntity() })
+
+                if (dtos.size < pageLimit) {
+                    _hasMorePages.value = false
+                } else {
+                    currentOffset += pageLimit
+                    _hasMorePages.value = true
+                }
+
+                Result.Success(_hasMorePages.value)
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Result.Error(e)
+            }
         }
     }
 

@@ -29,19 +29,28 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideOkHttpClient(): OkHttpClient {
-        val logging = HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BODY
+    fun provideOkHttpClient(): OkHttpClient = OkHttpClient.Builder().build()
+
+    @Provides
+    @Singleton
+    @Named("igdbHttpClient")
+    fun provideIgdbOkHttpClient(): OkHttpClient {
+        val builder = OkHttpClient.Builder()
+        if (BuildConfig.DEBUG) {
+            val logging = HttpLoggingInterceptor().apply {
+                redactHeader("Authorization")
+                redactHeader("Client-ID")
+                level = HttpLoggingInterceptor.Level.BASIC
+            }
+            builder.addInterceptor(logging)
         }
-        return OkHttpClient.Builder()
-            .addInterceptor(logging)
-            .build()
+        return builder.build()
     }
 
     @Provides
     @Singleton
     @Named("igdb")
-    fun provideIgdbRetrofit(client: OkHttpClient): Retrofit {
+    fun provideIgdbRetrofit(@Named("igdbHttpClient") client: OkHttpClient): Retrofit {
         return Retrofit.Builder()
             .baseUrl("https://api.igdb.com/v4/")
             .client(client)
