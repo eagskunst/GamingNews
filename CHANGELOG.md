@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [2.8.0] - 2026-09-17
 
 ### Added
 - Muted words: local title-only filtering with user-managed mute rules supporting Contains, Whole word, and Exact phrase match modes, per-rule case sensitivity, and scopes limited to Everywhere or selected news tabs.
@@ -18,13 +18,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Search and mute filtering moved from Compose into the domain use cases so rendered results and muted counts share the same candidate set; rule edits, search changes, and reveal toggles re-filter the cached snapshot without restarting network requests.
 - The "new articles" banner count is computed only on the first emission of a refresh so filtering changes can no longer re-trigger it.
-- Hardened Twitch token caching with an expiration safety margin, client-ID association, and release-only credential validation.
-- Disabled release HTTP logging and limited debug IGDB diagnostics while excluding Twitch authentication traffic.
-
-### Fixed
-- Recovered from rejected IGDB tokens with one coordinated renewal and one bounded retry, including concurrent release requests.
-- Preserved cached releases and displayed localized errors when refresh or pagination fails.
-- Prevented overlapping release refresh and pagination operations.
 
 ## [2.7.0] - 2026-09-11
 
@@ -38,11 +31,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Injected the shared RSS parser into the RSS remote data source for improved testability.
 - Bumped the Room database to version 2 with a migration that preserves existing saved articles and releases.
+- Hardened Twitch token caching with an expiration safety margin, client-ID association, and release-only credential validation.
+- Disabled release HTTP logging and limited debug IGDB diagnostics while excluding Twitch authentication traffic.
+
 
 ### Fixed
 - Prevented the initial Reviews load from displaying both pull-to-refresh and centered loading indicators.
 - Prevented failed review refreshes from replacing a valid fresh cache entry or displaying an unknown publication date as decades old.
 - Surfaced bookmark persistence failures in the Reviews screen state.
+- Recovered from rejected IGDB tokens with one coordinated renewal and one bounded retry, including concurrent release requests.
+- Preserved cached releases and displayed localized errors when refresh or pagination fails.
+- Prevented overlapping release refresh and pagination operations.
 
 ## [2.6.0]
 
