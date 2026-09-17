@@ -83,7 +83,13 @@ class MainActivity : ComponentActivity() {
                     onOpenArticleWithMode = viewModel::openArticleWithMode,
                     onShareArticle = { url -> shareArticle(url) },
                     onOpenGameUrl = { url -> viewModel.openArticleWithMode(url, ArticleOpenMode.CUSTOM_TAB) },
-                    onSettingsClick = { startActivity(Intent(this, SettingsActivity::class.java)) }
+                    onSettingsClick = { startActivity(Intent(this, SettingsActivity::class.java)) },
+                    onManageMutedWords = {
+                        startActivity(
+                            Intent(this, SettingsActivity::class.java)
+                                .putExtra(SettingsActivity.EXTRA_OPEN_MUTED_WORDS, true)
+                        )
+                    }
                 )
             }
         }
@@ -107,7 +113,8 @@ private fun MainScreen(
     onOpenArticleWithMode: (String, ArticleOpenMode) -> Unit,
     onShareArticle: (String) -> Unit,
     onOpenGameUrl: (String) -> Unit,
-    onSettingsClick: () -> Unit
+    onSettingsClick: () -> Unit,
+    onManageMutedWords: () -> Unit
 ) {
     val windowSizeClass = calculateWindowSizeClass(activity)
     val navController = rememberNavController()
@@ -156,6 +163,7 @@ private fun MainScreen(
                     NewsScreen(
                         viewModel = viewModel,
                         onSettingsClick = onSettingsClick,
+                        onManageMutedWords = onManageMutedWords,
                         onOpenArticle = onOpenArticle,
                         onOpenArticleWithMode = onOpenArticleWithMode,
                         onShareArticle = onShareArticle,
@@ -187,6 +195,7 @@ private fun MainScreen(
                     ReviewsScreen(
                         viewModel = viewModel,
                         onSettingsClick = onSettingsClick,
+                        onManageMutedWords = onManageMutedWords,
                         onOpenArticle = onOpenArticle,
                         onOpenArticleWithMode = onOpenArticleWithMode,
                         onShareArticle = onShareArticle,

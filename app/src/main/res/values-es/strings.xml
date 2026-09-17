@@ -62,5 +62,62 @@
         <item quantity="one">%1$d noticia nueva</item>
         <item quantity="other">%1$d noticias nuevas</item>
     </plurals>
+
+    <string name="settings_muted_words">Palabras silenciadas</string>
+    <plurals name="mute_rules_count">
+        <item quantity="zero">Sin reglas</item>
+        <item quantity="one">%1$d regla</item>
+        <item quantity="other">%1$d reglas</item>
+    </plurals>
+    <string name="muted_words_title">Palabras silenciadas</string>
+    <string name="muted_words_explanation">Oculta artículos cuyos títulos contengan las palabras o frases que elijas. El filtrado solo se aplica a los títulos y ocurre en este dispositivo.</string>
+    <string name="muted_words_empty">Aún no tienes palabras silenciadas</string>
+    <string name="muted_words_add">Añadir palabra silenciada</string>
+    <string name="mute_rule_add_title">Añadir palabra silenciada</string>
+    <string name="mute_rule_edit_title">Editar palabra silenciada</string>
+    <string name="mute_rule_text_label">Palabra o frase</string>
+    <string name="mute_rule_match_mode">Coincidencia</string>
+    <string name="mute_match_contains">Contiene</string>
+    <string name="mute_match_whole_word">Palabra completa</string>
+    <string name="mute_match_exact_phrase">Frase exacta</string>
+    <string name="mute_rule_case_sensitive">Distinguir mayúsculas</string>
+    <string name="mute_rule_case_sensitive_summary">Coincidir mayúsculas y minúsculas exactamente.</string>
+    <string name="mute_rule_scope">Aplicar en</string>
+    <string name="mute_scope_everywhere">En todas partes</string>
+    <string name="mute_scope_selected_tabs">Pestañas de noticias seleccionadas</string>
+    <string name="mute_rules_reviews_switch">Aplicar reglas globales en Análisis</string>
+    <string name="mute_rules_reviews_summary">Las reglas limitadas a pestañas seleccionadas nunca se aplican a Análisis.</string>
+    <string name="mute_rule_save">Guardar</string>
+    <string name="mute_rule_delete">Eliminar</string>
+    <string name="mute_rule_delete_confirm_title">¿Eliminar palabra silenciada?</string>
+    <string name="mute_rule_delete_confirm_message">«%1$s» dejará de ocultar artículos.</string>
+    <string name="mute_rule_error_blank">Escribe una palabra o frase</string>
+    <string name="mute_rule_error_whole_word">Las reglas de palabra completa deben ser una sola palabra</string>
+    <string name="mute_rule_error_no_tabs">Selecciona al menos una pestaña</string>
+    <string name="mute_rule_error_duplicate">Ya existe una regla idéntica</string>
+    <string name="mute_rule_save_failed">No se pudo guardar la regla. Inténtalo de nuevo.</string>
+    <string name="mute_rule_case_badge">Distingue mayúsculas</string>
+    <string name="mute_rules_load_error">No se pudieron cargar las palabras silenciadas</string>
+
+    <string name="tab_all_news">Todas las noticias</string>
+    <string name="tab_playstation">PlayStation</string>
+    <string name="tab_xbox">Xbox</string>
+    <string name="tab_nintendo">Nintendo</string>
+    <string name="tab_pc">PC</string>
+
+    <plurals name="muted_articles_hidden">
+        <item quantity="one">%1$d artículo oculto</item>
+        <item quantity="other">%1$d artículos ocultos</item>
+    </plurals>
+    <plurals name="muted_articles_showing">
+        <item quantity="one">Mostrando %1$d artículo silenciado</item>
+        <item quantity="other">Mostrando %1$d artículos silenciados</item>
+    </plurals>
+    <string name="muted_articles_show_hidden">Mostrar ocultos</string>
+    <string name="muted_articles_hide_again">Ocultar de nuevo</string>
+    <string name="muted_articles_manage">Gestionar</string>
+    <string name="muted_articles_badge">Silenciado</string>
+    <string name="all_muted_empty_title">Todo aquí está silenciado</string>
+    <string name="all_muted_empty_message">Todos los artículos de esta vista coinciden con tus palabras silenciadas.</string>
 </resources>
 

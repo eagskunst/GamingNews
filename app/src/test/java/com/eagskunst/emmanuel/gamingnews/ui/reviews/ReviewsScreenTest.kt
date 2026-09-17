@@ -14,9 +14,12 @@ import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetSavedArticlesUse
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetUserPreferencesUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.ToggleSavedArticleUseCase
 import com.eagskunst.emmanuel.gamingnews.testutil.Fixtures
+import com.eagskunst.emmanuel.gamingnews.testutil.TestDispatcherProvider
+import com.eagskunst.emmanuel.gamingnews.testutil.fakes.FakeMuteRulesRepository
 import com.eagskunst.emmanuel.gamingnews.testutil.fakes.FakeNewsRepository
 import com.eagskunst.emmanuel.gamingnews.testutil.fakes.FakeReviewsRepository
 import com.eagskunst.emmanuel.gamingnews.testutil.fakes.FakeUserPreferencesRepository
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -34,10 +37,17 @@ class ReviewsScreenTest {
 
     private val fakeReviewsRepository = FakeReviewsRepository()
     private val fakeNewsRepository = FakeNewsRepository()
+    private val fakeMuteRulesRepository = FakeMuteRulesRepository()
     private val fakeUserPreferencesRepository = FakeUserPreferencesRepository()
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     private fun createViewModel(): ReviewsViewModel = ReviewsViewModel(
-        getReviewsUseCase = GetReviewsUseCase(fakeReviewsRepository),
+        getReviewsUseCase = GetReviewsUseCase(
+            fakeReviewsRepository,
+            fakeMuteRulesRepository,
+            fakeUserPreferencesRepository,
+            TestDispatcherProvider()
+        ),
         getSavedArticlesUseCase = GetSavedArticlesUseCase(fakeNewsRepository),
         toggleSavedArticleUseCase = ToggleSavedArticleUseCase(fakeNewsRepository),
         getUserPreferencesUseCase = GetUserPreferencesUseCase(fakeUserPreferencesRepository),
@@ -54,6 +64,7 @@ class ReviewsScreenTest {
             ReviewsScreen(
                 viewModel = createViewModel(),
                 onSettingsClick = {},
+                onManageMutedWords = {},
                 onOpenArticle = {},
                 onOpenArticleWithMode = { _, _ -> },
                 onShareArticle = {}
@@ -73,6 +84,7 @@ class ReviewsScreenTest {
             ReviewsScreen(
                 viewModel = createViewModel(),
                 onSettingsClick = {},
+                onManageMutedWords = {},
                 onOpenArticle = {},
                 onOpenArticleWithMode = { _, _ -> },
                 onShareArticle = {}
@@ -92,6 +104,7 @@ class ReviewsScreenTest {
             ReviewsScreen(
                 viewModel = createViewModel(),
                 onSettingsClick = {},
+                onManageMutedWords = {},
                 onOpenArticle = {},
                 onOpenArticleWithMode = { _, _ -> },
                 onShareArticle = {}

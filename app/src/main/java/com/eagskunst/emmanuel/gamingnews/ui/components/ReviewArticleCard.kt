@@ -56,7 +56,8 @@ fun ReviewArticleCard(
     onToggleSave: () -> Unit,
     onClick: () -> Unit,
     onMenuAction: (ArticleMenuAction) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isRevealedMuted: Boolean = false
 ) {
     var showMenu by remember { mutableStateOf(false) }
 
@@ -65,6 +66,7 @@ fun ReviewArticleCard(
             article = article,
             isSaved = isSaved,
             loadImages = loadImages,
+            isRevealedMuted = isRevealedMuted,
             onToggleSave = onToggleSave,
             onClick = onClick,
             onShowMenu = { showMenu = true },
@@ -75,6 +77,7 @@ fun ReviewArticleCard(
             article = article,
             isSaved = isSaved,
             loadImages = loadImages,
+            isRevealedMuted = isRevealedMuted,
             onToggleSave = onToggleSave,
             onClick = onClick,
             onShowMenu = { showMenu = true },
@@ -99,6 +102,7 @@ private fun HeroReviewCard(
     article: NewsArticle,
     isSaved: Boolean,
     loadImages: Boolean,
+    isRevealedMuted: Boolean,
     onToggleSave: () -> Unit,
     onClick: () -> Unit,
     onShowMenu: () -> Unit,
@@ -131,6 +135,7 @@ private fun HeroReviewCard(
             article = article,
             isSaved = isSaved,
             isHero = true,
+            isRevealedMuted = isRevealedMuted,
             onToggleSave = onToggleSave,
             onShowMenu = onShowMenu,
             modifier = Modifier.padding(16.dp)
@@ -143,6 +148,7 @@ private fun CompactReviewCard(
     article: NewsArticle,
     isSaved: Boolean,
     loadImages: Boolean,
+    isRevealedMuted: Boolean,
     onToggleSave: () -> Unit,
     onClick: () -> Unit,
     onShowMenu: () -> Unit,
@@ -171,6 +177,7 @@ private fun CompactReviewCard(
                     article = article,
                     isSaved = isSaved,
                     isHero = false,
+                    isRevealedMuted = isRevealedMuted,
                     onToggleSave = onToggleSave,
                     onShowMenu = onShowMenu,
                     modifier = Modifier
@@ -197,11 +204,15 @@ private fun ReviewCardContent(
     article: NewsArticle,
     isSaved: Boolean,
     isHero: Boolean,
+    isRevealedMuted: Boolean,
     onToggleSave: () -> Unit,
     onShowMenu: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier) {
+        if (isRevealedMuted) {
+            MutedBadge(modifier = Modifier.padding(bottom = 8.dp))
+        }
         Text(
             text = article.title,
             style = if (isHero) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.titleMedium,

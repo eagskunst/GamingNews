@@ -1,5 +1,10 @@
 package com.eagskunst.emmanuel.gamingnews.ui.reviews
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,42 +26,56 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.eagskunst.emmanuel.gamingnews.R
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.ArticleOpenMode
+import com.eagskunst.emmanuel.gamingnews.core.domain.model.FilteredFeed
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.NewsArticle
+import com.eagskunst.emmanuel.gamingnews.ui.components.AllMutedEmptyState
 import com.eagskunst.emmanuel.gamingnews.ui.components.ArticleMenuAction
 import com.eagskunst.emmanuel.gamingnews.ui.components.MainTopAppBar
+import com.eagskunst.emmanuel.gamingnews.ui.components.MutedArticlesNotice
+import com.eagskunst.emmanuel.gamingnews.ui.components.rememberMutedNoticeScrollBehavior
 import com.eagskunst.emmanuel.gamingnews.ui.components.ReviewArticleCard
 import com.eagskunst.emmanuel.gamingnews.ui.components.handleArticleMenuAction
+import com.eagskunst.emmanuel.gamingnews.utility.findActivity
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReviewsScreen(
     viewModel: ReviewsViewModel,
     onSettingsClick: () -> Unit,
+    onManageMutedWords: () -> Unit,
     onOpenArticle: (String) -> Unit,
     onOpenArticleWithMode: (String, ArticleOpenMode) -> Unit,
     onShareArticle: (String) -> Unit,
     scrollToTopSignal: Int = 0
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val filteredArticles = remember(uiState.articles, uiState.searchQuery) {
-        if (uiState.searchQuery.isBlank()) {
-            uiState.articles
-        } else {
-            uiState.articles.filter { it.title.contains(uiState.searchQuery, ignoreCase = true) }
+    val listState = rememberLazyListState()
+    val mutedNoticeBehavior = rememberMutedNoticeScrollBehavior(resetKey = uiState.mutedCount)
+
+    // Reset the temporary muted reveal when this destination leaves composition (tab switch),
+    // but not when the activity is only recreating for a configuration change.
+    val context = LocalContext.current
+    DisposableEffect(Unit) {
+        onDispose {
+            if (context.findActivity()?.isChangingConfigurations != true) {
+                viewModel.resetMutedReveal()
+            }
         }
     }
-    val listState = rememberLazyListState()
+
     LaunchedEffect(scrollToTopSignal) {
         if (scrollToTopSignal > 0) listState.animateScrollToItem(0)
     }
@@ -72,52 +91,79 @@ fun ReviewsScreen(
             )
         }
     ) { padding ->
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            PullToRefreshBox(
-                isRefreshing = uiState.isLoading && uiState.articles.isNotEmpty(),
-                onRefresh = { viewModel.refresh(forceRefresh = true) },
-                modifier = Modifier.fillMaxSize()
+            AnimatedVisibility(
+                visible = mutedNoticeBehavior.visible,
+                enter = expandVertically() + fadeIn(),
+                exit = shrinkVertically() + fadeOut()
             ) {
-                when {
-                    uiState.isLoading && uiState.articles.isEmpty() -> {
-                        LoadingContent(modifier = Modifier.fillMaxSize())
-                    }
-                    filteredArticles.isEmpty() -> {
-                        EmptyContent(
-                            searchActive = uiState.searchQuery.isNotBlank(),
-                            errorMessage = uiState.errorMessage,
-                            onRetry = { viewModel.refresh(forceRefresh = true) },
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    }
-                    else -> {
-                        ReviewsList(
-                            articles = filteredArticles,
-                            savedLinks = uiState.savedLinks,
-                            loadImages = uiState.loadImages,
-                            listState = listState,
-                            onToggleSave = viewModel::toggleSavedArticle,
-                            onOpenArticle = onOpenArticle,
-                            onOpenArticleWithMode = onOpenArticleWithMode,
-                            onShareArticle = onShareArticle,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    }
-                }
+                MutedArticlesNotice(
+                    mutedCount = uiState.mutedCount,
+                    revealed = uiState.isMutedRevealed,
+                    onToggleReveal = viewModel::toggleMutedReveal,
+                    onManage = onManageMutedWords
+                )
             }
 
-            uiState.staleSourceMessage?.let {
-                StaleBanner(
-                    message = stringResource(R.string.stale_source_message),
-                    onDismiss = viewModel::dismissError,
-                    modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .padding(16.dp)
-                )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .nestedScroll(mutedNoticeBehavior.nestedScrollConnection)
+            ) {
+                PullToRefreshBox(
+                    isRefreshing = uiState.isLoading && uiState.articles.isNotEmpty(),
+                    onRefresh = { viewModel.refresh(forceRefresh = true) },
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    when {
+                        uiState.isLoading && uiState.articles.isEmpty() -> {
+                            LoadingContent(modifier = Modifier.fillMaxSize())
+                        }
+                        uiState.feedEmptyState == FilteredFeed.EmptyState.ALL_MUTED -> {
+                            AllMutedEmptyState(
+                                onShowHidden = viewModel::toggleMutedReveal,
+                                onManage = onManageMutedWords,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
+                        uiState.articles.isEmpty() -> {
+                            EmptyContent(
+                                searchActive = uiState.feedEmptyState == FilteredFeed.EmptyState.NO_SEARCH_RESULTS,
+                                errorMessage = uiState.errorMessage,
+                                onRetry = { viewModel.refresh(forceRefresh = true) },
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
+                        else -> {
+                            ReviewsList(
+                                articles = uiState.articles,
+                                savedLinks = uiState.savedLinks,
+                                loadImages = uiState.loadImages,
+                                revealedMutedLinks = uiState.revealedMutedLinks,
+                                listState = listState,
+                                onToggleSave = viewModel::toggleSavedArticle,
+                                onOpenArticle = onOpenArticle,
+                                onOpenArticleWithMode = onOpenArticleWithMode,
+                                onShareArticle = onShareArticle,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
+                    }
+                }
+
+                uiState.staleSourceMessage?.let {
+                    StaleBanner(
+                        message = stringResource(R.string.stale_source_message),
+                        onDismiss = viewModel::dismissError,
+                        modifier = Modifier
+                            .align(Alignment.TopCenter)
+                            .padding(16.dp)
+                    )
+                }
             }
         }
     }
@@ -128,6 +174,7 @@ private fun ReviewsList(
     articles: List<NewsArticle>,
     savedLinks: Set<String>,
     loadImages: Boolean,
+    revealedMutedLinks: Set<String>,
     listState: androidx.compose.foundation.lazy.LazyListState,
     onToggleSave: (NewsArticle) -> Unit,
     onOpenArticle: (String) -> Unit,
@@ -150,6 +197,7 @@ private fun ReviewsList(
                 isSaved = article.link in savedLinks,
                 loadImages = loadImages,
                 isHero = index == 0,
+                isRevealedMuted = article.link in revealedMutedLinks,
                 onToggleSave = { onToggleSave(article) },
                 onClick = { onOpenArticle(article.link) },
                 onMenuAction = { action ->

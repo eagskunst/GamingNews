@@ -14,6 +14,7 @@ import com.eagskunst.emmanuel.gamingnews.core.domain.model.Topic
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.AddTopicUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetTopicsUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetUserPreferencesUseCase
+import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.ObserveMuteRulesUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.RemoveTopicUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateArticleOpenModeUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateDailyReminderHourUseCase
@@ -52,6 +53,7 @@ data class SettingsUiState(
     val nextReminderLabel: String = "",
     val articleOpenMode: ArticleOpenMode = ArticleOpenMode.READER_MODE,
     val topics: List<Topic> = emptyList(),
+    val muteRuleCount: Int = 0,
     val isLoading: Boolean = true
 )
 
@@ -68,7 +70,8 @@ class SettingsViewModel @Inject constructor(
     private val updateDailyReminderHourUseCase: UpdateDailyReminderHourUseCase,
     private val updateArticleOpenModeUseCase: UpdateArticleOpenModeUseCase,
     private val addTopicUseCase: AddTopicUseCase,
-    private val removeTopicUseCase: RemoveTopicUseCase
+    private val removeTopicUseCase: RemoveTopicUseCase,
+    observeMuteRulesUseCase: ObserveMuteRulesUseCase
 ) : ViewModel() {
 
     private val _uiEvent = MutableSharedFlow<SettingsUiEvent>()
@@ -76,8 +79,9 @@ class SettingsViewModel @Inject constructor(
 
     val uiState: StateFlow<SettingsUiState> = combine(
         getUserPreferencesUseCase(),
-        getTopicsUseCase()
-    ) { preferences, topics ->
+        getTopicsUseCase(),
+        observeMuteRulesUseCase()
+    ) { preferences, topics, muteRules ->
         SettingsUiState(
             themeMode = preferences.themeMode,
             dynamicColor = preferences.dynamicColor,
@@ -88,6 +92,7 @@ class SettingsViewModel @Inject constructor(
             nextReminderLabel = computeNextReminderLabel(preferences.dailyReminderHour),
             articleOpenMode = preferences.articleOpenMode,
             topics = topics,
+            muteRuleCount = muteRules.size,
             isLoading = false
         )
     }.stateIn(

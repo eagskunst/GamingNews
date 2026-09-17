@@ -5,6 +5,8 @@ import androidx.room.Room
 import com.eagskunst.emmanuel.gamingnews.core.data.source.local.AppDatabase
 import com.eagskunst.emmanuel.gamingnews.core.data.source.local.ArticleDao
 import com.eagskunst.emmanuel.gamingnews.core.data.source.local.MIGRATION_1_2
+import com.eagskunst.emmanuel.gamingnews.core.data.source.local.MIGRATION_2_3
+import com.eagskunst.emmanuel.gamingnews.core.data.source.local.MuteRuleDao
 import com.eagskunst.emmanuel.gamingnews.core.data.source.local.ReleaseDao
 import dagger.Module
 import dagger.Provides
@@ -25,7 +27,7 @@ object DatabaseModule {
             AppDatabase::class.java,
             "gamingnews.db"
         )
-            .addMigrations(MIGRATION_1_2)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
             .build()
     }
 
@@ -34,4 +36,7 @@ object DatabaseModule {
 
     @Provides
     fun provideReleaseDao(database: AppDatabase): ReleaseDao = database.releaseDao()
+
+    @Provides
+    fun provideMuteRuleDao(database: AppDatabase): MuteRuleDao = database.muteRuleDao()
 }

@@ -14,5 +14,6 @@ interface UserPreferencesRepository {
     suspend fun updateDailyReminder(enabled: Boolean)
     suspend fun updateDailyReminderHour(hour: Int)
     suspend fun updateArticleOpenMode(mode: ArticleOpenMode)
+    suspend fun updateApplyGlobalMuteRulesToReviews(enabled: Boolean)
 }
 

@@ -8,6 +8,7 @@ data class UserPreferences(
     val loadImages: Boolean,
     val dailyReminder: Boolean,
     val dailyReminderHour: Int,
-    val articleOpenMode: ArticleOpenMode
+    val articleOpenMode: ArticleOpenMode,
+    val applyGlobalMuteRulesToReviews: Boolean = false
 )
 

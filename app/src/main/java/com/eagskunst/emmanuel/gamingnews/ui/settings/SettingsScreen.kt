@@ -55,6 +55,7 @@ import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -74,6 +75,7 @@ fun SettingsScreen(
     viewModel: SettingsViewModel,
     onBackClick: () -> Unit,
     onCustomizeFeedClick: () -> Unit,
+    onMutedWordsClick: () -> Unit,
     onContactEmailClick: () -> Unit,
     onContactWebsiteClick: () -> Unit,
     onPrivacyPolicyClick: () -> Unit
@@ -133,6 +135,7 @@ fun SettingsScreen(
             onDailyReminderHourChange = viewModel::setDailyReminderHour,
             onArticleOpenModeChange = viewModel::setArticleOpenMode,
             onCustomizeFeedClick = onCustomizeFeedClick,
+            onMutedWordsClick = onMutedWordsClick,
             onAddTopic = viewModel::addTopic,
             onRemoveTopic = viewModel::removeTopic,
             onContactEmailClick = onContactEmailClick,
@@ -154,6 +157,7 @@ private fun SettingsContent(
     onDailyReminderHourChange: (Int) -> Unit = {},
     onArticleOpenModeChange: (ArticleOpenMode) -> Unit = {},
     onCustomizeFeedClick: () -> Unit = {},
+    onMutedWordsClick: () -> Unit = {},
     onAddTopic: (String) -> Unit = {},
     onRemoveTopic: (Topic) -> Unit = {},
     onContactEmailClick: () -> Unit = {},
@@ -222,6 +226,35 @@ private fun SettingsContent(
                 )
                 Text(
                     text = stringResource(R.string.settings_customize_feed_summary),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary
+            )
+        }
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onMutedWordsClick)
+                .padding(vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(R.string.settings_muted_words),
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                Text(
+                    text = pluralStringResource(
+                        R.plurals.mute_rules_count,
+                        uiState.muteRuleCount,
+                        uiState.muteRuleCount
+                    ),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

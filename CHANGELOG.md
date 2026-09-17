@@ -7,7 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Muted words: local title-only filtering with user-managed mute rules supporting Contains, Whole word, and Exact phrase match modes, per-rule case sensitivity, and scopes limited to Everywhere or selected news tabs.
+- "Muted words" management screen in Settings with a rule-count summary, add/edit bottom sheet (match mode, case sensitivity, tab scope), delete confirmation, validation errors, and an "Apply global mute rules to Reviews" opt-in switch.
+- Inline feed notice in News and Reviews showing the hidden-article count with Show hidden / Hide again and Manage actions; revealed muted articles keep their chronological order and display a "Muted" badge, and the notice collapses while scrolling down and reappears when scrolling up.
+- Distinct all-muted empty state with reveal/manage actions when every article in a tab or search result is muted.
+- Room persistence for mute rules and selected-tab associations with transactional CRUD, in-transaction duplicate protection, and a non-destructive 2 → 3 migration preserving saved articles and releases.
+- Comprehensive coverage: matcher/validator, reactive use-case filtering, ViewModels, Compose screens, DataStore preference, and instrumented Room DAO and migration tests.
+
 ### Changed
+- Search and mute filtering moved from Compose into the domain use cases so rendered results and muted counts share the same candidate set; rule edits, search changes, and reveal toggles re-filter the cached snapshot without restarting network requests.
+- The "new articles" banner count is computed only on the first emission of a refresh so filtering changes can no longer re-trigger it.
 - Hardened Twitch token caching with an expiration safety margin, client-ID association, and release-only credential validation.
 - Disabled release HTTP logging and limited debug IGDB diagnostics while excluding Twitch authentication traffic.
 

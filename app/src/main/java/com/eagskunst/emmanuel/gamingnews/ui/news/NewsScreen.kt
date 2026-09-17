@@ -1,8 +1,10 @@
 package com.eagskunst.emmanuel.gamingnews.ui.news
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Arrangement
@@ -30,23 +32,31 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.eagskunst.emmanuel.gamingnews.R
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.ArticleOpenMode
+import com.eagskunst.emmanuel.gamingnews.core.domain.model.FilteredFeed
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.NewsCategory
+import com.eagskunst.emmanuel.gamingnews.ui.components.AllMutedEmptyState
 import com.eagskunst.emmanuel.gamingnews.ui.components.ArticleCard
 import com.eagskunst.emmanuel.gamingnews.ui.components.ArticleMenuAction
 import com.eagskunst.emmanuel.gamingnews.ui.components.MainTopAppBar
+import com.eagskunst.emmanuel.gamingnews.ui.components.MutedArticlesNotice
+import com.eagskunst.emmanuel.gamingnews.ui.components.rememberMutedNoticeScrollBehavior
+import com.eagskunst.emmanuel.gamingnews.ui.components.displayName
 import com.eagskunst.emmanuel.gamingnews.ui.components.handleArticleMenuAction
+import com.eagskunst.emmanuel.gamingnews.utility.findActivity
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -57,21 +67,29 @@ private val categories = NewsCategory.entries.toTypedArray()
 fun NewsScreen(
     viewModel: NewsViewModel,
     onSettingsClick: () -> Unit,
+    onManageMutedWords: () -> Unit,
     onOpenArticle: (String) -> Unit,
     onOpenArticleWithMode: (String, ArticleOpenMode) -> Unit,
     onShareArticle: (String) -> Unit,
     scrollToTopSignal: Int = 0
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val filteredArticles = remember(uiState.articles, uiState.searchQuery) {
-        if (uiState.searchQuery.isBlank()) {
-            uiState.articles
-        } else {
-            uiState.articles.filter { it.title.contains(uiState.searchQuery, ignoreCase = true) }
-        }
-    }
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
+    val mutedNoticeBehavior = rememberMutedNoticeScrollBehavior(resetKey = uiState.mutedCount)
+
+    // Reset the temporary muted reveal when this destination leaves composition (tab switch),
+    // but not when the activity is only recreating for a configuration change — the ViewModel
+    // survives that and the reveal must persist.
+    val context = LocalContext.current
+    DisposableEffect(Unit) {
+        onDispose {
+            if (context.findActivity()?.isChangingConfigurations != true) {
+                viewModel.resetMutedReveal()
+            }
+        }
+    }
+
     LaunchedEffect(scrollToTopSignal) {
         if (scrollToTopSignal > 0) listState.animateScrollToItem(0)
     }
@@ -104,6 +122,19 @@ fun NewsScreen(
                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
             )
 
+            AnimatedVisibility(
+                visible = mutedNoticeBehavior.visible,
+                enter = expandVertically() + fadeIn(),
+                exit = shrinkVertically() + fadeOut()
+            ) {
+                MutedArticlesNotice(
+                    mutedCount = uiState.mutedCount,
+                    revealed = uiState.isMutedRevealed,
+                    onToggleReveal = viewModel::toggleMutedReveal,
+                    onManage = onManageMutedWords
+                )
+            }
+
             uiState.errorMessage?.let { error ->
                 Text(
                     text = error,
@@ -112,36 +143,49 @@ fun NewsScreen(
                 )
             }
 
-            Box(modifier = Modifier.fillMaxSize()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .nestedScroll(mutedNoticeBehavior.nestedScrollConnection)
+            ) {
                 PullToRefreshBox(
                     isRefreshing = uiState.isLoading,
                     onRefresh = { viewModel.refresh(forceRefresh = true, notifyNewArticles = true) },
                     modifier = Modifier.fillMaxSize()
                 ) {
 
-                    LazyColumn(
-                        state = listState,
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        items(filteredArticles, key = { it.link }) { article ->
-                            ArticleCard(
-                                article = article,
-                                isSaved = uiState.savedLinks.contains(article.link),
-                                loadImages = uiState.loadImages,
-                                onToggleSave = { viewModel.toggleSavedArticle(article) },
-                                onClick = { onOpenArticle(article.link) },
-                                onMenuAction = { action ->
-                                    handleArticleMenuAction(
-                                        article = article,
-                                        action = action,
-                                        onOpenArticleWithMode = onOpenArticleWithMode,
-                                        onShareArticle = onShareArticle,
-                                        onToggleSave = { viewModel.toggleSavedArticle(article) }
-                                    )
-                                }
-                            )
+                    if (uiState.feedEmptyState == FilteredFeed.EmptyState.ALL_MUTED) {
+                        AllMutedEmptyState(
+                            onShowHidden = viewModel::toggleMutedReveal,
+                            onManage = onManageMutedWords,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    } else {
+                        LazyColumn(
+                            state = listState,
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            items(uiState.articles, key = { it.link }) { article ->
+                                ArticleCard(
+                                    article = article,
+                                    isSaved = uiState.savedLinks.contains(article.link),
+                                    loadImages = uiState.loadImages,
+                                    isRevealedMuted = article.link in uiState.revealedMutedLinks,
+                                    onToggleSave = { viewModel.toggleSavedArticle(article) },
+                                    onClick = { onOpenArticle(article.link) },
+                                    onMenuAction = { action ->
+                                        handleArticleMenuAction(
+                                            article = article,
+                                            action = action,
+                                            onOpenArticleWithMode = onOpenArticleWithMode,
+                                            onShareArticle = onShareArticle,
+                                            onToggleSave = { viewModel.toggleSavedArticle(article) }
+                                        )
+                                    }
+                                )
+                            }
                         }
                     }
                 }
@@ -248,11 +292,4 @@ private fun CategorySelector(
     }
 }
 
-@Composable
-private fun NewsCategory.displayName(): String = when (this) {
-    NewsCategory.ALL -> "All"
-    NewsCategory.SONY -> "Playstation"
-    NewsCategory.MICROSOFT -> "Xbox"
-    NewsCategory.NINTENDO -> "Nintendo"
-    NewsCategory.PC -> "PC"
-}
+

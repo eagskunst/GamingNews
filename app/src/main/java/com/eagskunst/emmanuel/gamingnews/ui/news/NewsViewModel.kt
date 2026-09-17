@@ -3,6 +3,8 @@ package com.eagskunst.emmanuel.gamingnews.ui.news
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.eagskunst.emmanuel.gamingnews.core.common.Result
+import com.eagskunst.emmanuel.gamingnews.core.domain.model.FilteredFeed
+import com.eagskunst.emmanuel.gamingnews.core.domain.model.MuteContext
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.NewsArticle
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.NewsCategory
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetFeedUrlsUseCase
@@ -26,7 +28,12 @@ data class NewsUiState(
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
     val loadImages: Boolean = true,
-    val newArticlesCount: Int? = null
+    val newArticlesCount: Int? = null,
+    val mutedCount: Int = 0,
+    val isMutedRevealed: Boolean = false,
+    val revealedMutedLinks: Set<String> = emptySet(),
+    val feedEmptyState: FilteredFeed.EmptyState = FilteredFeed.EmptyState.NONE,
+    val sourceLinks: Set<String> = emptySet()
 )
 
 @HiltViewModel
@@ -40,6 +47,9 @@ class NewsViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(NewsUiState())
     val uiState: StateFlow<NewsUiState> = _uiState.asStateFlow()
+
+    private val searchQueryFlow = MutableStateFlow("")
+    private val revealMutedFlow = MutableStateFlow(false)
 
     private var refreshJob: kotlinx.coroutines.Job? = null
 
@@ -58,31 +68,55 @@ class NewsViewModel @Inject constructor(
     }
 
     fun selectCategory(category: NewsCategory) {
-        _uiState.update { it.copy(selectedCategory = category) }
+        revealMutedFlow.value = false
+        _uiState.update { it.copy(selectedCategory = category, isMutedRevealed = false) }
         refresh(forceRefresh = true)
     }
 
     fun refresh(forceRefresh: Boolean = true, notifyNewArticles: Boolean = false) {
         refreshJob?.cancel()
-        val previousLinks = _uiState.value.articles.map { it.link }.toSet()
+        val previousLinks = _uiState.value.sourceLinks
         refreshJob = viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
             val urls = getFeedUrlsUseCase(_uiState.value.selectedCategory)
-            getNewsUseCase(urls, forceRefresh).collect { result ->
+            // Count new articles only on the first emission of this refresh: later emissions
+            // come from rule/search/reveal changes re-filtering the same snapshot and must
+            // not re-trigger or resurrect the banner.
+            var countedNewArticles = false
+            getNewsUseCase(
+                urls = urls,
+                forceRefresh = forceRefresh,
+                context = MuteContext.NewsTab(_uiState.value.selectedCategory),
+                searchQuery = searchQueryFlow,
+                revealMuted = revealMutedFlow
+            ).collect { result ->
                 when (result) {
                     is Result.Loading -> _uiState.update { it.copy(isLoading = true) }
                     is Result.Success -> {
-                        val newArticlesCount = if (notifyNewArticles) {
-                            result.data.count { it.link !in previousLinks }
-                        } else {
-                            0
-                        }
+                        val feed = result.data
+                        val countNow = !countedNewArticles
+                        countedNewArticles = true
                         _uiState.update {
                             it.copy(
-                                articles = result.data,
+                                articles = feed.articles,
                                 isLoading = false,
                                 errorMessage = null,
-                                newArticlesCount = newArticlesCount.takeIf { count -> count > 0 }
+                                newArticlesCount = if (countNow) {
+                                    if (notifyNewArticles) {
+                                        feed.sourceLinks
+                                            .count { link -> link !in previousLinks }
+                                            .takeIf { count -> count > 0 }
+                                    } else {
+                                        null
+                                    }
+                                } else {
+                                    it.newArticlesCount
+                                },
+                                mutedCount = feed.mutedCount,
+                                isMutedRevealed = feed.isRevealed,
+                                revealedMutedLinks = feed.revealedMutedLinks,
+                                feedEmptyState = feed.emptyState,
+                                sourceLinks = feed.sourceLinks
                             )
                         }
                     }
@@ -103,6 +137,16 @@ class NewsViewModel @Inject constructor(
     }
 
     fun onSearchQueryChange(query: String) {
+        searchQueryFlow.value = query
         _uiState.update { it.copy(searchQuery = query) }
+    }
+
+    fun toggleMutedReveal() {
+        revealMutedFlow.update { !it }
+    }
+
+    /** Resets the temporary reveal, e.g. when leaving the News tab. */
+    fun resetMutedReveal() {
+        revealMutedFlow.value = false
     }
 }

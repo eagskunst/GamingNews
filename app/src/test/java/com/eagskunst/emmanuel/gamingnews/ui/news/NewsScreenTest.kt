@@ -16,9 +16,12 @@ import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetUserPreferencesU
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.ToggleSavedArticleUseCase
 import com.eagskunst.emmanuel.gamingnews.testutil.Fixtures
 import com.eagskunst.emmanuel.gamingnews.testutil.MainDispatcherRule
+import com.eagskunst.emmanuel.gamingnews.testutil.TestDispatcherProvider
 import com.eagskunst.emmanuel.gamingnews.testutil.fakes.FakeFeedProvidersRepository
+import com.eagskunst.emmanuel.gamingnews.testutil.fakes.FakeMuteRulesRepository
 import com.eagskunst.emmanuel.gamingnews.testutil.fakes.FakeNewsRepository
 import com.eagskunst.emmanuel.gamingnews.testutil.fakes.FakeUserPreferencesRepository
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -38,12 +41,18 @@ class NewsScreenTest {
     val composeTestRule = createAndroidComposeRule<ComponentActivity>()
 
     private val fakeNewsRepository = FakeNewsRepository()
+    private val fakeMuteRulesRepository = FakeMuteRulesRepository()
     private val fakeUserPreferencesRepository = FakeUserPreferencesRepository(Fixtures.userPreferences(loadImages = false))
     private val fakeFeedProvidersRepository = FakeFeedProvidersRepository()
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     private fun createViewModel(): NewsViewModel {
         return NewsViewModel(
-            getNewsUseCase = GetNewsUseCase(fakeNewsRepository),
+            getNewsUseCase = GetNewsUseCase(
+                fakeNewsRepository,
+                fakeMuteRulesRepository,
+                TestDispatcherProvider()
+            ),
             getSavedArticlesUseCase = GetSavedArticlesUseCase(fakeNewsRepository),
             toggleSavedArticleUseCase = ToggleSavedArticleUseCase(fakeNewsRepository),
             getFeedUrlsUseCase = GetFeedUrlsUseCase(fakeFeedProvidersRepository),
@@ -56,6 +65,7 @@ class NewsScreenTest {
             NewsScreen(
                 viewModel = viewModel,
                 onSettingsClick = {},
+                onManageMutedWords = {},
                 onOpenArticle = {},
                 onOpenArticleWithMode = { _, _ -> },
                 onShareArticle = {}

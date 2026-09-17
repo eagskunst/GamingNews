@@ -74,7 +74,8 @@ fun ArticleCard(
     loadImages: Boolean,
     onToggleSave: () -> Unit,
     onClick: () -> Unit,
-    onMenuAction: (ArticleMenuAction) -> Unit
+    onMenuAction: (ArticleMenuAction) -> Unit,
+    isRevealedMuted: Boolean = false
 ) {
     var imageFailedToLoad by remember(article.imageUrl) { mutableStateOf(false) }
     val showImage = loadImages && !article.imageUrl.isNullOrBlank() && !imageFailedToLoad
@@ -119,6 +120,9 @@ fun ArticleCard(
             )
         }
         Column(modifier = Modifier.padding(16.dp)) {
+            if (isRevealedMuted) {
+                MutedBadge(modifier = Modifier.padding(bottom = 8.dp))
+            }
             Text(
                 text = article.title,
                 style = MaterialTheme.typography.titleMedium,

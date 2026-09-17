@@ -4,8 +4,9 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.eagskunst.emmanuel.gamingnews.core.common.Result
+import com.eagskunst.emmanuel.gamingnews.core.domain.model.FilteredFeed
+import com.eagskunst.emmanuel.gamingnews.core.domain.model.FilteredReviewFeed
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.NewsArticle
-import com.eagskunst.emmanuel.gamingnews.core.domain.model.ReviewFeedSnapshot
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetReviewsUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetSavedArticlesUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetUserPreferencesUseCase
@@ -29,7 +30,11 @@ data class ReviewsUiState(
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
     val staleSourceMessage: String? = null,
-    val loadImages: Boolean = true
+    val loadImages: Boolean = true,
+    val mutedCount: Int = 0,
+    val isMutedRevealed: Boolean = false,
+    val revealedMutedLinks: Set<String> = emptySet(),
+    val feedEmptyState: FilteredFeed.EmptyState = FilteredFeed.EmptyState.NONE
 )
 
 @HiltViewModel
@@ -45,6 +50,9 @@ class ReviewsViewModel @Inject constructor(
         ReviewsUiState(searchQuery = savedStateHandle[SEARCH_QUERY_KEY] ?: "")
     )
     val uiState: StateFlow<ReviewsUiState> = _uiState.asStateFlow()
+
+    private val searchQueryFlow = MutableStateFlow(_uiState.value.searchQuery)
+    private val revealMutedFlow = MutableStateFlow(false)
 
     private var refreshJob: Job? = null
 
@@ -67,7 +75,11 @@ class ReviewsViewModel @Inject constructor(
         refreshJob = viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null, staleSourceMessage = null) }
             try {
-                getReviewsUseCase(forceRefresh).collect { result ->
+                getReviewsUseCase(
+                    forceRefresh = forceRefresh,
+                    searchQuery = searchQueryFlow,
+                    revealMuted = revealMutedFlow
+                ).collect { result ->
                     when (result) {
                         is Result.Loading -> _uiState.update { it.copy(isLoading = true) }
                         is Result.Success -> handleSuccess(result.data)
@@ -84,16 +96,20 @@ class ReviewsViewModel @Inject constructor(
         }
     }
 
-    private fun handleSuccess(snapshot: ReviewFeedSnapshot) {
-        val staleMessage = snapshot.failedSources.firstOrNull()?.let { failed ->
+    private fun handleSuccess(feed: FilteredReviewFeed) {
+        val staleMessage = feed.failedSources.firstOrNull()?.let { failed ->
             "${failed.name}: could not refresh"
         }
         _uiState.update {
             it.copy(
-                articles = snapshot.articles,
+                articles = feed.feed.articles,
                 isLoading = false,
                 errorMessage = null,
-                staleSourceMessage = staleMessage
+                staleSourceMessage = staleMessage,
+                mutedCount = feed.feed.mutedCount,
+                isMutedRevealed = feed.feed.isRevealed,
+                revealedMutedLinks = feed.feed.revealedMutedLinks,
+                feedEmptyState = feed.feed.emptyState
             )
         }
     }
@@ -116,6 +132,16 @@ class ReviewsViewModel @Inject constructor(
 
     fun onSearchQueryChange(query: String) {
         savedStateHandle[SEARCH_QUERY_KEY] = query
+        searchQueryFlow.value = query
         _uiState.update { it.copy(searchQuery = query) }
+    }
+
+    fun toggleMutedReveal() {
+        revealMutedFlow.update { !it }
+    }
+
+    /** Resets the temporary reveal, e.g. when leaving the Reviews tab. */
+    fun resetMutedReveal() {
+        revealMutedFlow.value = false
     }
 }

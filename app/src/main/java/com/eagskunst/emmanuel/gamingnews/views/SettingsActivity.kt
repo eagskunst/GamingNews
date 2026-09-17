@@ -21,12 +21,19 @@ import com.eagskunst.emmanuel.gamingnews.ui.settings.SettingsScreen
 import com.eagskunst.emmanuel.gamingnews.ui.settings.SettingsViewModel
 import com.eagskunst.emmanuel.gamingnews.ui.settings.feedsources.FeedSourcesScreen
 import com.eagskunst.emmanuel.gamingnews.ui.settings.feedsources.FeedSourcesViewModel
+import com.eagskunst.emmanuel.gamingnews.ui.settings.mutedwords.MutedWordsScreen
+import com.eagskunst.emmanuel.gamingnews.ui.settings.mutedwords.MutedWordsViewModel
 import com.eagskunst.emmanuel.gamingnews.ui.theme.GamingNewsTheme
 import com.eagskunst.emmanuel.gamingnews.utility.openCustomTab
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class SettingsActivity : ComponentActivity() {
+
+    companion object {
+        /** When true, opens the muted-words management screen directly. */
+        const val EXTRA_OPEN_MUTED_WORDS = "extra_open_muted_words"
+    }
 
     private val viewModel: SettingsViewModel by viewModels()
 
@@ -36,10 +43,15 @@ class SettingsActivity : ComponentActivity() {
         setContent {
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
             val navController = rememberNavController()
+            val startDestination = if (intent.getBooleanExtra(EXTRA_OPEN_MUTED_WORDS, false)) {
+                "muted_words"
+            } else {
+                "settings_root"
+            }
             GamingNewsTheme(themeMode = uiState.themeMode, dynamicColor = uiState.dynamicColor) {
                 NavHost(
                     navController = navController,
-                    startDestination = "settings_root"
+                    startDestination = startDestination
                 ) {
                     composable("settings_root") {
                         SettingsScreen(
@@ -47,6 +59,9 @@ class SettingsActivity : ComponentActivity() {
                             onBackClick = { finish() },
                             onCustomizeFeedClick = {
                                 navController.navigate("feed_sources")
+                            },
+                            onMutedWordsClick = {
+                                navController.navigate("muted_words")
                             },
                             onContactEmailClick = ::sendContactEmail,
                             onContactWebsiteClick = {
@@ -62,6 +77,15 @@ class SettingsActivity : ComponentActivity() {
                         FeedSourcesScreen(
                             viewModel = feedSourcesViewModel,
                             onBackClick = { navController.popBackStack() }
+                        )
+                    }
+                    composable("muted_words") {
+                        val mutedWordsViewModel = hiltViewModel<MutedWordsViewModel>()
+                        MutedWordsScreen(
+                            viewModel = mutedWordsViewModel,
+                            onBackClick = {
+                                if (!navController.popBackStack()) finish()
+                            }
                         )
                     }
                 }

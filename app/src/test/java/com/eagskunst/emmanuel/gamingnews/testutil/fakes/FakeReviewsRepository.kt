@@ -19,8 +19,11 @@ class FakeReviewsRepository(
 
     var lastForceRefresh: Boolean? = null
         private set
+    var reviewsStreamCalls = 0
+        private set
 
     override fun reviewsStream(forceRefresh: Boolean): Flow<Result<ReviewFeedSnapshot>> {
+        reviewsStreamCalls++
         lastForceRefresh = forceRefresh
         return flow { emit(reviewsResultFlow.value) }
     }

@@ -73,5 +73,62 @@
         <item quantity="one">%1$d new article</item>
         <item quantity="other">%1$d new articles</item>
     </plurals>
+
+    <string name="settings_muted_words">Muted words</string>
+    <plurals name="mute_rules_count">
+        <item quantity="zero">No rules</item>
+        <item quantity="one">%1$d rule</item>
+        <item quantity="other">%1$d rules</item>
+    </plurals>
+    <string name="muted_words_title">Muted words</string>
+    <string name="muted_words_explanation">Hide articles whose titles contain words or phrases you choose. Matching applies to titles only and happens on this device.</string>
+    <string name="muted_words_empty">No muted words yet</string>
+    <string name="muted_words_add">Add muted word</string>
+    <string name="mute_rule_add_title">Add muted word</string>
+    <string name="mute_rule_edit_title">Edit muted word</string>
+    <string name="mute_rule_text_label">Word or phrase</string>
+    <string name="mute_rule_match_mode">Match</string>
+    <string name="mute_match_contains">Contains</string>
+    <string name="mute_match_whole_word">Whole word</string>
+    <string name="mute_match_exact_phrase">Exact phrase</string>
+    <string name="mute_rule_case_sensitive">Case sensitive</string>
+    <string name="mute_rule_case_sensitive_summary">Match uppercase and lowercase letters exactly.</string>
+    <string name="mute_rule_scope">Apply to</string>
+    <string name="mute_scope_everywhere">Everywhere</string>
+    <string name="mute_scope_selected_tabs">Selected news tabs</string>
+    <string name="mute_rules_reviews_switch">Apply global mute rules to Reviews</string>
+    <string name="mute_rules_reviews_summary">Rules limited to selected tabs never apply to Reviews.</string>
+    <string name="mute_rule_save">Save</string>
+    <string name="mute_rule_delete">Delete</string>
+    <string name="mute_rule_delete_confirm_title">Delete muted word?</string>
+    <string name="mute_rule_delete_confirm_message">“%1$s” will stop hiding articles.</string>
+    <string name="mute_rule_error_blank">Enter a word or phrase</string>
+    <string name="mute_rule_error_whole_word">Whole word rules must be a single word</string>
+    <string name="mute_rule_error_no_tabs">Select at least one tab</string>
+    <string name="mute_rule_error_duplicate">An identical rule already exists</string>
+    <string name="mute_rule_save_failed">Couldn’t save the rule. Try again.</string>
+    <string name="mute_rule_case_badge">Case sensitive</string>
+    <string name="mute_rules_load_error">Couldn’t load muted words</string>
+
+    <string name="tab_all_news">All news</string>
+    <string name="tab_playstation">PlayStation</string>
+    <string name="tab_xbox">Xbox</string>
+    <string name="tab_nintendo">Nintendo</string>
+    <string name="tab_pc">PC</string>
+
+    <plurals name="muted_articles_hidden">
+        <item quantity="one">%1$d article hidden</item>
+        <item quantity="other">%1$d articles hidden</item>
+    </plurals>
+    <plurals name="muted_articles_showing">
+        <item quantity="one">Showing %1$d muted article</item>
+        <item quantity="other">Showing %1$d muted articles</item>
+    </plurals>
+    <string name="muted_articles_show_hidden">Show hidden</string>
+    <string name="muted_articles_hide_again">Hide again</string>
+    <string name="muted_articles_manage">Manage</string>
+    <string name="muted_articles_badge">Muted</string>
+    <string name="all_muted_empty_title">Everything here is muted</string>
+    <string name="all_muted_empty_message">All articles in this view match your muted words.</string>
 </resources>
 
