@@ -115,7 +115,7 @@ class MutedWordsScreenTest {
 
         openAddSheet(viewModel)
         composeTestRule.onNode(hasSetTextAction()).performTextInput("gta")
-        tapSheetButton("Save")
+        tapSheetButton("SAVE")
 
         assertEquals(1, fakeMuteRulesRepository.rulesFlow.value.size)
         assertEquals("gta", fakeMuteRulesRepository.rulesFlow.value[0].text)
@@ -137,7 +137,7 @@ class MutedWordsScreenTest {
         val viewModel = setContent()
 
         openAddSheet(viewModel)
-        tapSheetButton("Save")
+        tapSheetButton("SAVE")
 
         composeTestRule.onNodeWithText("Enter a word or phrase").assertIsDisplayed()
         assertTrue(fakeMuteRulesRepository.rulesFlow.value.isEmpty())
@@ -160,7 +160,7 @@ class MutedWordsScreenTest {
         composeTestRule.waitForIdle()
 
         composeTestRule.onNodeWithText("Edit muted word").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Delete").assertExists()
+        composeTestRule.onNodeWithText("DELETE").assertExists()
     }
 
     @Test
@@ -172,11 +172,11 @@ class MutedWordsScreenTest {
 
         composeTestRule.onNodeWithText("gta").performClick()
         composeTestRule.waitForIdle()
-        tapSheetButton("Delete")
+        tapSheetButton("DELETE")
 
         composeTestRule.onNodeWithText("Delete muted word?").assertIsDisplayed()
-        // Two "Delete" nodes exist: the sheet's and the dialog's; the dialog draws last.
-        composeTestRule.onAllNodesWithText("Delete")[1].performClick()
+        // Two "DELETE" nodes exist: the sheet's and the dialog's; the dialog draws last.
+        composeTestRule.onAllNodesWithText("DELETE")[1].performClick()
         composeTestRule.waitForIdle()
 
         assertTrue(fakeMuteRulesRepository.rulesFlow.value.isEmpty())
