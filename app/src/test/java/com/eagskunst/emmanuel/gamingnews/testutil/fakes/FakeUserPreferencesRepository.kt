@@ -48,5 +48,9 @@ class FakeUserPreferencesRepository(
     override suspend fun updateArticleOpenMode(mode: ArticleOpenMode) {
         preferencesFlow.update { it.copy(articleOpenMode = mode) }
     }
+
+    override suspend fun updateApplyGlobalMuteRulesToReviews(enabled: Boolean) {
+        preferencesFlow.update { it.copy(applyGlobalMuteRulesToReviews = enabled) }
+    }
 }
 

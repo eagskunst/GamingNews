@@ -12,6 +12,7 @@ import com.eagskunst.emmanuel.gamingnews.core.domain.model.Topic
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.AddTopicUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetTopicsUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetUserPreferencesUseCase
+import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.ObserveMuteRulesUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.RemoveTopicUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateArticleOpenModeUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateDailyReminderHourUseCase
@@ -22,6 +23,7 @@ import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateLoadImagesUse
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateThemeModeUseCase
 import com.eagskunst.emmanuel.gamingnews.testutil.Fixtures
 import com.eagskunst.emmanuel.gamingnews.testutil.MainDispatcherRule
+import com.eagskunst.emmanuel.gamingnews.testutil.fakes.FakeMuteRulesRepository
 import com.eagskunst.emmanuel.gamingnews.testutil.fakes.FakeTopicsRepository
 import com.eagskunst.emmanuel.gamingnews.testutil.fakes.FakeUserPreferencesRepository
 import io.mockk.every
@@ -42,6 +44,7 @@ class SettingsViewModelTest {
 
     private val fakeUserPreferencesRepository = FakeUserPreferencesRepository()
     private val fakeTopicsRepository = FakeTopicsRepository()
+    private val fakeMuteRulesRepository = FakeMuteRulesRepository()
     private val context: Context = mockk(relaxed = true)
 
     private fun createViewModel(): SettingsViewModel = SettingsViewModel(
@@ -56,7 +59,8 @@ class SettingsViewModelTest {
         updateDailyReminderHourUseCase = UpdateDailyReminderHourUseCase(fakeUserPreferencesRepository),
         updateArticleOpenModeUseCase = UpdateArticleOpenModeUseCase(fakeUserPreferencesRepository),
         addTopicUseCase = AddTopicUseCase(fakeTopicsRepository),
-        removeTopicUseCase = RemoveTopicUseCase(fakeTopicsRepository)
+        removeTopicUseCase = RemoveTopicUseCase(fakeTopicsRepository),
+        observeMuteRulesUseCase = ObserveMuteRulesUseCase(fakeMuteRulesRepository)
     )
 
     @Test

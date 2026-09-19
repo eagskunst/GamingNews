@@ -35,7 +35,7 @@ class ReleaseDaoTest {
     }
 
     @Test
-    fun `when releases are inserted and observed then they are returned ordered by releaseDate ascending`() = runTest {
+    fun `when_releases_are_inserted_and_observed_then_they_are_returned_ordered_by_releaseDate_ascending`() = runTest {
         val later = releaseEntity(
             id = 1L,
             releaseDate = Date(2_000L)
@@ -55,7 +55,7 @@ class ReleaseDaoTest {
     }
 
     @Test
-    fun `when clear is called then all releases are removed`() = runTest {
+    fun `when_clear_is_called_then_all_releases_are_removed`() = runTest {
         val releases = listOf(
             releaseEntity(id = 1L),
             releaseEntity(id = 2L)
@@ -70,7 +70,7 @@ class ReleaseDaoTest {
     }
 
     @Test
-    fun `when a release is inserted with the same id then the existing row is replaced`() = runTest {
+    fun `when_a_release_is_inserted_with_the_same_id_then_the_existing_row_is_replaced`() = runTest {
         val original = releaseEntity(id = 1L, name = "Original Game")
         val updated = original.copy(name = "Updated Game")
 

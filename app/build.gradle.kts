@@ -24,6 +24,14 @@ if (localPropertiesFile.exists()) {
 }
 fun localProperty(name: String, default: String = ""): String = localProperties.getProperty(name, default) ?: default
 
+val validateTwitchReleaseCredentials by tasks.registering {
+    doLast {
+        check(localProperty("twitch.client.id").isNotBlank() && localProperty("twitch.client.secret").isNotBlank()) {
+            "Release builds require non-blank Twitch credentials in local.properties"
+        }
+    }
+}
+
 android {
     namespace = "com.eagskunst.emmanuel.gamingnews"
     compileSdk = 37
@@ -43,8 +51,8 @@ android {
         applicationId = "com.eagskunst.emmanuel.gamingnews"
         minSdk = 24
         targetSdk = 37
-        versionCode = 30
-        versionName = "2.4.1"
+        versionCode = 34
+        versionName = "2.8.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
         buildConfigField("String", "TWITCH_CLIENT_ID", "\"${localProperty("twitch.client.id")}\"")
@@ -73,6 +81,7 @@ android {
     }
 
     compileOptions {
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
@@ -98,6 +107,10 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+}
+
+tasks.matching { it.name == "preReleaseBuild" }.configureEach {
+    dependsOn(validateTwitchReleaseCredentials)
 }
 
 ksp {
@@ -162,6 +175,13 @@ dependencies {
 
     // RSS
     implementation(libs.rssparser)
+
+    // Reader / HTML parsing
+    coreLibraryDesugaring(libs.desugar.jdk.libs.nio)
+    implementation(libs.readability4j) {
+        exclude(group = "org.jsoup", module = "jsoup")
+    }
+    implementation(libs.jsoup)
 
     // Firebase
     implementation(platform(libs.firebase.bom))

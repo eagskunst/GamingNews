@@ -68,6 +68,22 @@ class DefaultReleasesRepositoryTest {
     }
 
     @Test
+    fun `GIVEN cached releases WHEN refresh fails THEN cache is emitted before the error`() = runTest {
+        val storedRelease = Fixtures.gameRelease(id = 1L, name = "Stored Game")
+        releaseDao.insertAll(listOf(storedRelease.toReleaseEntity()))
+        coEvery { remoteDataSource.fetchUpcomingReleases(0) } throws IllegalStateException("offline")
+
+        repository.releasesStream(forceRefresh = true).test {
+            assertTrue(awaitItem() is Result.Loading)
+            assertEquals(listOf(storedRelease), (awaitItem() as Result.Success).data)
+            assertTrue(awaitItem() is Result.Error)
+            awaitComplete()
+        }
+
+        assertEquals(listOf("Stored Game"), releaseDao.observeAll().first().map { it.name })
+    }
+
+    @Test
     fun `loadNextPage fetches next offset appends results and sets hasMorePages to false when page is smaller than limit`() = runTest {
         val fullPage = List(IgdbRemoteDataSource.PAGE_LIMIT) { index ->
             releaseDto(

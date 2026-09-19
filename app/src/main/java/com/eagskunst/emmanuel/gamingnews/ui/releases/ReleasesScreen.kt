@@ -106,7 +106,10 @@ fun ReleasesScreen(
         },
         floatingActionButton = {
             FloatingActionButton(onClick = viewModel::refresh) {
-                Icon(imageVector = Icons.Default.Refresh, contentDescription = "Refresh")
+                Icon(
+                    imageVector = Icons.Default.Refresh,
+                    contentDescription = stringResource(R.string.releases_refresh_content_description)
+                )
             }
         }
     ) { padding ->
@@ -123,9 +126,9 @@ fun ReleasesScreen(
                 )
             }
 
-            uiState.errorMessage?.let { error ->
+            uiState.error?.let { error ->
                 Text(
-                    text = error,
+                    text = stringResource(error.messageResource),
                     color = MaterialTheme.colorScheme.error,
                     modifier = Modifier.padding(16.dp)
                 )
@@ -246,5 +249,13 @@ private fun PlatformChip(platform: String) {
             .padding(horizontal = 12.dp, vertical = 6.dp)
     )
 }
+
+private val ReleasesError.messageResource: Int
+    get() = when (this) {
+        ReleasesError.TOKEN_ACQUISITION -> R.string.releases_token_error
+        ReleasesError.IGDB_REJECTION -> R.string.releases_auth_rejected_error
+        ReleasesError.REFRESH -> R.string.releases_refresh_error
+        ReleasesError.PAGINATION -> R.string.releases_pagination_error
+    }
 
 private const val LOAD_MORE_THRESHOLD = 5

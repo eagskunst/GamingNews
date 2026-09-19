@@ -41,5 +41,9 @@ class DefaultUserPreferencesRepository @Inject constructor(
     override suspend fun updateArticleOpenMode(mode: ArticleOpenMode) {
         localDataSource.updateArticleOpenMode(mode)
     }
+
+    override suspend fun updateApplyGlobalMuteRulesToReviews(enabled: Boolean) {
+        localDataSource.updateApplyGlobalMuteRulesToReviews(enabled)
+    }
 }
 

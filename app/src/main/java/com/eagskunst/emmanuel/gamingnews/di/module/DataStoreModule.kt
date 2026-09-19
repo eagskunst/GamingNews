@@ -1,6 +1,7 @@
 package com.eagskunst.emmanuel.gamingnews.di.module
 
 import android.content.Context
+import com.eagskunst.emmanuel.gamingnews.core.data.source.local.FeedProvidersLocalDataSource
 import com.eagskunst.emmanuel.gamingnews.core.data.source.local.IgdbAuthLocalDataSource
 import com.eagskunst.emmanuel.gamingnews.core.data.source.local.TopicsLocalDataSource
 import com.eagskunst.emmanuel.gamingnews.core.data.source.local.UserPreferencesLocalDataSource
@@ -32,4 +33,10 @@ object DataStoreModule {
     fun provideIgdbAuthLocalDataSource(
         @ApplicationContext context: Context
     ): IgdbAuthLocalDataSource = IgdbAuthLocalDataSource(context)
+
+    @Provides
+    @Singleton
+    fun provideFeedProvidersLocalDataSource(
+        @ApplicationContext context: Context
+    ): FeedProvidersLocalDataSource = FeedProvidersLocalDataSource(context)
 }

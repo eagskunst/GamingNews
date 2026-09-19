@@ -98,5 +98,5 @@ app/src/androidTest/java/com/eagskunst/emmanuel/gamingnews/
   `DailyReminderScheduler`/`WorkManager`, which isn't available in a plain (non-Robolectric) JVM
   test — that interaction is covered by `SettingsScreenTest` (Robolectric, with
   `WorkManagerTestInitHelper`) instead.
-- `ReaderScreen` (WebView-based) and the notification-topics section of `SettingsScreen` (gated
-  behind a `false` feature flag in source) are not covered by Compose UI tests.
+- The notification-topics section of `SettingsScreen` (gated behind a `false` feature flag in
+  source) is not covered by Compose UI tests.

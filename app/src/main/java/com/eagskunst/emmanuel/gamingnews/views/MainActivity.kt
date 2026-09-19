@@ -16,9 +16,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -55,6 +57,8 @@ import com.eagskunst.emmanuel.gamingnews.ui.news.NewsScreen
 import com.eagskunst.emmanuel.gamingnews.ui.news.NewsViewModel
 import com.eagskunst.emmanuel.gamingnews.ui.releases.ReleasesScreen
 import com.eagskunst.emmanuel.gamingnews.ui.releases.ReleasesViewModel
+import com.eagskunst.emmanuel.gamingnews.ui.reviews.ReviewsScreen
+import com.eagskunst.emmanuel.gamingnews.ui.reviews.ReviewsViewModel
 import com.eagskunst.emmanuel.gamingnews.ui.saved.SavedScreen
 import com.eagskunst.emmanuel.gamingnews.ui.saved.SavedViewModel
 import com.eagskunst.emmanuel.gamingnews.ui.theme.GamingNewsTheme
@@ -79,7 +83,13 @@ class MainActivity : ComponentActivity() {
                     onOpenArticleWithMode = viewModel::openArticleWithMode,
                     onShareArticle = { url -> shareArticle(url) },
                     onOpenGameUrl = { url -> viewModel.openArticleWithMode(url, ArticleOpenMode.CUSTOM_TAB) },
-                    onSettingsClick = { startActivity(Intent(this, SettingsActivity::class.java)) }
+                    onSettingsClick = { startActivity(Intent(this, SettingsActivity::class.java)) },
+                    onManageMutedWords = {
+                        startActivity(
+                            Intent(this, SettingsActivity::class.java)
+                                .putExtra(SettingsActivity.EXTRA_OPEN_MUTED_WORDS, true)
+                        )
+                    }
                 )
             }
         }
@@ -103,7 +113,8 @@ private fun MainScreen(
     onOpenArticleWithMode: (String, ArticleOpenMode) -> Unit,
     onShareArticle: (String) -> Unit,
     onOpenGameUrl: (String) -> Unit,
-    onSettingsClick: () -> Unit
+    onSettingsClick: () -> Unit,
+    onManageMutedWords: () -> Unit
 ) {
     val windowSizeClass = calculateWindowSizeClass(activity)
     val navController = rememberNavController()
@@ -112,12 +123,14 @@ private fun MainScreen(
     var newsScrollToTopEvent by remember { mutableIntStateOf(0) }
     var savedScrollToTopEvent by remember { mutableIntStateOf(0) }
     var releasesScrollToTopEvent by remember { mutableIntStateOf(0) }
+    var reviewsScrollToTopEvent by remember { mutableIntStateOf(0) }
 
     fun onTabReselected(route: String) {
         when (route) {
             BottomNavRoute.News.route -> newsScrollToTopEvent++
             BottomNavRoute.Saved.route -> savedScrollToTopEvent++
             BottomNavRoute.Releases.route -> releasesScrollToTopEvent++
+            BottomNavRoute.Reviews.route -> reviewsScrollToTopEvent++
         }
     }
 
@@ -150,6 +163,7 @@ private fun MainScreen(
                     NewsScreen(
                         viewModel = viewModel,
                         onSettingsClick = onSettingsClick,
+                        onManageMutedWords = onManageMutedWords,
                         onOpenArticle = onOpenArticle,
                         onOpenArticleWithMode = onOpenArticleWithMode,
                         onShareArticle = onShareArticle,
@@ -174,6 +188,18 @@ private fun MainScreen(
                         onSettingsClick = onSettingsClick,
                         onOpenGameUrl = onOpenGameUrl,
                         scrollToTopSignal = releasesScrollToTopEvent
+                    )
+                }
+                composable(BottomNavRoute.Reviews.route) {
+                    val viewModel = hiltViewModel<ReviewsViewModel>()
+                    ReviewsScreen(
+                        viewModel = viewModel,
+                        onSettingsClick = onSettingsClick,
+                        onManageMutedWords = onManageMutedWords,
+                        onOpenArticle = onOpenArticle,
+                        onOpenArticleWithMode = onOpenArticleWithMode,
+                        onShareArticle = onShareArticle,
+                        scrollToTopSignal = reviewsScrollToTopEvent
                     )
                 }
             }
@@ -279,5 +305,11 @@ private enum class BottomNavRoute(
         labelRes = R.string.nextReleases,
         selectedIcon = Icons.Filled.DateRange,
         unselectedIcon = Icons.Outlined.DateRange
+    ),
+    Reviews(
+        route = "reviews",
+        labelRes = R.string.reviews,
+        selectedIcon = Icons.Filled.Star,
+        unselectedIcon = Icons.Outlined.StarBorder
     )
 }

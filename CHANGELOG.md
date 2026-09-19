@@ -5,7 +5,56 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [2.8.0] - 2026-09-17
+
+### Added
+- Muted words: local title-only filtering with user-managed mute rules supporting Contains, Whole word, and Exact phrase match modes, per-rule case sensitivity, and scopes limited to Everywhere or selected news tabs.
+- "Muted words" management screen in Settings with a rule-count summary, add/edit bottom sheet (match mode, case sensitivity, tab scope), delete confirmation, validation errors, and an "Apply global mute rules to Reviews" opt-in switch.
+- Inline feed notice in News and Reviews showing the hidden-article count with Show hidden / Hide again and Manage actions; revealed muted articles keep their chronological order and display a "Muted" badge, and the notice collapses while scrolling down and reappears when scrolling up.
+- Distinct all-muted empty state with reveal/manage actions when every article in a tab or search result is muted.
+- Room persistence for mute rules and selected-tab associations with transactional CRUD, in-transaction duplicate protection, and a non-destructive 2 → 3 migration preserving saved articles and releases.
+- Comprehensive coverage: matcher/validator, reactive use-case filtering, ViewModels, Compose screens, DataStore preference, and instrumented Room DAO and migration tests.
+
+### Changed
+- Search and mute filtering moved from Compose into the domain use cases so rendered results and muted counts share the same candidate set; rule edits, search changes, and reveal toggles re-filter the cached snapshot without restarting network requests.
+- The "new articles" banner count is computed only on the first emission of a refresh so filtering changes can no longer re-trigger it.
+
+## [2.7.0] - 2026-09-11
+
+### Added
+- Added Reviews as a fourth adaptive navigation destination with search, pull-to-refresh, retry states, bookmark synchronization, and existing article open/share actions.
+- Added localized Eurogamer review feeds selected by device language: Eurogamer ES for Spanish locales and Eurogamer EN for English and unsupported locales.
+- Added featured, compact-thumbnail, and text-only review cards that respect the existing image-loading preference.
+- Added review feed caching, stale-data fallback, URL deduplication, conservative date handling, and comprehensive repository, ViewModel, Compose, catalog, mapper, and Room migration coverage.
+- Added nullable article authors across RSS mapping, Room persistence, saved article reloads, and shared article metadata.
+
+### Changed
+- Injected the shared RSS parser into the RSS remote data source for improved testability.
+- Bumped the Room database to version 2 with a migration that preserves existing saved articles and releases.
+- Hardened Twitch token caching with an expiration safety margin, client-ID association, and release-only credential validation.
+- Disabled release HTTP logging and limited debug IGDB diagnostics while excluding Twitch authentication traffic.
+
+
+### Fixed
+- Prevented the initial Reviews load from displaying both pull-to-refresh and centered loading indicators.
+- Prevented failed review refreshes from replacing a valid fresh cache entry or displaying an unknown publication date as decades old.
+- Surfaced bookmark persistence failures in the Reviews screen state.
+- Recovered from rejected IGDB tokens with one coordinated renewal and one bounded retry, including concurrent release requests.
+- Preserved cached releases and displayed localized errors when refresh or pagination fails.
+- Prevented overlapping release refresh and pagination operations.
+
+## [2.6.0]
+
+### Added
+- Feed provider selection: users can now enable or disable individual RSS providers from a new "Customize Feed" screen in Settings, accessible via the "Feed & Sources" section.
+- Providers are grouped by category (All, Playstation, Xbox, Nintendo, PC) with filter chips; each provider row shows a name and checkbox.
+- Disabled providers are excluded from all news fetches (initial load, pull-to-refresh, and category switches), reducing bandwidth and battery use.
+- "Restore defaults" action in the top bar re-enables all providers.
+- Provider selections are persisted via DataStore and survive app restarts.
+- Enriched `urls.json` with stable provider IDs and human-readable names.
+- In-Settings NavHost navigation between the settings root and the feed sources screen.
+- Provider ID stability snapshot test to guard against accidental renames or removals that would break users' saved preferences.
+- Comprehensive test coverage: DataStore persistence, repository, use cases, ViewModel, and updated existing NewsViewModel/NewsScreen/SettingsScreen tests.
 
 ## [2.4.0] - 2026-08-22
 

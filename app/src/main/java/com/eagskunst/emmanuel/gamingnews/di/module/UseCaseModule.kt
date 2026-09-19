@@ -1,19 +1,34 @@
 package com.eagskunst.emmanuel.gamingnews.di.module
 
+import com.eagskunst.emmanuel.gamingnews.core.common.DispatcherProvider
+import com.eagskunst.emmanuel.gamingnews.core.domain.repository.ArticleReaderRepository
+import com.eagskunst.emmanuel.gamingnews.core.domain.repository.FeedProvidersRepository
+import com.eagskunst.emmanuel.gamingnews.core.domain.repository.MuteRulesRepository
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.NewsRepository
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.ReleasesRepository
+import com.eagskunst.emmanuel.gamingnews.core.domain.repository.ReviewsRepository
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.TopicsRepository
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.UserPreferencesRepository
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.AddTopicUseCase
+import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.DeleteMuteRuleUseCase
+import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetFeedProvidersUseCase
+import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetFeedUrlsUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetNewsUseCase
+import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetReaderArticleUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetReleasesUseCase
+import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetReviewsUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetSavedArticlesUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetTopicsUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetArticleOpenModeUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetUserPreferencesUseCase
+import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.ObserveMuteRulesUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.OpenArticleUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.RemoveTopicUseCase
+import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.RestoreFeedProvidersDefaultsUseCase
+import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.SaveMuteRuleUseCase
+import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.SetFeedProviderEnabledUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.ToggleSavedArticleUseCase
+import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateApplyGlobalMuteRulesToReviewsUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateArticleOpenModeUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateDailyReminderHourUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateDailyReminderUseCase
@@ -32,7 +47,11 @@ import dagger.hilt.android.components.ViewModelComponent
 object UseCaseModule {
 
     @Provides
-    fun provideGetNewsUseCase(repository: NewsRepository): GetNewsUseCase = GetNewsUseCase(repository)
+    fun provideGetNewsUseCase(
+        repository: NewsRepository,
+        muteRulesRepository: MuteRulesRepository,
+        dispatchers: DispatcherProvider
+    ): GetNewsUseCase = GetNewsUseCase(repository, muteRulesRepository, dispatchers)
 
 
     @Provides
@@ -46,6 +65,15 @@ object UseCaseModule {
     @Provides
     fun provideGetReleasesUseCase(repository: ReleasesRepository): GetReleasesUseCase =
         GetReleasesUseCase(repository)
+
+    @Provides
+    fun provideGetReviewsUseCase(
+        repository: ReviewsRepository,
+        muteRulesRepository: MuteRulesRepository,
+        userPreferencesRepository: UserPreferencesRepository,
+        dispatchers: DispatcherProvider
+    ): GetReviewsUseCase =
+        GetReviewsUseCase(repository, muteRulesRepository, userPreferencesRepository, dispatchers)
 
     @Provides
     fun provideGetTopicsUseCase(repository: TopicsRepository): GetTopicsUseCase =
@@ -94,5 +122,45 @@ object UseCaseModule {
     @Provides
     fun provideUpdateDailyReminderHourUseCase(repository: UserPreferencesRepository): UpdateDailyReminderHourUseCase =
         UpdateDailyReminderHourUseCase(repository)
+
+    @Provides
+    fun provideGetReaderArticleUseCase(repository: ArticleReaderRepository): GetReaderArticleUseCase =
+        GetReaderArticleUseCase(repository)
+
+    @Provides
+    fun provideGetFeedUrlsUseCase(repository: FeedProvidersRepository): GetFeedUrlsUseCase =
+        GetFeedUrlsUseCase(repository)
+
+    @Provides
+    fun provideGetFeedProvidersUseCase(repository: FeedProvidersRepository): GetFeedProvidersUseCase =
+        GetFeedProvidersUseCase(repository)
+
+    @Provides
+    fun provideSetFeedProviderEnabledUseCase(repository: FeedProvidersRepository): SetFeedProviderEnabledUseCase =
+        SetFeedProviderEnabledUseCase(repository)
+
+    @Provides
+    fun provideRestoreFeedProvidersDefaultsUseCase(repository: FeedProvidersRepository): RestoreFeedProvidersDefaultsUseCase =
+        RestoreFeedProvidersDefaultsUseCase(repository)
+
+    @Provides
+    fun provideObserveMuteRulesUseCase(repository: MuteRulesRepository): ObserveMuteRulesUseCase =
+        ObserveMuteRulesUseCase(repository)
+
+    @Provides
+    fun provideSaveMuteRuleUseCase(
+        repository: MuteRulesRepository,
+        dispatchers: DispatcherProvider
+    ): SaveMuteRuleUseCase = SaveMuteRuleUseCase(repository, dispatchers)
+
+    @Provides
+    fun provideDeleteMuteRuleUseCase(repository: MuteRulesRepository): DeleteMuteRuleUseCase =
+        DeleteMuteRuleUseCase(repository)
+
+    @Provides
+    fun provideUpdateApplyGlobalMuteRulesToReviewsUseCase(
+        repository: UserPreferencesRepository
+    ): UpdateApplyGlobalMuteRulesToReviewsUseCase =
+        UpdateApplyGlobalMuteRulesToReviewsUseCase(repository)
 }
 

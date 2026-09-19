@@ -52,7 +52,7 @@ class MainActivityViewModel @Inject constructor(
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.Eagerly,
-            initialValue = ArticleOpenMode.CUSTOM_TAB
+            initialValue = ArticleOpenMode.READER_MODE
         )
 
 

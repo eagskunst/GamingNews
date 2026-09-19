@@ -149,4 +149,22 @@ class ArticleCardTest {
         composeTestRule.onNodeWithContentDescription("Remove from saved").assertIsDisplayed()
         composeTestRule.onNodeWithContentDescription("Save article").assertDoesNotExist()
     }
+
+    @Test
+    fun `given an article with author when the card is rendered then author is displayed`() {
+        val articleWithAuthor = article.copy(author = "Jane Doe")
+
+        composeTestRule.setContent {
+            ArticleCard(
+                article = articleWithAuthor,
+                isSaved = false,
+                loadImages = false,
+                onToggleSave = {},
+                onClick = {},
+                onMenuAction = {}
+            )
+        }
+
+        composeTestRule.onNodeWithText("Jane Doe", substring = true).assertIsDisplayed()
+    }
 }

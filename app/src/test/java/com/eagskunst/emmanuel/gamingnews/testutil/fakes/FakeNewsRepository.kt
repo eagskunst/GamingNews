@@ -24,10 +24,17 @@ class FakeNewsRepository(
         private set
     var lastForceRefresh: Boolean? = null
         private set
+    var newsStreamCalls = 0
+        private set
+    var saveError: Exception? = null
 
     override fun newsStream(urls: List<String>, forceRefresh: Boolean): Flow<Result<List<NewsArticle>>> {
+        newsStreamCalls++
         lastRequestedUrls = urls
         lastForceRefresh = forceRefresh
+        // One-shot emit of the current value, mirroring the real repository's cold flow
+        // that fetches once per subscription. Reactive re-filtering tests rely on the
+        // combine downstream retaining this last value.
         return flow { emit(newsResultFlow.value) }
     }
 
@@ -35,10 +42,12 @@ class FakeNewsRepository(
     override fun savedArticlesStream(): Flow<List<NewsArticle>> = savedArticlesFlow
 
     override suspend fun saveArticle(article: NewsArticle) {
+        saveError?.let { throw it }
         savedArticlesFlow.update { it + article }
     }
 
     override suspend fun removeArticle(article: NewsArticle) {
+        saveError?.let { throw it }
         savedArticlesFlow.update { it - article }
     }
 

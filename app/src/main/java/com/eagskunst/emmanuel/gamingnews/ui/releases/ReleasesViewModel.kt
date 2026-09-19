@@ -3,6 +3,8 @@ package com.eagskunst.emmanuel.gamingnews.ui.releases
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.eagskunst.emmanuel.gamingnews.core.common.Result
+import com.eagskunst.emmanuel.gamingnews.core.data.source.remote.IgdbRejectedTokenException
+import com.eagskunst.emmanuel.gamingnews.core.data.source.remote.IgdbTokenAcquisitionException
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.GameRelease
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.ReleasesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -13,13 +15,20 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+enum class ReleasesError {
+    TOKEN_ACQUISITION,
+    IGDB_REJECTION,
+    REFRESH,
+    PAGINATION
+}
+
 data class ReleasesUiState(
     val releases: List<GameRelease> = emptyList(),
     val searchQuery: String = "",
     val isLoading: Boolean = false,
     val isLoadingMore: Boolean = false,
     val hasMorePages: Boolean = true,
-    val errorMessage: String? = null
+    val error: ReleasesError? = null
 )
 
 @HiltViewModel
@@ -40,16 +49,19 @@ class ReleasesViewModel @Inject constructor(
     }
 
     fun refresh() {
+        val state = _uiState.value
+        if (state.isLoading || state.isLoadingMore) return
+
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            _uiState.update { it.copy(isLoading = true, error = null) }
             repository.releasesStream(forceRefresh = true).collect { result ->
                 when (result) {
                     is Result.Loading -> _uiState.update { it.copy(isLoading = true) }
                     is Result.Success -> _uiState.update {
-                        it.copy(releases = result.data, isLoading = false, errorMessage = null)
+                        it.copy(releases = result.data, isLoading = false, error = null)
                     }
                     is Result.Error -> _uiState.update {
-                        it.copy(isLoading = false, errorMessage = result.exception.localizedMessage)
+                        it.copy(isLoading = false, error = result.exception.toReleasesError(false))
                     }
                 }
             }
@@ -58,16 +70,16 @@ class ReleasesViewModel @Inject constructor(
 
     fun loadMore() {
         val state = _uiState.value
-        if (state.isLoadingMore || !state.hasMorePages) return
+        if (state.isLoading || state.isLoadingMore || !state.hasMorePages) return
 
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoadingMore = true) }
+            _uiState.update { it.copy(isLoadingMore = true, error = null) }
             when (val result = repository.loadNextPage()) {
                 is Result.Error -> {
                     _uiState.update {
                         it.copy(
                             isLoadingMore = false,
-                            errorMessage = result.exception.localizedMessage
+                            error = result.exception.toReleasesError(true)
                         )
                     }
                 }
@@ -79,4 +91,10 @@ class ReleasesViewModel @Inject constructor(
     fun onSearchQueryChange(query: String) {
         _uiState.update { it.copy(searchQuery = query) }
     }
+}
+
+private fun Throwable.toReleasesError(isPagination: Boolean): ReleasesError = when (this) {
+    is IgdbTokenAcquisitionException -> ReleasesError.TOKEN_ACQUISITION
+    is IgdbRejectedTokenException -> ReleasesError.IGDB_REJECTION
+    else -> if (isPagination) ReleasesError.PAGINATION else ReleasesError.REFRESH
 }

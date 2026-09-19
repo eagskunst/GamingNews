@@ -1,0 +1,16 @@
+[
+  {
+    "id": "reviews-eurogamer-es",
+    "language": "es",
+    "name": "Eurogamer ES",
+    "url": "https://www.eurogamer.es/feed/reviews",
+    "eligibilityPolicy": "gaming_feed_reviews"
+  },
+  {
+    "id": "reviews-eurogamer-en",
+    "language": "en",
+    "name": "Eurogamer EN",
+    "url": "https://www.eurogamer.net/feed/reviews",
+    "eligibilityPolicy": "gaming_feed_reviews"
+  }
+]

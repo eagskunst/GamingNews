@@ -10,12 +10,16 @@ import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetUserPreferencesU
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.ToggleSavedArticleUseCase
 import com.eagskunst.emmanuel.gamingnews.testutil.Fixtures
 import com.eagskunst.emmanuel.gamingnews.testutil.MainDispatcherRule
+import com.eagskunst.emmanuel.gamingnews.testutil.TestDispatcherProvider
+import com.eagskunst.emmanuel.gamingnews.testutil.fakes.FakeMuteRulesRepository
 import com.eagskunst.emmanuel.gamingnews.testutil.fakes.FakeNewsRepository
 import com.eagskunst.emmanuel.gamingnews.testutil.fakes.FakeUserPreferencesRepository
-import io.mockk.every
+import io.mockk.coEvery
 import io.mockk.mockk
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -23,23 +27,31 @@ import org.junit.Test
 
 class NewsViewModelTest {
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
     private lateinit var fakeNewsRepository: FakeNewsRepository
+    private lateinit var fakeMuteRulesRepository: FakeMuteRulesRepository
     private lateinit var fakeUserPreferencesRepository: FakeUserPreferencesRepository
     private lateinit var feedUrlsUseCase: GetFeedUrlsUseCase
 
     @Before
     fun setUp() {
         fakeNewsRepository = FakeNewsRepository()
+        fakeMuteRulesRepository = FakeMuteRulesRepository()
         fakeUserPreferencesRepository = FakeUserPreferencesRepository()
         feedUrlsUseCase = mockk()
-        every { feedUrlsUseCase.invoke(any()) } returns listOf("https://example.com/feed")
+        coEvery { feedUrlsUseCase.invoke(any()) } returns listOf("https://example.com/feed")
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     private fun createViewModel(): NewsViewModel = NewsViewModel(
-        getNewsUseCase = GetNewsUseCase(fakeNewsRepository),
+        getNewsUseCase = GetNewsUseCase(
+            fakeNewsRepository,
+            fakeMuteRulesRepository,
+            TestDispatcherProvider()
+        ),
         getSavedArticlesUseCase = GetSavedArticlesUseCase(fakeNewsRepository),
         toggleSavedArticleUseCase = ToggleSavedArticleUseCase(fakeNewsRepository),
         getFeedUrlsUseCase = feedUrlsUseCase,
@@ -208,4 +220,116 @@ class NewsViewModelTest {
             assertEquals(null, state.newArticlesCount)
         }
     }
+
+    // region Muted words
+
+    @Test
+    fun `given a matching rule when initialized then the article is muted and counted`() = runTest {
+        val muted = Fixtures.newsArticle(link = "https://example.com/muted", title = "GTA VI trailer")
+        val kept = Fixtures.newsArticle(link = "https://example.com/kept", title = "Hollow Knight")
+        fakeNewsRepository.newsResultFlow.value = Result.Success(listOf(muted, kept))
+        fakeMuteRulesRepository.rulesFlow.value = listOf(Fixtures.muteRule(text = "gta"))
+
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            val state = expectMostRecentItem()
+            assertEquals(listOf(kept), state.articles)
+            assertEquals(1, state.mutedCount)
+            assertFalse(state.isMutedRevealed)
+        }
+    }
+
+    @Test
+    fun `given muted articles when toggleMutedReveal is called then they appear with reveal metadata`() = runTest {
+        val muted = Fixtures.newsArticle(link = "https://example.com/muted", title = "GTA VI trailer")
+        val kept = Fixtures.newsArticle(link = "https://example.com/kept", title = "Hollow Knight")
+        fakeNewsRepository.newsResultFlow.value = Result.Success(listOf(muted, kept))
+        fakeMuteRulesRepository.rulesFlow.value = listOf(Fixtures.muteRule(text = "gta"))
+
+        val viewModel = createViewModel()
+        viewModel.toggleMutedReveal()
+
+        viewModel.uiState.test {
+            val state = expectMostRecentItem()
+            assertEquals(listOf(muted, kept), state.articles)
+            assertEquals(setOf("https://example.com/muted"), state.revealedMutedLinks)
+            assertTrue(state.isMutedRevealed)
+        }
+    }
+
+    @Test
+    fun `given revealed muted articles when selectCategory is called then reveal resets`() = runTest {
+        val muted = Fixtures.newsArticle(link = "https://example.com/muted", title = "GTA VI trailer")
+        fakeNewsRepository.newsResultFlow.value = Result.Success(listOf(muted))
+        fakeMuteRulesRepository.rulesFlow.value = listOf(Fixtures.muteRule(text = "gta"))
+
+        val viewModel = createViewModel()
+        viewModel.toggleMutedReveal()
+        viewModel.selectCategory(NewsCategory.PC)
+
+        viewModel.uiState.test {
+            val state = expectMostRecentItem()
+            assertFalse(state.isMutedRevealed)
+            assertEquals(emptySet<String>(), state.revealedMutedLinks)
+        }
+    }
+
+    @Test
+    fun `given revealed muted articles when resetMutedReveal is called then they hide again`() = runTest {
+        val muted = Fixtures.newsArticle(link = "https://example.com/muted", title = "GTA VI trailer")
+        val kept = Fixtures.newsArticle(link = "https://example.com/kept", title = "Hollow Knight")
+        fakeNewsRepository.newsResultFlow.value = Result.Success(listOf(muted, kept))
+        fakeMuteRulesRepository.rulesFlow.value = listOf(Fixtures.muteRule(text = "gta"))
+
+        val viewModel = createViewModel()
+        viewModel.toggleMutedReveal()
+        viewModel.resetMutedReveal()
+
+        viewModel.uiState.test {
+            val state = expectMostRecentItem()
+            assertEquals(listOf(kept), state.articles)
+            assertFalse(state.isMutedRevealed)
+        }
+    }
+
+    @Test
+    fun `given muted articles when the search query changes then no extra fetch happens and counts follow the query`() = runTest {
+        val muted = Fixtures.newsArticle(link = "https://example.com/muted", title = "GTA VI trailer")
+        val kept = Fixtures.newsArticle(link = "https://example.com/kept", title = "Zelda review")
+        fakeNewsRepository.newsResultFlow.value = Result.Success(listOf(muted, kept))
+        fakeMuteRulesRepository.rulesFlow.value = listOf(Fixtures.muteRule(text = "gta"))
+
+        val viewModel = createViewModel()
+        viewModel.onSearchQueryChange("zelda")
+
+        viewModel.uiState.test {
+            val state = expectMostRecentItem()
+            assertEquals(listOf(kept), state.articles)
+            assertEquals(0, state.mutedCount)
+            assertEquals(1, fakeNewsRepository.newsStreamCalls)
+        }
+    }
+
+    @Test
+    fun `given a rule edit while collecting then filtering reapplies without a new fetch`() = runTest {
+        val muted = Fixtures.newsArticle(link = "https://example.com/muted", title = "GTA VI trailer")
+        val kept = Fixtures.newsArticle(link = "https://example.com/kept", title = "Hollow Knight")
+        fakeNewsRepository.newsResultFlow.value = Result.Success(listOf(muted, kept))
+
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            assertEquals(2, expectMostRecentItem().articles.size)
+
+            fakeMuteRulesRepository.rulesFlow.value = listOf(Fixtures.muteRule(text = "gta"))
+
+            val state = expectMostRecentItem()
+            assertEquals(listOf(kept), state.articles)
+            assertEquals(1, state.mutedCount)
+            assertEquals(1, fakeNewsRepository.newsStreamCalls)
+        }
+    }
+
+    // endregion
 }

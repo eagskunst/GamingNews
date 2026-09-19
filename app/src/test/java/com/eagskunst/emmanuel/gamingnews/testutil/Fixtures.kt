@@ -2,6 +2,9 @@ package com.eagskunst.emmanuel.gamingnews.testutil
 
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.ArticleOpenMode
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.GameRelease
+import com.eagskunst.emmanuel.gamingnews.core.domain.model.MuteMatchMode
+import com.eagskunst.emmanuel.gamingnews.core.domain.model.MuteRule
+import com.eagskunst.emmanuel.gamingnews.core.domain.model.MuteScope
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.NewsArticle
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.Topic
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.UserPreferences
@@ -18,14 +21,16 @@ object Fixtures {
         description: String = "Description",
         imageUrl: String? = "https://example.com/image.png",
         publicationDate: Date = Date(0),
-        sourceName: String = "IGN"
+        sourceName: String = "IGN",
+        author: String? = null
     ) = NewsArticle(
         link = link,
         title = title,
         description = description,
         imageUrl = imageUrl,
         publicationDate = publicationDate,
-        sourceName = sourceName
+        sourceName = sourceName,
+        author = author
     )
 
     fun gameRelease(
@@ -46,6 +51,20 @@ object Fixtures {
 
     fun topic(name: String = "RPG") = Topic(name)
 
+    fun muteRule(
+        id: String = "rule-1",
+        text: String = "gta",
+        matchMode: MuteMatchMode = MuteMatchMode.CONTAINS,
+        caseSensitive: Boolean = false,
+        scope: MuteScope = MuteScope.Everywhere
+    ) = MuteRule(
+        id = id,
+        text = text,
+        matchMode = matchMode,
+        caseSensitive = caseSensitive,
+        scope = scope
+    )
+
     fun userPreferences(
         themeMode: com.eagskunst.emmanuel.gamingnews.core.domain.model.ThemeMode = com.eagskunst.emmanuel.gamingnews.core.domain.model.ThemeMode.SYSTEM,
         dynamicColor: Boolean = true,
@@ -53,14 +72,16 @@ object Fixtures {
         loadImages: Boolean = true,
         dailyReminder: Boolean = false,
         dailyReminderHour: Int = 9,
-        articleOpenMode: ArticleOpenMode = ArticleOpenMode.CUSTOM_TAB
+        articleOpenMode: ArticleOpenMode = ArticleOpenMode.READER_MODE,
+        applyGlobalMuteRulesToReviews: Boolean = false
     ) = UserPreferences(
         themeMode = darkTheme?.let { if (it) com.eagskunst.emmanuel.gamingnews.core.domain.model.ThemeMode.DARK else com.eagskunst.emmanuel.gamingnews.core.domain.model.ThemeMode.LIGHT } ?: themeMode,
         dynamicColor = dynamicColor,
         loadImages = loadImages,
         dailyReminder = dailyReminder,
         dailyReminderHour = dailyReminderHour,
-        articleOpenMode = articleOpenMode
+        articleOpenMode = articleOpenMode,
+        applyGlobalMuteRulesToReviews = applyGlobalMuteRulesToReviews
     )
 
 }

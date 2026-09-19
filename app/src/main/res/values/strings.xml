@@ -4,7 +4,17 @@
     <string name="search_hint">Search articles…</string>
     <string name="saved">Saved</string>
     <string name="no_saved_articles">You haven\'t saved any articles yet</string>
+    <string name="reviews">Reviews</string>
+    <string name="no_reviews">No reviews available right now</string>
+    <string name="no_review_search_results">No reviews match your search</string>
+    <string name="stale_source_message">Some content may be outdated. Pull to refresh.</string>
+    <string name="retry">Retry</string>
     <string name="nextReleases">Releases</string>
+    <string name="releases_token_error">Couldn’t authenticate to load releases. Try again.</string>
+    <string name="releases_auth_rejected_error">The releases service rejected authentication. Try again later.</string>
+    <string name="releases_refresh_error">Couldn’t refresh releases. Showing saved releases when available.</string>
+    <string name="releases_pagination_error">Couldn’t load more releases. Try again.</string>
+    <string name="releases_refresh_content_description">Refresh releases</string>
     <string name="title_activity_settings">Settings</string>
     <string name="summary_topics">Change the topics which you want to receive notifications</string>
     <string name="add_topic">Add a topic</string>
@@ -25,6 +35,8 @@
     <string name="reader_error_message">Couldn\'t load the article in reader mode.</string>
     <string name="reader_retry_button">Retry</string>
     <string name="reader_open_browser_button">Open in browser</string>
+    <string name="reader_image_content_description">Article image</string>
+    <string name="reader_image_hidden">Image hidden while data saver is on</string>
 
     <string name="article_menu_title">Open article</string>
     <string name="article_open_custom_tab">Open in custom tab</string>
@@ -51,9 +63,72 @@
     <string name="notification_permission_rationale">Notifications permission is required to receive reminders.</string>
     <string name="confirm">OK</string>
 
+    <string name="settings_feed_sources_header">Feed &amp; Sources</string>
+    <string name="settings_customize_feed">Customize Feed</string>
+    <string name="settings_customize_feed_summary">Manage enabled news sources per feed tab</string>
+    <string name="feed_sources_title">Customize Feed</string>
+    <string name="feed_sources_restore_defaults">Restore defaults</string>
+
     <plurals name="new_articles_available">
         <item quantity="one">%1$d new article</item>
         <item quantity="other">%1$d new articles</item>
     </plurals>
+
+    <string name="settings_muted_words">Muted words</string>
+    <plurals name="mute_rules_count">
+        <item quantity="zero">No rules</item>
+        <item quantity="one">%1$d rule</item>
+        <item quantity="other">%1$d rules</item>
+    </plurals>
+    <string name="muted_words_title">Muted words</string>
+    <string name="muted_words_explanation">Hide articles whose titles contain words or phrases you choose. Matching applies to titles only and happens on this device.</string>
+    <string name="muted_words_empty">No muted words yet</string>
+    <string name="muted_words_add">Add muted word</string>
+    <string name="mute_rule_add_title">Add muted word</string>
+    <string name="mute_rule_edit_title">Edit muted word</string>
+    <string name="mute_rule_text_label">Word or phrase</string>
+    <string name="mute_rule_match_mode">Match</string>
+    <string name="mute_match_contains">Contains</string>
+    <string name="mute_match_whole_word">Whole word</string>
+    <string name="mute_match_exact_phrase">Exact phrase</string>
+    <string name="mute_rule_case_sensitive">Case sensitive</string>
+    <string name="mute_rule_case_sensitive_summary">Match uppercase and lowercase letters exactly.</string>
+    <string name="mute_rule_scope">Apply to</string>
+    <string name="mute_scope_everywhere">Everywhere</string>
+    <string name="mute_scope_selected_tabs">Selected news tabs</string>
+    <string name="mute_rules_reviews_switch">Apply global mute rules to Reviews</string>
+    <string name="mute_rules_reviews_summary">Rules limited to selected tabs never apply to Reviews.</string>
+    <string name="mute_rule_save">Save</string>
+    <string name="mute_rule_delete">Delete</string>
+    <string name="mute_rule_delete_confirm_title">Delete muted word?</string>
+    <string name="mute_rule_delete_confirm_message">“%1$s” will stop hiding articles.</string>
+    <string name="mute_rule_error_blank">Enter a word or phrase</string>
+    <string name="mute_rule_error_whole_word">Whole word rules must be a single word</string>
+    <string name="mute_rule_error_no_tabs">Select at least one tab</string>
+    <string name="mute_rule_error_duplicate">An identical rule already exists</string>
+    <string name="mute_rule_save_failed">Couldn’t save the rule. Try again.</string>
+    <string name="mute_rule_case_badge">Case sensitive</string>
+    <string name="mute_rules_load_error">Couldn’t load muted words</string>
+
+    <string name="tab_all_news">All news</string>
+    <string name="tab_playstation">PlayStation</string>
+    <string name="tab_xbox">Xbox</string>
+    <string name="tab_nintendo">Nintendo</string>
+    <string name="tab_pc">PC</string>
+
+    <plurals name="muted_articles_hidden">
+        <item quantity="one">%1$d article hidden</item>
+        <item quantity="other">%1$d articles hidden</item>
+    </plurals>
+    <plurals name="muted_articles_showing">
+        <item quantity="one">Showing %1$d muted article</item>
+        <item quantity="other">Showing %1$d muted articles</item>
+    </plurals>
+    <string name="muted_articles_show_hidden">Show hidden</string>
+    <string name="muted_articles_hide_again">Hide again</string>
+    <string name="muted_articles_manage">Manage</string>
+    <string name="muted_articles_badge">Muted</string>
+    <string name="all_muted_empty_title">Everything here is muted</string>
+    <string name="all_muted_empty_message">All articles in this view match your muted words.</string>
 </resources>
 

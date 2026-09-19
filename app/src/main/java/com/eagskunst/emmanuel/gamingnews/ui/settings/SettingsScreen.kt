@@ -20,6 +20,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Language
@@ -54,6 +55,7 @@ import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -72,6 +74,8 @@ private const val SHOW_NOTIFICATION_TOPICS = false
 fun SettingsScreen(
     viewModel: SettingsViewModel,
     onBackClick: () -> Unit,
+    onCustomizeFeedClick: () -> Unit,
+    onMutedWordsClick: () -> Unit,
     onContactEmailClick: () -> Unit,
     onContactWebsiteClick: () -> Unit,
     onPrivacyPolicyClick: () -> Unit
@@ -130,6 +134,8 @@ fun SettingsScreen(
             onDailyReminderChange = viewModel::toggleDailyReminder,
             onDailyReminderHourChange = viewModel::setDailyReminderHour,
             onArticleOpenModeChange = viewModel::setArticleOpenMode,
+            onCustomizeFeedClick = onCustomizeFeedClick,
+            onMutedWordsClick = onMutedWordsClick,
             onAddTopic = viewModel::addTopic,
             onRemoveTopic = viewModel::removeTopic,
             onContactEmailClick = onContactEmailClick,
@@ -150,6 +156,8 @@ private fun SettingsContent(
     onDailyReminderChange: (Boolean) -> Unit = {},
     onDailyReminderHourChange: (Int) -> Unit = {},
     onArticleOpenModeChange: (ArticleOpenMode) -> Unit = {},
+    onCustomizeFeedClick: () -> Unit = {},
+    onMutedWordsClick: () -> Unit = {},
     onAddTopic: (String) -> Unit = {},
     onRemoveTopic: (Topic) -> Unit = {},
     onContactEmailClick: () -> Unit = {},
@@ -195,6 +203,68 @@ private fun SettingsContent(
             selectedMode = uiState.articleOpenMode,
             onModeSelected = onArticleOpenModeChange
         )
+
+        HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+
+        Text(
+            text = stringResource(R.string.settings_feed_sources_header),
+            style = MaterialTheme.typography.titleMedium
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onCustomizeFeedClick)
+                .padding(vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(R.string.settings_customize_feed),
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                Text(
+                    text = stringResource(R.string.settings_customize_feed_summary),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary
+            )
+        }
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onMutedWordsClick)
+                .padding(vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(R.string.settings_muted_words),
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                Text(
+                    text = pluralStringResource(
+                        R.plurals.mute_rules_count,
+                        uiState.muteRuleCount,
+                        uiState.muteRuleCount
+                    ),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary
+            )
+        }
 
         if (SHOW_NOTIFICATION_TOPICS) {
             HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
@@ -483,7 +553,7 @@ private fun ArticleOpenModeRow(
         when (selectedMode) {
             ArticleOpenMode.CUSTOM_TAB -> R.string.article_open_custom_tab
             ArticleOpenMode.EXTERNAL_BROWSER -> R.string.article_open_external_browser
-            ArticleOpenMode.READER_MODE -> R.string.article_open_custom_tab
+            ArticleOpenMode.READER_MODE -> R.string.article_open_reader_mode
         }
     )
 
@@ -507,12 +577,12 @@ private fun ArticleOpenModeRow(
             title = { Text(stringResource(R.string.settings_article_open_mode)) },
             text = {
                 Column {
-                    ArticleOpenMode.entries.filter { it != ArticleOpenMode.READER_MODE }.forEach { mode ->
+                    ArticleOpenMode.entries.forEach { mode ->
                         val label = stringResource(
                             when (mode) {
                                 ArticleOpenMode.CUSTOM_TAB -> R.string.article_open_custom_tab
                                 ArticleOpenMode.EXTERNAL_BROWSER -> R.string.article_open_external_browser
-                                ArticleOpenMode.READER_MODE -> R.string.article_open_custom_tab
+                                ArticleOpenMode.READER_MODE -> R.string.article_open_reader_mode
                             }
                         )
                         Row(

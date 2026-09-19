@@ -27,6 +27,7 @@ class UserPreferencesLocalDataSourceTest {
         dataSource.updateDailyReminder(false)
         dataSource.updateDailyReminderHour(9)
         dataSource.updateArticleOpenMode(ArticleOpenMode.EXTERNAL_BROWSER)
+        dataSource.updateApplyGlobalMuteRulesToReviews(false)
     }
 
     @Test
@@ -39,6 +40,7 @@ class UserPreferencesLocalDataSourceTest {
         assertEquals(false, preferences.dailyReminder)
         assertEquals(9, preferences.dailyReminderHour)
         assertEquals(ArticleOpenMode.EXTERNAL_BROWSER, preferences.articleOpenMode)
+        assertEquals(false, preferences.applyGlobalMuteRulesToReviews)
     }
 
     @Test
@@ -88,5 +90,16 @@ class UserPreferencesLocalDataSourceTest {
         dataSource.updateArticleOpenMode(ArticleOpenMode.READER_MODE)
 
         assertEquals(ArticleOpenMode.READER_MODE, dataSource.userPreferences.first().articleOpenMode)
+    }
+
+    @Test
+    fun `given updateApplyGlobalMuteRulesToReviews when userPreferences then reflects new value`() = runTest {
+        dataSource.updateApplyGlobalMuteRulesToReviews(true)
+
+        assertEquals(true, dataSource.userPreferences.first().applyGlobalMuteRulesToReviews)
+
+        dataSource.updateApplyGlobalMuteRulesToReviews(false)
+
+        assertEquals(false, dataSource.userPreferences.first().applyGlobalMuteRulesToReviews)
     }
 }
