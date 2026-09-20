@@ -10,8 +10,8 @@ effort: medium
 # GamingNews Release
 
 Use this skill when the user wants to publish a new GamingNews release. Pushing the
-version tag triggers `.github/workflows/play-store-release.yml`, which runs the tests,
-builds the AAB, and uploads it to the Google Play production track.
+version tag triggers `.github/workflows/play-store-release.yml`, which runs the unit
+tests, builds the AAB, and uploads it to the Google Play production track.
 
 ## Steps
 
@@ -54,5 +54,6 @@ builds the AAB, and uploads it to the Google Play production track.
 - `versionCode` must be higher than the last released one or Play rejects the AAB.
 - Never commit `keystore.properties`, `local.properties`, `google-services.json`, or
   keystore files.
-- If instrumented tests fail in CI, the workflow opens a GitHub issue and does not
-  upload; re-run the workflow after investigating.
+- Instrumented tests (`./gradlew :app:connectedDebugAndroidTest`) run **locally only**
+  — GitHub-hosted runners cannot boot an Android emulator reliably. Run them against a
+  local emulator or device before tagging; CI only runs `:app:testDebugUnitTest`.

@@ -9,12 +9,9 @@ on:
 jobs:
   release:
     name: Build, test, and upload release AAB
-    # ubuntu-22.04: android-emulator-runner hangs on ubuntu-24.04 runners
-    # (ReactiveCircus/android-emulator-runner#478)
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     permissions:
       contents: read
-      issues: write
 
     steps:
       - name: Checkout
@@ -81,38 +78,6 @@ jobs:
 
       - name: Run unit tests
         run: ./gradlew :app:testDebugUnitTest
-
-      - name: Run instrumented tests
-        id: instrumented
-        uses: reactivecircus/android-emulator-runner@v2
-        continue-on-error: true
-        timeout-minutes: 20
-        with:
-          api-level: 34
-          target: google_apis
-          arch: x86_64
-          force-avd-creation: true
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
-          disable-animations: true
-          script: ./gradlew :app:connectedDebugAndroidTest
-
-      - name: Report instrumented test failure
-        if: steps.instrumented.outcome == 'failure'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          ASSIGNEE: ${{ vars.ISSUE_ASSIGNEE || github.repository_owner }}
-        run: |
-          VERSION="${{ steps.version.outputs.version }}"
-          if [ -n "$VERSION" ]; then
-            TITLE="Instrumented tests failed for release v$VERSION"
-          else
-            TITLE="Instrumented tests failed for workflow run ${{ github.ref_name }}"
-          fi
-          gh issue create \
-            --title "$TITLE" \
-            --body "The instrumented test step failed in the Play Store release workflow. Review the logs here: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
-            --assignee "$ASSIGNEE"
-          exit 1
 
       - name: Build release AAB
         run: ./gradlew :app:bundleRelease
