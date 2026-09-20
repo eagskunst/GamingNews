@@ -9,7 +9,9 @@ on:
 jobs:
   release:
     name: Build, test, and upload release AAB
-    runs-on: ubuntu-latest
+    # ubuntu-22.04: android-emulator-runner hangs on ubuntu-24.04 runners
+    # (ReactiveCircus/android-emulator-runner#478)
+    runs-on: ubuntu-22.04
     permissions:
       contents: read
       issues: write
@@ -84,10 +86,13 @@ jobs:
         id: instrumented
         uses: reactivecircus/android-emulator-runner@v2
         continue-on-error: true
+        timeout-minutes: 20
         with:
           api-level: 34
           target: google_apis
           arch: x86_64
+          force-avd-creation: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
           disable-animations: true
           script: ./gradlew :app:connectedDebugAndroidTest
 

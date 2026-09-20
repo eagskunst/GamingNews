@@ -39,7 +39,9 @@ jobs:
 
   instrumented-tests:
     name: Instrumented tests
-    runs-on: ubuntu-latest
+    # ubuntu-22.04: android-emulator-runner hangs on ubuntu-24.04 runners
+    # (ReactiveCircus/android-emulator-runner#478)
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout
@@ -62,9 +64,12 @@ jobs:
 
       - name: Run instrumented tests
         uses: reactivecircus/android-emulator-runner@v2
+        timeout-minutes: 20
         with:
           api-level: 34
           target: google_apis
           arch: x86_64
+          force-avd-creation: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
           disable-animations: true
           script: ./gradlew :app:connectedDebugAndroidTest
