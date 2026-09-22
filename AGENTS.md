@@ -52,8 +52,13 @@ These are exposed as `BuildConfig.TWITCH_CLIENT_ID` and `BuildConfig.TWITCH_CLIE
 7. Unit test coverage added across mappers, data sources, repositories, use cases, ViewModels,
    and Compose UI (screens/components), plus instrumented Room DAO tests. See `docs/testing.md`.
 
+## Agent Skills
+
+All skills live in `.agents/skills/` (the cross-harness standard location). `.claude/skills`
+and `.devin/skills` are directory symlinks to `../.agents/skills` — add new skills under
+`.agents/skills/` only, and every harness picks them up automatically. Installed skills are
+tracked in `skills-lock.json`.
+
 ## Remaining Cleanup
 
 - Add a lint baseline before release.
-- `RssRemoteDataSource` constructs `RssParser()` internally rather than taking it as a
-  dependency, which limits how thoroughly it can be unit tested — consider injecting it.
