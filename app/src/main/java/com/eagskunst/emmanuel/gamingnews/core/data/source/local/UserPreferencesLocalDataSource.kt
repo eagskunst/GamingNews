@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.ArticleOpenMode
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.DEFAULT_REMINDER_HOUR
@@ -65,6 +66,19 @@ class UserPreferencesLocalDataSource(context: Context) {
         dataStore.edit { prefs -> prefs[APPLY_GLOBAL_MUTE_RULES_TO_REVIEWS] = enabled }
     }
 
+    /**
+     * Raw Releases-tab platform selection as stored (string-encoded IGDB platform IDs).
+     * Empty/absent means "All platforms". Reconciliation against the platform catalog is a
+     * domain concern; this source exposes and stores the raw set verbatim.
+     */
+    val releasePlatformIdStrings: Flow<Set<String>> = dataStore.data.map { prefs ->
+        prefs[RELEASE_PLATFORM_IDS] ?: emptySet()
+    }
+
+    suspend fun updateReleasePlatformIdStrings(ids: Set<String>) {
+        dataStore.edit { prefs -> prefs[RELEASE_PLATFORM_IDS] = ids }
+    }
+
     companion object {
         private val THEME_MODE = stringPreferencesKey("theme_mode")
         private val DYNAMIC_COLOR = booleanPreferencesKey("dynamic_color")
@@ -74,6 +88,7 @@ class UserPreferencesLocalDataSource(context: Context) {
         private val DAILY_REMINDER_HOUR = intPreferencesKey("daily_reminder_hour")
         private val ARTICLE_OPEN_MODE = stringPreferencesKey("article_open_mode")
         private val APPLY_GLOBAL_MUTE_RULES_TO_REVIEWS = booleanPreferencesKey("apply_global_mute_rules_to_reviews")
+        private val RELEASE_PLATFORM_IDS = stringSetPreferencesKey("releases_platform_ids")
 
         private fun parseThemeMode(themeModeName: String?, legacyDarkTheme: Boolean?): ThemeMode {
             if (themeModeName != null) {

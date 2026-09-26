@@ -1,7 +1,9 @@
 package com.eagskunst.emmanuel.gamingnews.testutil
 
+import com.eagskunst.emmanuel.gamingnews.core.data.source.local.entity.ReleaseEntity
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.ArticleOpenMode
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.GameRelease
+import com.eagskunst.emmanuel.gamingnews.core.domain.model.GameReleaseRecord
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.MuteMatchMode
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.MuteRule
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.MuteScope
@@ -46,6 +48,42 @@ object Fixtures {
         coverUrl = coverUrl,
         releaseDate = releaseDate,
         platforms = platforms,
+        gameUrl = gameUrl
+    )
+
+    fun gameReleaseRecord(
+        releaseId: Long = 1L,
+        gameId: Long = 1L,
+        platformId: Int = 6,
+        releaseDate: Date = Date(0),
+        name: String = "Some Game",
+        coverUrl: String? = "https://example.com/cover.png",
+        gameUrl: String? = "https://example.com/game"
+    ) = GameReleaseRecord(
+        releaseId = releaseId,
+        gameId = gameId,
+        platformId = platformId,
+        releaseDate = releaseDate,
+        name = name,
+        coverUrl = coverUrl,
+        gameUrl = gameUrl
+    )
+
+    fun releaseEntity(
+        id: Long = 1L,
+        gameId: Long = 1L,
+        platformId: Int = 6,
+        name: String = "Some Game",
+        coverUrl: String? = "https://example.com/cover.png",
+        releaseDate: Date = Date(0),
+        gameUrl: String? = "https://example.com/game"
+    ) = ReleaseEntity(
+        id = id,
+        gameId = gameId,
+        platformId = platformId,
+        name = name,
+        coverUrl = coverUrl,
+        releaseDate = releaseDate,
         gameUrl = gameUrl
     )
 

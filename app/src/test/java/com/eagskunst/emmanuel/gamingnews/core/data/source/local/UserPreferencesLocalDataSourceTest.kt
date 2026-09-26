@@ -28,6 +28,7 @@ class UserPreferencesLocalDataSourceTest {
         dataSource.updateDailyReminderHour(9)
         dataSource.updateArticleOpenMode(ArticleOpenMode.EXTERNAL_BROWSER)
         dataSource.updateApplyGlobalMuteRulesToReviews(false)
+        dataSource.updateReleasePlatformIdStrings(emptySet())
     }
 
     @Test
@@ -101,5 +102,48 @@ class UserPreferencesLocalDataSourceTest {
         dataSource.updateApplyGlobalMuteRulesToReviews(false)
 
         assertEquals(false, dataSource.userPreferences.first().applyGlobalMuteRulesToReviews)
+    }
+
+    @Test
+    fun `given nothing stored when releasePlatformIdStrings then returns the empty set`() = runTest {
+        assertEquals(emptySet<String>(), dataSource.releasePlatformIdStrings.first())
+    }
+
+    @Test
+    fun `given updateReleasePlatformIdStrings when read back then the stored set is returned`() = runTest {
+        dataSource.updateReleasePlatformIdStrings(setOf("6", "48"))
+
+        assertEquals(setOf("6", "48"), dataSource.releasePlatformIdStrings.first())
+    }
+
+    @Test
+    fun `given rapid selection toggles when writes are serialized then the last write wins`() = runTest {
+        dataSource.updateReleasePlatformIdStrings(setOf("6"))
+        dataSource.updateReleasePlatformIdStrings(setOf("48"))
+        dataSource.updateReleasePlatformIdStrings(emptySet())
+
+        assertEquals(emptySet<String>(), dataSource.releasePlatformIdStrings.first())
+    }
+
+    @Test
+    fun `given a stored selection when other preferences update then the selection is untouched`() = runTest {
+        dataSource.updateReleasePlatformIdStrings(setOf("6", "48"))
+
+        dataSource.updateThemeMode(ThemeMode.DARK)
+        dataSource.updateLoadImages(false)
+
+        assertEquals(setOf("6", "48"), dataSource.releasePlatformIdStrings.first())
+    }
+
+    @Test
+    fun `given a stored selection when it is rewritten then unrelated preferences are untouched`() = runTest {
+        dataSource.updateThemeMode(ThemeMode.DARK)
+        dataSource.updateDailyReminderHour(21)
+
+        dataSource.updateReleasePlatformIdStrings(setOf("167"))
+
+        val preferences = dataSource.userPreferences.first()
+        assertEquals(ThemeMode.DARK, preferences.themeMode)
+        assertEquals(21, preferences.dailyReminderHour)
     }
 }

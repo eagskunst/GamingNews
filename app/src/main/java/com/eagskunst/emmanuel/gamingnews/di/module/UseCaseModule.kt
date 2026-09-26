@@ -5,6 +5,7 @@ import com.eagskunst.emmanuel.gamingnews.core.domain.repository.ArticleReaderRep
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.FeedProvidersRepository
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.MuteRulesRepository
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.NewsRepository
+import com.eagskunst.emmanuel.gamingnews.core.domain.repository.PlatformCatalog
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.ReleasesRepository
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.ReviewsRepository
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.TopicsRepository
@@ -63,8 +64,10 @@ object UseCaseModule {
         ToggleSavedArticleUseCase(repository)
 
     @Provides
-    fun provideGetReleasesUseCase(repository: ReleasesRepository): GetReleasesUseCase =
-        GetReleasesUseCase(repository)
+    fun provideGetReleasesUseCase(
+        repository: ReleasesRepository,
+        catalog: PlatformCatalog
+    ): GetReleasesUseCase = GetReleasesUseCase(repository, catalog)
 
     @Provides
     fun provideGetReviewsUseCase(

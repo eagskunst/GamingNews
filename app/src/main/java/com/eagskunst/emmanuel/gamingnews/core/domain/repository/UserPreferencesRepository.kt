@@ -1,6 +1,7 @@
 package com.eagskunst.emmanuel.gamingnews.core.domain.repository
 
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.ArticleOpenMode
+import com.eagskunst.emmanuel.gamingnews.core.domain.model.PlatformSelection
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.ThemeMode
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.UserPreferences
 import kotlinx.coroutines.flow.Flow
@@ -15,5 +16,13 @@ interface UserPreferencesRepository {
     suspend fun updateDailyReminderHour(hour: Int)
     suspend fun updateArticleOpenMode(mode: ArticleOpenMode)
     suspend fun updateApplyGlobalMuteRulesToReviews(enabled: Boolean)
-}
 
+    /**
+     * Releases-tab platform selection, reconciled against the platform catalog on every read.
+     * An empty [PlatformSelection.selectedIds] means "All platforms".
+     */
+    val releasePlatformSelection: Flow<PlatformSelection>
+
+    /** Persists the Releases-tab platform selection. An empty set means "All platforms". */
+    suspend fun updateReleasePlatformIds(ids: Set<Int>)
+}

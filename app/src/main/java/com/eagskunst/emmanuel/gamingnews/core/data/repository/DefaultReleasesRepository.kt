@@ -2,13 +2,17 @@ package com.eagskunst.emmanuel.gamingnews.core.data.repository
 
 import com.eagskunst.emmanuel.gamingnews.core.common.DispatcherProvider
 import com.eagskunst.emmanuel.gamingnews.core.common.Result
-import com.eagskunst.emmanuel.gamingnews.core.data.mapper.toGameRelease
 import com.eagskunst.emmanuel.gamingnews.core.data.mapper.toReleaseEntity
+import com.eagskunst.emmanuel.gamingnews.core.data.mapper.toReleaseRecord
 import com.eagskunst.emmanuel.gamingnews.core.data.source.local.ReleaseDao
+import com.eagskunst.emmanuel.gamingnews.core.data.source.local.entity.ReleaseCoverageEntity
 import com.eagskunst.emmanuel.gamingnews.core.data.source.remote.IgdbRemoteDataSource
-import com.eagskunst.emmanuel.gamingnews.core.data.source.remote.api.IgdbReleaseDateDto
-import com.eagskunst.emmanuel.gamingnews.core.domain.model.GameRelease
+import com.eagskunst.emmanuel.gamingnews.core.domain.model.GameReleaseRecord
+import com.eagskunst.emmanuel.gamingnews.core.domain.model.ReleaseDateRange
+import com.eagskunst.emmanuel.gamingnews.core.domain.model.UpcomingReleaseWindow
+import com.eagskunst.emmanuel.gamingnews.core.domain.repository.PlatformCatalog
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.ReleasesRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -21,140 +25,120 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import java.util.Calendar
-import java.util.Date
 import javax.inject.Inject
 
 class DefaultReleasesRepository @Inject constructor(
     private val igdbRemoteDataSource: IgdbRemoteDataSource,
     private val releaseDao: ReleaseDao,
+    private val platformCatalog: PlatformCatalog,
     private val dispatchers: DispatcherProvider
 ) : ReleasesRepository {
 
     private val pageLimit = IgdbRemoteDataSource.PAGE_LIMIT
     private val operationMutex = Mutex()
-    private var currentOffset = 0
 
     private val _hasMorePages = MutableStateFlow(true)
     override val hasMorePages: StateFlow<Boolean> = _hasMorePages
 
-    override fun releasesStream(forceRefresh: Boolean): Flow<Result<List<GameRelease>>> = flow {
+    override fun releasesStream(): Flow<Result<List<GameReleaseRecord>>> = flow {
         emit(Result.Loading)
+
+        val context = coverageContext()
+        val coverage = releaseDao.getCoverage()
         val cached = releaseDao.observeAll().first()
-        if (forceRefresh || cached.isEmpty()) {
+        val coverageStale = coverage == null || coverage.coverageKey != context.key
+        if (coverageStale && coverage != null) {
+            // The supported platform set or query window moved on; the old coverage no longer
+            // describes a complete cache. Cached rows are preserved and keep being served
+            // until fresh data is committed.
+            releaseDao.upsertCoverage(coverage.copy(isComplete = false))
+        }
+        _hasMorePages.value = coverageStale || !(coverage?.isComplete ?: false)
+
+        if (coverageStale || cached.isEmpty()) {
             try {
-                operationMutex.withLock { refresh() }
-            } catch (e: kotlinx.coroutines.CancellationException) {
+                operationMutex.withLock { fetchPage(offset = 0, replace = true) }
+            } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                if (cached.isNotEmpty()) {
-                    emit(Result.Success(cached.map { it.toGameRelease() }))
-                }
                 emit(Result.Error(e))
-                return@flow
             }
         }
+
         emitAll(
             releaseDao.observeAll().map { entities ->
-                Result.Success(entities.map { it.toGameRelease() })
+                Result.Success(entities.map { it.toReleaseRecord() })
             }
         )
     }.catch { e ->
         emit(Result.Error(e))
     }.flowOn(dispatchers.io)
 
+    override suspend fun refresh(): Result<Unit> = withContext(dispatchers.io) {
+        try {
+            operationMutex.withLock { fetchPage(offset = 0, replace = true) }
+            Result.Success(Unit)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Result.Error(e)
+        }
+    }
+
     override suspend fun loadNextPage(): Result<Boolean> = withContext(dispatchers.io) {
-        operationMutex.withLock {
-            if (!_hasMorePages.value) {
-                return@withLock Result.Success(false)
-            }
-
-            try {
-                val dtos = igdbRemoteDataSource.fetchUpcomingReleases(currentOffset)
-                val releases = mergeReleases(dtos)
-                releaseDao.insertAll(releases.map { it.toReleaseEntity() })
-
-                if (dtos.size < pageLimit) {
+        if (!operationMutex.tryLock()) return@withContext Result.Success(_hasMorePages.value)
+        try {
+            val context = coverageContext()
+            val coverage = releaseDao.getCoverage()
+            when {
+                coverage == null || coverage.coverageKey != context.key ->
+                    Result.Success(fetchPage(offset = 0, replace = true))
+                coverage.isComplete -> {
                     _hasMorePages.value = false
-                } else {
-                    currentOffset += pageLimit
-                    _hasMorePages.value = true
+                    Result.Success(false)
                 }
-
-                Result.Success(_hasMorePages.value)
-            } catch (e: kotlinx.coroutines.CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                Result.Error(e)
+                else -> Result.Success(fetchPage(coverage.nextOffset, replace = false))
             }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Result.Error(e)
+        } finally {
+            operationMutex.unlock()
         }
     }
 
-    private suspend fun refresh() {
-        currentOffset = 0
-        _hasMorePages.value = true
-
-        val dtos = igdbRemoteDataSource.fetchUpcomingReleases(0)
-        val releases = mergeReleases(dtos)
-        releaseDao.clear()
-        releaseDao.insertAll(releases.map { it.toReleaseEntity() })
-
-        if (dtos.size < pageLimit) {
-            _hasMorePages.value = false
+    /**
+     * Fetches one page for the current supported-platform set and query window, then commits
+     * records and coverage metadata together. Coverage is only marked complete when the page
+     * comes back short, meaning every relevant page has been fetched.
+     */
+    private suspend fun fetchPage(offset: Int, replace: Boolean): Boolean {
+        val context = coverageContext()
+        val dtos = igdbRemoteDataSource.fetchUpcomingReleases(offset, context.window)
+        val entities = dtos.mapNotNull { it.toReleaseRecord() }.map { it.toReleaseEntity() }
+        val exhausted = dtos.size < pageLimit
+        val coverage = ReleaseCoverageEntity(
+            coverageKey = context.key,
+            nextOffset = offset + dtos.size,
+            isComplete = exhausted
+        )
+        if (replace) {
+            releaseDao.replaceCache(entities, coverage)
         } else {
-            currentOffset = pageLimit
-            _hasMorePages.value = true
+            releaseDao.commitPage(entities, coverage)
         }
+        _hasMorePages.value = !exhausted
+        return !exhausted
     }
 
-    private fun mergeReleases(dtos: List<IgdbReleaseDateDto>): List<GameRelease> {
-        val mapped = dtos.mapNotNull { it.toGameRelease() }
-        val merged = mutableMapOf<Long, GameRelease>()
-        for (release in mapped) {
-            val existing = merged[release.id]
-            if (existing == null) {
-                merged[release.id] = release
-            } else {
-                val combinedPlatforms = (existing.platforms + release.platforms).distinct()
-                merged[release.id] = existing.copy(platforms = combinedPlatforms)
-            }
-        }
-        return merged.values
-            .filter { it.releaseDate.isWithinUpcomingWindow() }
-            .sortedBy { it.releaseDate }
-    }
-}
-
-private fun Date.isWithinUpcomingWindow(): Boolean {
-    if (this.before(startOfToday())) return false
-
-    val now = Calendar.getInstance()
-    val endOfCurrentYear = Calendar.getInstance().apply {
-        set(Calendar.MONTH, Calendar.DECEMBER)
-        set(Calendar.DAY_OF_MONTH, 31)
-        set(Calendar.HOUR_OF_DAY, 23)
-        set(Calendar.MINUTE, 59)
-        set(Calendar.SECOND, 59)
-        set(Calendar.MILLISECOND, 999)
-    }
-    val eightMonthsFromNow = Calendar.getInstance().apply {
-        add(Calendar.MONTH, 8)
+    private fun coverageContext(): CoverageContext {
+        val window = UpcomingReleaseWindow.current()
+        return CoverageContext(
+            key = UpcomingReleaseWindow.coverageKey(platformCatalog.supportedIds(), window),
+            window = window
+        )
     }
 
-    val maxDate = if (endOfCurrentYear.before(eightMonthsFromNow)) {
-        endOfCurrentYear
-    } else {
-        eightMonthsFromNow
-    }
-
-    return !this.after(maxDate.time)
-}
-
-private fun startOfToday(): Date {
-    return Calendar.getInstance().apply {
-        set(Calendar.HOUR_OF_DAY, 0)
-        set(Calendar.MINUTE, 0)
-        set(Calendar.SECOND, 0)
-        set(Calendar.MILLISECOND, 0)
-    }.time
+    private data class CoverageContext(val key: String, val window: ReleaseDateRange)
 }

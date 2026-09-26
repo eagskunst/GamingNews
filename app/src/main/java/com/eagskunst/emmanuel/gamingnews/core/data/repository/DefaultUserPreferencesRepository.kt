@@ -2,17 +2,34 @@ package com.eagskunst.emmanuel.gamingnews.core.data.repository
 
 import com.eagskunst.emmanuel.gamingnews.core.data.source.local.UserPreferencesLocalDataSource
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.ArticleOpenMode
+import com.eagskunst.emmanuel.gamingnews.core.domain.model.PlatformSelection
+import com.eagskunst.emmanuel.gamingnews.core.domain.model.PlatformSelectionReconciler
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.ThemeMode
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.UserPreferences
+import com.eagskunst.emmanuel.gamingnews.core.domain.repository.PlatformCatalog
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.UserPreferencesRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class DefaultUserPreferencesRepository @Inject constructor(
-    private val localDataSource: UserPreferencesLocalDataSource
+    private val localDataSource: UserPreferencesLocalDataSource,
+    private val platformCatalog: PlatformCatalog
 ) : UserPreferencesRepository {
 
     override val userPreferences: Flow<UserPreferences> = localDataSource.userPreferences
+
+    override val releasePlatformSelection: Flow<PlatformSelection> =
+        localDataSource.releasePlatformIdStrings.map { stored ->
+            val result = PlatformSelectionReconciler.reconcile(stored, platformCatalog)
+            if (result.requiresPersistence) {
+                // Only the Releases-tab selection key is rewritten; other preferences are
+                // untouched. A failed write propagates to the collector instead of being
+                // silently swallowed.
+                localDataSource.updateReleasePlatformIdStrings(result.storedValue)
+            }
+            result.selection
+        }
 
     override suspend fun updateThemeMode(mode: ThemeMode) {
         localDataSource.updateThemeMode(mode)
@@ -45,5 +62,8 @@ class DefaultUserPreferencesRepository @Inject constructor(
     override suspend fun updateApplyGlobalMuteRulesToReviews(enabled: Boolean) {
         localDataSource.updateApplyGlobalMuteRulesToReviews(enabled)
     }
-}
 
+    override suspend fun updateReleasePlatformIds(ids: Set<Int>) {
+        localDataSource.updateReleasePlatformIdStrings(ids.mapTo(mutableSetOf()) { it.toString() })
+    }
+}
