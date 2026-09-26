@@ -15,6 +15,25 @@
     <string name="releases_refresh_error">Couldn’t refresh releases. Showing saved releases when available.</string>
     <string name="releases_pagination_error">Couldn’t load more releases. Try again.</string>
     <string name="releases_refresh_content_description">Refresh releases</string>
+    <string name="releases_selection_save_error">Couldn’t save the platform filter. Try again.</string>
+    <string name="releases_filter_all">All</string>
+    <plurals name="releases_matching_loaded">
+        <item quantity="one">%1$d matching release loaded</item>
+        <item quantity="other">%1$d matching releases loaded</item>
+    </plurals>
+    <plurals name="releases_matching_total">
+        <item quantity="one">%1$d matching release</item>
+        <item quantity="other">%1$d matching releases</item>
+    </plurals>
+    <string name="releases_searching">Looking for matching releases…</string>
+    <string name="releases_no_matches">No releases match your filters</string>
+    <string name="releases_clear_filters">Clear filters</string>
+    <string name="releases_retired_notice">Some platforms are no longer available and were removed from your filter.</string>
+    <string name="releases_all_retired_notice">The platforms you selected are no longer available. Showing all platforms.</string>
+    <string name="releases_unknown_notice">Some saved platforms aren’t recognized. Remove them from the filter if you don’t need them.</string>
+    <string name="releases_unknown_platform_chip">Platform %1$d</string>
+    <string name="releases_remove_unknown_cd">Remove this platform filter</string>
+    <string name="releases_dismiss">Dismiss</string>
     <string name="title_activity_settings">Settings</string>
     <string name="summary_topics">Change the topics which you want to receive notifications</string>
     <string name="add_topic">Add a topic</string>

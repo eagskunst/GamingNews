@@ -2,158 +2,320 @@ package com.eagskunst.emmanuel.gamingnews.ui.releases
 
 import app.cash.turbine.test
 import com.eagskunst.emmanuel.gamingnews.core.common.Result
+import com.eagskunst.emmanuel.gamingnews.core.domain.model.PlatformSelectionNotice
+import com.eagskunst.emmanuel.gamingnews.core.domain.model.PlatformStatus
+import com.eagskunst.emmanuel.gamingnews.core.domain.repository.PlatformCatalog
+import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetReleasesUseCase
 import com.eagskunst.emmanuel.gamingnews.testutil.Fixtures
 import com.eagskunst.emmanuel.gamingnews.testutil.MainDispatcherRule
+import com.eagskunst.emmanuel.gamingnews.testutil.fakes.FakePlatformCatalog
 import com.eagskunst.emmanuel.gamingnews.testutil.fakes.FakeReleasesRepository
+import com.eagskunst.emmanuel.gamingnews.testutil.fakes.FakeUserPreferencesRepository
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.test.runCurrent
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import java.util.Date
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class ReleasesViewModelTest {
 
+    private val mainDispatcher = UnconfinedTestDispatcher()
+
     @get:Rule
-    val mainDispatcherRule = MainDispatcherRule()
+    val mainDispatcherRule = MainDispatcherRule(mainDispatcher)
 
-    private lateinit var fakeRepository: FakeReleasesRepository
+    private var catalog: PlatformCatalog = FakePlatformCatalog()
 
-    private fun createViewModel(): ReleasesViewModel {
-        fakeRepository = FakeReleasesRepository()
-        return ReleasesViewModel(fakeRepository)
-    }
+    /** Inside the upcoming-release window the use case applies by default. */
+    private fun upcomingDate() = Date(System.currentTimeMillis() + 86_400_000L)
+
+    /** Drains resumes queued on the unconfined main dispatcher (e.g. StateFlow re-collects). */
+    private fun pumpMain() = mainDispatcher.scheduler.advanceUntilIdle()
+
+    private fun viewModel(
+        releases: FakeReleasesRepository = FakeReleasesRepository(),
+        prefs: FakeUserPreferencesRepository = FakeUserPreferencesRepository(catalog = catalog)
+    ): ReleasesViewModel = ReleasesViewModel(
+        getReleases = GetReleasesUseCase(releases, catalog),
+        releasesRepository = releases,
+        userPreferencesRepository = prefs,
+        catalog = catalog
+    )
 
     @Test
-    fun `given hasMorePages stream when initialized then state reflects it and refresh is triggered`() = runTest {
-        val release = Fixtures.gameRelease()
-        fakeRepository = FakeReleasesRepository()
-        fakeRepository.releasesResultFlow.value = Result.Success(listOf(release))
-        fakeRepository.hasMorePagesFlow.value = false
+    fun `given releases when initialized then grouped results and count come from the same result`() = runTest {
+        val day = upcomingDate()
+        val records = listOf(
+            Fixtures.gameReleaseRecord(releaseId = 1, gameId = 100, platformId = 6, releaseDate = day, name = "Shared Game"),
+            Fixtures.gameReleaseRecord(releaseId = 2, gameId = 100, platformId = 48, releaseDate = day, name = "Shared Game")
+        )
+        val releases = FakeReleasesRepository(Result.Success(records))
 
-        val viewModel = ReleasesViewModel(fakeRepository)
+        val viewModel = viewModel(releases)
 
         viewModel.uiState.test {
             val state = expectMostRecentItem()
-            assertEquals(false, state.hasMorePages)
-            assertEquals(listOf(release), state.releases)
-            assertEquals(1, fakeRepository.releasesStreamInvocations)
+            assertEquals(1, state.releases.size)
+            assertEquals(1, state.matchCount)
+            assertEquals(listOf("PC", "PS4"), state.releases.single().platforms)
+            assertEquals(catalog.supportedPlatforms(), state.platformOptions)
         }
     }
 
     @Test
-    fun `given successful result when refresh is called then releases and isLoading are updated`() = runTest {
-        val release = Fixtures.gameRelease()
-        val viewModel = createViewModel()
-        fakeRepository.releasesResultFlow.value = Result.Success(listOf(release))
+    fun `given a persisted platform selection when initialized then chips and results reflect it`() = runTest {
+        val prefs = FakeUserPreferencesRepository(catalog = catalog)
+        prefs.storedPlatformIds.value = setOf("6")
+        val records = listOf(
+            Fixtures.gameReleaseRecord(releaseId = 1, gameId = 10, platformId = 6, releaseDate = upcomingDate(), name = "PC Game"),
+            Fixtures.gameReleaseRecord(releaseId = 2, gameId = 20, platformId = 48, releaseDate = upcomingDate(), name = "PS4 Game")
+        )
+        val releases = FakeReleasesRepository(Result.Success(records))
 
-        viewModel.refresh()
-
-        viewModel.uiState.test {
-            val state = expectMostRecentItem()
-            assertEquals(listOf(release), state.releases)
-            assertEquals(false, state.isLoading)
-            assertEquals(null, state.error)
-        }
-    }
-
-    @Test
-    fun `given error result when refresh is called then errorMessage is updated`() = runTest {
-        val exception = RuntimeException("network down")
-        val viewModel = createViewModel()
-        fakeRepository.releasesResultFlow.value = Result.Error(exception)
-
-        viewModel.refresh()
-
-        viewModel.uiState.test {
-            val state = expectMostRecentItem()
-            assertEquals(false, state.isLoading)
-            assertEquals(ReleasesError.REFRESH, state.error)
-        }
-    }
-
-    @Test
-    fun `GIVEN cached releases WHEN refresh fails THEN releases remain visible with localized error type`() = runTest {
-        val cachedRelease = Fixtures.gameRelease()
-        fakeRepository = FakeReleasesRepository(Result.Success(listOf(cachedRelease)))
-        val viewModel = ReleasesViewModel(fakeRepository)
-        runCurrent()
-
-        fakeRepository.releasesResultFlow.value = Result.Error(RuntimeException("sensitive detail"))
-        runCurrent()
+        val viewModel = viewModel(releases, prefs)
 
         val state = viewModel.uiState.value
-        assertEquals(listOf(cachedRelease), state.releases)
-        assertEquals(ReleasesError.REFRESH, state.error)
+        assertEquals(setOf(6), state.selectedPlatformIds)
+        assertEquals(listOf("PC Game"), state.releases.map { it.name })
     }
 
     @Test
-    fun `GIVEN pagination in progress WHEN refresh is requested THEN refresh does not overlap`() = runTest {
-        val viewModel = createViewModel()
-        val pendingLoad = CompletableDeferred<Unit>()
-        fakeRepository.loadNextPageBlocker = pendingLoad
-        runCurrent()
-        val refreshCount = fakeRepository.releasesStreamInvocations
+    fun `given a selection when a chip is toggled then the new set is persisted`() = runTest {
+        val prefs = FakeUserPreferencesRepository(catalog = catalog)
+        val viewModel = viewModel(prefs = prefs)
+        pumpMain()
 
-        viewModel.loadMore()
-        runCurrent()
+        viewModel.onPlatformToggle(48)
+        pumpMain()
+
+        assertEquals(setOf("48"), prefs.storedPlatformIds.value)
+        assertEquals(setOf(48), viewModel.uiState.value.selectedPlatformIds)
+    }
+
+    @Test
+    fun `given the last selected platform when it is deselected then the selection falls back to All`() = runTest {
+        val prefs = FakeUserPreferencesRepository(catalog = catalog)
+        prefs.storedPlatformIds.value = setOf("48")
+        val viewModel = viewModel(prefs = prefs)
+        pumpMain()
+
+        viewModel.onPlatformToggle(48)
+        pumpMain()
+
+        assertEquals(emptySet<String>(), prefs.storedPlatformIds.value)
+        assertEquals(emptySet<Int>(), viewModel.uiState.value.selectedPlatformIds)
+    }
+
+    @Test
+    fun `given filters when All is selected then only the platform selection is cleared`() = runTest {
+        val prefs = FakeUserPreferencesRepository(catalog = catalog)
+        prefs.storedPlatformIds.value = setOf("6", "48")
+        val viewModel = viewModel(prefs = prefs)
+        pumpMain()
+        viewModel.onSearchQueryChange("zelda")
+
+        viewModel.onSelectAllPlatforms()
+        pumpMain()
+
+        assertEquals(emptySet<String>(), prefs.storedPlatformIds.value)
+        assertEquals("zelda", viewModel.uiState.value.searchQuery)
+    }
+
+    @Test
+    fun `given a failing write when a chip is toggled then the failure surfaces as an error`() = runTest {
+        val prefs = FakeUserPreferencesRepository(catalog = catalog)
+        prefs.failPlatformWrites = true
+        val viewModel = viewModel(prefs = prefs)
+        pumpMain()
+
+        viewModel.onPlatformToggle(48)
+        pumpMain()
+
+        assertEquals(ReleasesError.SELECTION_SAVE, viewModel.uiState.value.error)
+    }
+
+    @Test
+    fun `given a retired stored platform when the selection loads then a catalog notice is raised and All shown`() = runTest {
+        catalog = FakePlatformCatalog(
+            listOf(
+                FakePlatformCatalog.entry(igdbId = 6, name = "PC", order = 0),
+                FakePlatformCatalog.entry(igdbId = 48, name = "PS4", order = 1, status = PlatformStatus.RETIRED)
+            )
+        )
+        val prefs = FakeUserPreferencesRepository(catalog = catalog)
+        prefs.storedPlatformIds.value = setOf("48")
+
+        val viewModel = viewModel(prefs = prefs)
+        pumpMain()
+
+        val state = viewModel.uiState.value
+        assertEquals(PlatformSelectionNotice.ALL_RETIRED_FALLBACK, state.catalogNotice)
+        assertEquals(emptySet<Int>(), state.selectedPlatformIds)
+        assertEquals(emptySet<String>(), prefs.storedPlatformIds.value)
+    }
+
+    @Test
+    fun `given a stored unknown platform when the selection loads then a removable fallback is kept`() = runTest {
+        val prefs = FakeUserPreferencesRepository(catalog = catalog)
+        prefs.storedPlatformIds.value = setOf("9999")
+
+        val viewModel = viewModel(prefs = prefs)
+        pumpMain()
+
+        val state = viewModel.uiState.value
+        assertEquals(setOf(9999), state.unknownPlatformIds)
+        assertEquals(setOf(9999), state.selectedPlatformIds)
+        assertNull(state.catalogNotice)
+
+        viewModel.onPlatformToggle(9999)
+        pumpMain()
+        assertEquals(emptySet<String>(), prefs.storedPlatformIds.value)
+    }
+
+    @Test
+    fun `given a search query when it changes then results are filtered`() = runTest {
+        val records = listOf(
+            Fixtures.gameReleaseRecord(releaseId = 1, gameId = 10, platformId = 6, releaseDate = upcomingDate(), name = "Mario Party"),
+            Fixtures.gameReleaseRecord(releaseId = 2, gameId = 20, platformId = 6, releaseDate = upcomingDate(), name = "Zelda Echoes")
+        )
+        val releases = FakeReleasesRepository(Result.Success(records))
+        val viewModel = viewModel(releases)
+        pumpMain()
+
+        viewModel.onSearchQueryChange("zelda")
+
+        val state = viewModel.uiState.value
+        assertEquals("zelda", state.searchQuery)
+        assertEquals(listOf("Zelda Echoes"), state.releases.map { it.name })
+        assertEquals(1, state.matchCount)
+    }
+
+    @Test
+    fun `given zero matches and remaining pages when results settle then pages keep loading until exhausted`() = runTest {
+        val releases = FakeReleasesRepository(Result.Success(emptyList()), initialHasMorePages = true)
+        releases.loadNextPageResults.addAll(
+            listOf(Result.Success(true), Result.Success(true), Result.Success(false))
+        )
+
+        viewModel(releases)
+        pumpMain()
+
+        assertEquals(3, releases.loadNextPageInvocations)
+    }
+
+    @Test
+    fun `given a pagination failure when it happens then loading stops and retry resumes`() = runTest {
+        val releases = FakeReleasesRepository(Result.Success(emptyList()), initialHasMorePages = true)
+        releases.loadNextPageResults.addAll(
+            listOf(Result.Error(RuntimeException("page failed")), Result.Success(false))
+        )
+
+        val viewModel = viewModel(releases)
+        pumpMain()
+
+        assertEquals(1, releases.loadNextPageInvocations)
+        assertEquals(ReleasesError.PAGINATION, viewModel.uiState.value.error)
+
+        viewModel.retry()
+        pumpMain()
+
+        assertEquals(2, releases.loadNextPageInvocations)
+        assertNull(viewModel.uiState.value.error)
+    }
+
+    @Test
+    fun `given a refresh failure when retry is invoked then refresh is attempted again`() = runTest {
+        val releases = FakeReleasesRepository()
+        releases.refreshResult = Result.Error(RuntimeException("refresh failed"))
+        val viewModel = viewModel(releases)
+        pumpMain()
+
         viewModel.refresh()
+        pumpMain()
+        assertEquals(ReleasesError.REFRESH, viewModel.uiState.value.error)
 
-        assertEquals(refreshCount, fakeRepository.releasesStreamInvocations)
-        pendingLoad.complete(Unit)
+        releases.refreshResult = Result.Success(Unit)
+        viewModel.retry()
+        pumpMain()
+
+        assertEquals(2, releases.refreshInvocations)
+        assertNull(viewModel.uiState.value.error)
     }
 
     @Test
-    fun `given isLoadingMore already true when loadMore is called then it is a no-op`() = runTest {
-        val viewModel = createViewModel()
-        fakeRepository.hasMorePagesFlow.value = true
+    fun `given pagination in progress when loadMore is called again then it does not duplicate the request`() = runTest {
+        val releases = FakeReleasesRepository(Result.Success(emptyList()), initialHasMorePages = true)
         val pendingLoad = CompletableDeferred<Unit>()
-        fakeRepository.loadNextPageBlocker = pendingLoad
+        releases.loadNextPageBlocker = pendingLoad
+        releases.loadNextPageResult = Result.Success(false)
+
+        val viewModel = viewModel(releases)
+        pumpMain()
 
         viewModel.loadMore()
-        assertEquals(1, fakeRepository.loadNextPageInvocations)
+        pumpMain()
 
-        viewModel.loadMore()
-        assertEquals(1, fakeRepository.loadNextPageInvocations)
-
+        assertEquals(1, releases.loadNextPageInvocations)
         pendingLoad.complete(Unit)
     }
 
     @Test
-    fun `given hasMorePages is false when loadMore is called then it is a no-op`() = runTest {
-        val viewModel = createViewModel()
-        fakeRepository.hasMorePagesFlow.value = false
+    fun `given no more pages when loadMore is called then it is a no op`() = runTest {
+        val releases = FakeReleasesRepository(initialHasMorePages = false)
+        val viewModel = viewModel(releases)
+        pumpMain()
 
         viewModel.loadMore()
 
-        assertEquals(0, fakeRepository.loadNextPageInvocations)
+        assertEquals(0, releases.loadNextPageInvocations)
     }
 
     @Test
-    fun `given error result when loadMore is called then errorMessage is updated`() = runTest {
-        val viewModel = createViewModel()
-        fakeRepository.hasMorePagesFlow.value = true
-        val exception = RuntimeException("page load failed")
-        fakeRepository.loadNextPageResult = Result.Error(exception)
-
-        viewModel.loadMore()
-
-        viewModel.uiState.test {
-            val state = expectMostRecentItem()
-            assertEquals(false, state.isLoadingMore)
-            assertEquals(ReleasesError.PAGINATION, state.error)
+    fun `given the hasMorePages stream when it emits then the state reflects it`() = runTest {
+        // Six or more groups fill the viewport threshold so the auto-loader doesn't consume
+        // the hasMorePages = true emission and flip it back.
+        val records = List(6) { index ->
+            Fixtures.gameReleaseRecord(
+                releaseId = index.toLong(),
+                gameId = index.toLong(),
+                platformId = 6,
+                releaseDate = upcomingDate(),
+                name = "Game $index"
+            )
         }
+        val releases = FakeReleasesRepository(Result.Success(records), initialHasMorePages = false)
+        val viewModel = viewModel(releases)
+        pumpMain()
+
+        assertEquals(false, viewModel.uiState.value.hasMorePages)
+
+        releases.hasMorePagesFlow.value = true
+        pumpMain()
+
+        assertTrue(viewModel.uiState.value.hasMorePages)
     }
 
     @Test
-    fun `given a query when onSearchQueryChange is called then searchQuery is updated`() = runTest {
-        val viewModel = createViewModel()
+    fun `given catalog notices when dismissed then the notice is cleared`() = runTest {
+        catalog = FakePlatformCatalog(
+            listOf(
+                FakePlatformCatalog.entry(igdbId = 6, name = "PC", order = 0),
+                FakePlatformCatalog.entry(igdbId = 48, name = "PS4", order = 1, status = PlatformStatus.RETIRED)
+            )
+        )
+        val prefs = FakeUserPreferencesRepository(catalog = catalog)
+        prefs.storedPlatformIds.value = setOf("48")
+        val viewModel = viewModel(prefs = prefs)
+        pumpMain()
 
-        viewModel.onSearchQueryChange("mario")
+        viewModel.dismissCatalogNotice()
 
-        viewModel.uiState.test {
-            val state = expectMostRecentItem()
-            assertEquals("mario", state.searchQuery)
-        }
+        assertNull(viewModel.uiState.value.catalogNotice)
     }
 }

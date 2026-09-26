@@ -15,6 +15,25 @@
     <string name="releases_refresh_error">No se pudieron actualizar los lanzamientos. Mostrando los lanzamientos guardados cuando estén disponibles.</string>
     <string name="releases_pagination_error">No se pudieron cargar más lanzamientos. Inténtalo de nuevo.</string>
     <string name="releases_refresh_content_description">Actualizar lanzamientos</string>
+    <string name="releases_selection_save_error">No se pudo guardar el filtro de plataformas. Inténtalo de nuevo.</string>
+    <string name="releases_filter_all">Todas</string>
+    <plurals name="releases_matching_loaded">
+        <item quantity="one">%1$d lanzamiento coincidente cargado</item>
+        <item quantity="other">%1$d lanzamientos coincidentes cargados</item>
+    </plurals>
+    <plurals name="releases_matching_total">
+        <item quantity="one">%1$d lanzamiento coincidente</item>
+        <item quantity="other">%1$d lanzamientos coincidentes</item>
+    </plurals>
+    <string name="releases_searching">Buscando lanzamientos coincidentes…</string>
+    <string name="releases_no_matches">Ningún lanzamiento coincide con tus filtros</string>
+    <string name="releases_clear_filters">Limpiar filtros</string>
+    <string name="releases_retired_notice">Algunas plataformas ya no están disponibles y se quitaron de tu filtro.</string>
+    <string name="releases_all_retired_notice">Las plataformas que seleccionaste ya no están disponibles. Mostrando todas las plataformas.</string>
+    <string name="releases_unknown_notice">Algunas plataformas guardadas no se reconocen. Quítalas del filtro si no las necesitas.</string>
+    <string name="releases_unknown_platform_chip">Plataforma %1$d</string>
+    <string name="releases_remove_unknown_cd">Quitar este filtro de plataforma</string>
+    <string name="releases_dismiss">Descartar</string>
     <string name="title_activity_settings">Configuración</string>
     <string name="summary_topics">Cambia los temas de los cuales quieres recibir notificaciones</string>
     <string name="add_topic">Añadir un tema</string>
