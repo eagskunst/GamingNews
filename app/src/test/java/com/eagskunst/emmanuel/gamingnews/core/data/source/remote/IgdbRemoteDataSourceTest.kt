@@ -1,8 +1,10 @@
 package com.eagskunst.emmanuel.gamingnews.core.data.source.remote
 
+import com.eagskunst.emmanuel.gamingnews.core.data.source.local.BundledPlatformCatalog
 import com.eagskunst.emmanuel.gamingnews.core.data.source.local.IgdbAuthLocalDataSource
 import com.eagskunst.emmanuel.gamingnews.core.data.source.remote.api.IgdbApi
 import com.eagskunst.emmanuel.gamingnews.core.data.source.remote.api.IgdbReleaseDateDto
+import com.eagskunst.emmanuel.gamingnews.core.domain.model.ReleaseDateRange
 import com.eagskunst.emmanuel.gamingnews.testutil.TestDispatcherProvider
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -28,13 +30,19 @@ class IgdbRemoteDataSourceTest {
     private val api: IgdbApi = mockk()
     private val authLocalDataSource: IgdbAuthLocalDataSource = mockk(relaxed = true)
     private val authRemoteDataSource: IgdbAuthRemoteDataSource = mockk(relaxed = true)
+    private val platformCatalog = BundledPlatformCatalog()
 
     private val clientId = "test-client-id"
+    private val window = ReleaseDateRange(
+        startMillis = 1_700_000_000_000L,
+        endMillis = 1_800_000_000_000L
+    )
 
     private val dataSource = IgdbRemoteDataSource(
         api = api,
         authLocalDataSource = authLocalDataSource,
         authRemoteDataSource = authRemoteDataSource,
+        platformCatalog = platformCatalog,
         clientId = clientId,
         dispatchers = testDispatchers
     )
@@ -55,7 +63,7 @@ class IgdbRemoteDataSourceTest {
             )
         } returns emptyList()
 
-        dataSource.fetchUpcomingReleases(0)
+        dataSource.fetchUpcomingReleases(0, window)
 
         coVerify(exactly = 0) { authRemoteDataSource.fetchAccessToken() }
         coVerify(exactly = 1) { authLocalDataSource.getAccessToken(clientId) }
@@ -83,7 +91,7 @@ class IgdbRemoteDataSourceTest {
             )
         } returns emptyList()
 
-        dataSource.fetchUpcomingReleases(0)
+        dataSource.fetchUpcomingReleases(0, window)
 
         coVerify(exactly = 1) { authRemoteDataSource.fetchAccessToken() }
         coVerify(exactly = 1) { authLocalDataSource.saveAccessToken(freshToken, expiresIn, clientId) }
@@ -109,7 +117,7 @@ class IgdbRemoteDataSourceTest {
             )
         } returns listOf(mockk<IgdbReleaseDateDto>(relaxed = true))
 
-        dataSource.fetchUpcomingReleases(42)
+        dataSource.fetchUpcomingReleases(42, window)
 
         assertEquals(clientId, clientIdSlot.captured)
         assertEquals("Bearer $token", authorizationSlot.captured)
@@ -123,7 +131,7 @@ class IgdbRemoteDataSourceTest {
         coEvery { api.getReleaseDates(clientId, "Bearer cached-token", any()) } throws httpException(401)
         coEvery { api.getReleaseDates(clientId, "Bearer replacement-token", any()) } returns emptyList()
 
-        dataSource.fetchUpcomingReleases(12)
+        dataSource.fetchUpcomingReleases(12, window)
 
         coVerify(exactly = 1) { authRemoteDataSource.fetchAccessToken() }
         coVerifyOrder {
@@ -142,7 +150,7 @@ class IgdbRemoteDataSourceTest {
         coEvery { api.getReleaseDates(clientId, "Bearer cached-token", any()) } throws httpException(401)
         coEvery { api.getReleaseDates(clientId, "Bearer replacement-token", any()) } throws httpException(401)
 
-        assertSuspendFails<IgdbRejectedTokenException> { dataSource.fetchUpcomingReleases() }
+        assertSuspendFails<IgdbRejectedTokenException> { dataSource.fetchUpcomingReleases(window = window) }
 
         coVerify(exactly = 1) { authRemoteDataSource.fetchAccessToken() }
         coVerify(exactly = 2) { api.getReleaseDates(clientId, any(), any()) }
@@ -153,7 +161,7 @@ class IgdbRemoteDataSourceTest {
         coEvery { authLocalDataSource.getAccessToken(clientId) } returns null
         coEvery { authRemoteDataSource.fetchAccessToken() } throws IllegalStateException("unavailable")
 
-        assertSuspendFails<IgdbTokenAcquisitionException> { dataSource.fetchUpcomingReleases() }
+        assertSuspendFails<IgdbTokenAcquisitionException> { dataSource.fetchUpcomingReleases(window = window) }
 
         coVerify(exactly = 1) { authRemoteDataSource.fetchAccessToken() }
         coVerify(exactly = 0) { api.getReleaseDates(any(), any(), any()) }
@@ -164,7 +172,7 @@ class IgdbRemoteDataSourceTest {
         coEvery { authLocalDataSource.getAccessToken(clientId) } returns "cached-token"
         coEvery { api.getReleaseDates(clientId, "Bearer cached-token", any()) } throws httpException(500)
 
-        assertSuspendFails<HttpException> { dataSource.fetchUpcomingReleases() }
+        assertSuspendFails<HttpException> { dataSource.fetchUpcomingReleases(window = window) }
 
         coVerify(exactly = 0) { authRemoteDataSource.fetchAccessToken() }
         coVerify(exactly = 1) { api.getReleaseDates(clientId, "Bearer cached-token", any()) }
@@ -180,7 +188,7 @@ class IgdbRemoteDataSourceTest {
             emptyList()
         }
 
-        dataSource.fetchUpcomingReleases(73)
+        dataSource.fetchUpcomingReleases(73, window)
 
         assertEquals(2, bodies.size)
         assertEquals(bodies[0].bodyString(), bodies[1].bodyString())
@@ -209,8 +217,8 @@ class IgdbRemoteDataSourceTest {
         coEvery { api.getReleaseDates(clientId, "Bearer replacement-token", any()) } returns emptyList()
 
         awaitAll(
-            async { dataSource.fetchUpcomingReleases(0) },
-            async { dataSource.fetchUpcomingReleases(IgdbRemoteDataSource.PAGE_LIMIT) }
+            async { dataSource.fetchUpcomingReleases(0, window) },
+            async { dataSource.fetchUpcomingReleases(IgdbRemoteDataSource.PAGE_LIMIT, window) }
         )
 
         coVerify(exactly = 1) { authRemoteDataSource.fetchAccessToken() }
@@ -237,7 +245,9 @@ class IgdbRemoteDataSourceTest {
         assertTrue(text.contains("fields id,date,human,platform,game.name,game.url,game.cover.url"))
         assertTrue(text.contains("limit ${IgdbRemoteDataSource.PAGE_LIMIT}"))
         assertTrue(text.contains("offset $offset"))
-        assertTrue(text.contains("platform = (6,49,48,130,167,169,508)"))
+        assertTrue(text.contains("platform = (6,48,49,130,167,169,508)"))
+        assertTrue(text.contains("date >= ${window.startMillis / 1000}"))
+        assertTrue(text.contains("date <= ${window.endMillis / 1000}"))
     }
 
     private fun RequestBody.bodyString(): String {

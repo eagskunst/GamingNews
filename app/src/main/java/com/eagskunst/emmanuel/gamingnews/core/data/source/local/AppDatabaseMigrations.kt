@@ -39,3 +39,41 @@ val MIGRATION_2_3 = object : Migration(2, 3) {
         )
     }
 }
+
+/**
+ * Release rows used to be merged by game ID at ingestion time, so the original per-platform /
+ * per-date associations can't be reconstructed. The release cache is rebuilt empty (records
+ * are re-fetched on next load); articles, mute rules and preferences are preserved.
+ */
+val MIGRATION_3_4 = object : Migration(3, 4) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("DROP TABLE IF EXISTS `releases`")
+        db.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `releases` (
+                `id` INTEGER NOT NULL,
+                `gameId` INTEGER NOT NULL,
+                `platformId` INTEGER NOT NULL,
+                `name` TEXT NOT NULL,
+                `coverUrl` TEXT,
+                `releaseDate` INTEGER NOT NULL,
+                `gameUrl` TEXT,
+                `fetchedAt` INTEGER NOT NULL,
+                PRIMARY KEY(`id`)
+            )
+            """.trimIndent()
+        )
+        db.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `release_coverage` (
+                `id` INTEGER NOT NULL,
+                `coverageKey` TEXT NOT NULL,
+                `nextOffset` INTEGER NOT NULL,
+                `isComplete` INTEGER NOT NULL,
+                `updatedAt` INTEGER NOT NULL,
+                PRIMARY KEY(`id`)
+            )
+            """.trimIndent()
+        )
+    }
+}

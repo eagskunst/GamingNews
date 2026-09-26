@@ -6,11 +6,18 @@ import androidx.room.TypeConverters
 import com.eagskunst.emmanuel.gamingnews.core.data.source.local.entity.ArticleEntity
 import com.eagskunst.emmanuel.gamingnews.core.data.source.local.entity.MuteRuleEntity
 import com.eagskunst.emmanuel.gamingnews.core.data.source.local.entity.MuteRuleTabEntity
+import com.eagskunst.emmanuel.gamingnews.core.data.source.local.entity.ReleaseCoverageEntity
 import com.eagskunst.emmanuel.gamingnews.core.data.source.local.entity.ReleaseEntity
 
 @Database(
-    entities = [ArticleEntity::class, ReleaseEntity::class, MuteRuleEntity::class, MuteRuleTabEntity::class],
-    version = 3,
+    entities = [
+        ArticleEntity::class,
+        ReleaseEntity::class,
+        ReleaseCoverageEntity::class,
+        MuteRuleEntity::class,
+        MuteRuleTabEntity::class
+    ],
+    version = 4,
     exportSchema = true
 )
 @TypeConverters(Converters::class)

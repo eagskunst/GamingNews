@@ -6,6 +6,7 @@ import com.eagskunst.emmanuel.gamingnews.core.data.source.local.AppDatabase
 import com.eagskunst.emmanuel.gamingnews.core.data.source.local.ArticleDao
 import com.eagskunst.emmanuel.gamingnews.core.data.source.local.MIGRATION_1_2
 import com.eagskunst.emmanuel.gamingnews.core.data.source.local.MIGRATION_2_3
+import com.eagskunst.emmanuel.gamingnews.core.data.source.local.MIGRATION_3_4
 import com.eagskunst.emmanuel.gamingnews.core.data.source.local.MuteRuleDao
 import com.eagskunst.emmanuel.gamingnews.core.data.source.local.ReleaseDao
 import dagger.Module
@@ -27,7 +28,7 @@ object DatabaseModule {
             AppDatabase::class.java,
             "gamingnews.db"
         )
-            .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
             .build()
     }
 

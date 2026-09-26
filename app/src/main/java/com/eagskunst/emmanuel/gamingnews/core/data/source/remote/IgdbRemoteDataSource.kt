@@ -4,6 +4,8 @@ import com.eagskunst.emmanuel.gamingnews.core.common.DispatcherProvider
 import com.eagskunst.emmanuel.gamingnews.core.data.source.local.IgdbAuthLocalDataSource
 import com.eagskunst.emmanuel.gamingnews.core.data.source.remote.api.IgdbApi
 import com.eagskunst.emmanuel.gamingnews.core.data.source.remote.api.IgdbReleaseDateDto
+import com.eagskunst.emmanuel.gamingnews.core.domain.model.ReleaseDateRange
+import com.eagskunst.emmanuel.gamingnews.core.domain.repository.PlatformCatalog
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -19,15 +21,18 @@ class IgdbRemoteDataSource @Inject constructor(
     private val api: IgdbApi,
     private val authLocalDataSource: IgdbAuthLocalDataSource,
     private val authRemoteDataSource: IgdbAuthRemoteDataSource,
+    private val platformCatalog: PlatformCatalog,
     @Named("igdbClientId") private val clientId: String,
     private val dispatchers: DispatcherProvider
 ) {
 
-    private val platforms = listOf(6, 49, 48, 130, 167, 169, 508)
     private val tokenMutex = Mutex()
 
-    suspend fun fetchUpcomingReleases(offset: Int = 0): List<IgdbReleaseDateDto> = withContext(dispatchers.io) {
-        val body = buildQuery(offset).toRequestBody(MEDIA_TYPE)
+    suspend fun fetchUpcomingReleases(
+        offset: Int = 0,
+        window: ReleaseDateRange
+    ): List<IgdbReleaseDateDto> = withContext(dispatchers.io) {
+        val body = buildQuery(offset, window).toRequestBody(MEDIA_TYPE)
         val token = getValidAccessToken()
         try {
             requestReleases(token, body)
@@ -48,11 +53,16 @@ class IgdbRemoteDataSource @Inject constructor(
     private suspend fun requestReleases(token: String, body: RequestBody): List<IgdbReleaseDateDto> =
         api.getReleaseDates(clientId, "Bearer $token", body)
 
-    private fun buildQuery(offset: Int): String {
-        val timestamp = System.currentTimeMillis() / 1000
+    private fun buildQuery(offset: Int, window: ReleaseDateRange): String {
+        val supportedIds = platformCatalog.supportedIds().sorted().joinToString(",")
+        val windowStartSeconds = window.startMillis / 1000
+        val windowEndSeconds = window.endMillis / 1000
         return buildString {
             appendLine("fields id,date,human,platform,game.name,game.url,game.cover.url;")
-            appendLine("where platform = (${platforms.joinToString(",")}) & date > $timestamp;")
+            appendLine(
+                "where platform = ($supportedIds) " +
+                    "& date >= $windowStartSeconds & date <= $windowEndSeconds;"
+            )
             appendLine("sort date asc;")
             appendLine("limit $PAGE_LIMIT;")
             appendLine("offset $offset;")

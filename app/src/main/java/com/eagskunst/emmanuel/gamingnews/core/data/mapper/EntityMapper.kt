@@ -2,7 +2,7 @@ package com.eagskunst.emmanuel.gamingnews.core.data.mapper
 
 import com.eagskunst.emmanuel.gamingnews.core.data.source.local.entity.ArticleEntity
 import com.eagskunst.emmanuel.gamingnews.core.data.source.local.entity.ReleaseEntity
-import com.eagskunst.emmanuel.gamingnews.core.domain.model.GameRelease
+import com.eagskunst.emmanuel.gamingnews.core.domain.model.GameReleaseRecord
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.NewsArticle
 
 fun ArticleEntity.toNewsArticle(): NewsArticle = NewsArticle(
@@ -25,20 +25,22 @@ fun NewsArticle.toArticleEntity(): ArticleEntity = ArticleEntity(
     author = author
 )
 
-fun ReleaseEntity.toGameRelease(): GameRelease = GameRelease(
-    id = id,
+fun ReleaseEntity.toReleaseRecord(): GameReleaseRecord = GameReleaseRecord(
+    releaseId = id,
+    gameId = gameId,
+    platformId = platformId,
+    releaseDate = releaseDate,
     name = name,
     coverUrl = coverUrl,
-    releaseDate = releaseDate,
-    platforms = platforms.split(", ").filter { it.isNotBlank() },
     gameUrl = gameUrl
 )
 
-fun GameRelease.toReleaseEntity(): ReleaseEntity = ReleaseEntity(
-    id = id,
+fun GameReleaseRecord.toReleaseEntity(): ReleaseEntity = ReleaseEntity(
+    id = releaseId,
+    gameId = gameId,
+    platformId = platformId,
     name = name,
     coverUrl = coverUrl,
     releaseDate = releaseDate,
-    platforms = platforms.joinToString(", "),
     gameUrl = gameUrl
 )

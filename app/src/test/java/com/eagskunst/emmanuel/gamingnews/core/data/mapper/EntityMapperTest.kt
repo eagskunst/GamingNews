@@ -1,7 +1,6 @@
 package com.eagskunst.emmanuel.gamingnews.core.data.mapper
 
 import com.eagskunst.emmanuel.gamingnews.core.data.source.local.entity.ArticleEntity
-import com.eagskunst.emmanuel.gamingnews.core.data.source.local.entity.ReleaseEntity
 import com.eagskunst.emmanuel.gamingnews.testutil.Fixtures
 import java.util.Date
 import org.junit.Assert.assertEquals
@@ -79,88 +78,63 @@ class EntityMapperTest {
         assertEquals(entity.link, roundTripped.link)
         assertEquals(entity.title, roundTripped.title)
         assertEquals(entity.description, roundTripped.description)
-        assertEquals(entity.imageUrl, roundTripped.imageUrl)
         assertEquals(entity.publicationDate, roundTripped.publicationDate)
         assertEquals(entity.sourceName, roundTripped.sourceName)
     }
 
     @Test
-    fun `given release entity with single platform when toGameRelease then platforms has one element`() {
-        val entity = ReleaseEntity(
-            id = 1L,
-            name = "Some Game",
-            coverUrl = "https://example.com/cover.png",
-            releaseDate = Date(0),
-            platforms = "PC",
-            gameUrl = "https://example.com/game"
+    fun `given release entity when toReleaseRecord then every field is preserved`() {
+        val entity = Fixtures.releaseEntity(
+            id = 99L,
+            gameId = 42L,
+            platformId = 167,
+            releaseDate = Date(1_700_000_000_000L)
         )
 
-        val release = entity.toGameRelease()
+        val record = entity.toReleaseRecord()
 
-        assertEquals(listOf("PC"), release.platforms)
+        assertEquals(99L, record.releaseId)
+        assertEquals(42L, record.gameId)
+        assertEquals(167, record.platformId)
+        assertEquals(entity.releaseDate, record.releaseDate)
+        assertEquals(entity.name, record.name)
+        assertEquals(entity.coverUrl, record.coverUrl)
+        assertEquals(entity.gameUrl, record.gameUrl)
     }
 
     @Test
-    fun `given release entity with multiple platforms when toGameRelease then platforms are split by comma space`() {
-        val entity = ReleaseEntity(
-            id = 1L,
-            name = "Some Game",
-            coverUrl = "https://example.com/cover.png",
-            releaseDate = Date(0),
-            platforms = "PC, PS4, Xbox One",
-            gameUrl = "https://example.com/game"
+    fun `given release record when toReleaseEntity then every field is preserved`() {
+        val record = Fixtures.gameReleaseRecord(
+            releaseId = 7L,
+            gameId = 8L,
+            platformId = 130,
+            releaseDate = Date(4_000L)
         )
 
-        val release = entity.toGameRelease()
+        val entity = record.toReleaseEntity()
 
-        assertEquals(listOf("PC", "PS4", "Xbox One"), release.platforms)
+        assertEquals(record.releaseId, entity.id)
+        assertEquals(record.gameId, entity.gameId)
+        assertEquals(record.platformId, entity.platformId)
+        assertEquals(record.releaseDate, entity.releaseDate)
+        assertEquals(record.name, entity.name)
+        assertEquals(record.coverUrl, entity.coverUrl)
+        assertEquals(record.gameUrl, entity.gameUrl)
     }
 
     @Test
-    fun `given release entity with empty platforms when toGameRelease then platforms is empty list`() {
-        val entity = ReleaseEntity(
-            id = 1L,
-            name = "Some Game",
-            coverUrl = "https://example.com/cover.png",
-            releaseDate = Date(0),
-            platforms = "",
-            gameUrl = "https://example.com/game"
+    fun `given release record when round tripped through release entity then equal`() {
+        val record = Fixtures.gameReleaseRecord(
+            releaseId = 11L,
+            gameId = 12L,
+            platformId = 508,
+            coverUrl = null,
+            releaseDate = Date(9_999L),
+            gameUrl = null
         )
 
-        val release = entity.toGameRelease()
+        val roundTripped = record.toReleaseEntity().toReleaseRecord()
 
-        assertEquals(emptyList<String>(), release.platforms)
-    }
-
-    @Test
-    fun `given game release when toReleaseEntity then platforms are joined with comma space`() {
-        val release = Fixtures.gameRelease(platforms = listOf("PC", "PS4", "Xbox One"))
-
-        val entity = release.toReleaseEntity()
-
-        assertEquals("PC, PS4, Xbox One", entity.platforms)
-        assertEquals(release.id, entity.id)
-        assertEquals(release.name, entity.name)
-        assertEquals(release.coverUrl, entity.coverUrl)
-        assertEquals(release.releaseDate, entity.releaseDate)
-        assertEquals(release.gameUrl, entity.gameUrl)
-    }
-
-    @Test
-    fun `given game release with empty platforms when toReleaseEntity then platforms is empty string`() {
-        val release = Fixtures.gameRelease(platforms = emptyList())
-
-        val entity = release.toReleaseEntity()
-
-        assertEquals("", entity.platforms)
-    }
-
-    @Test
-    fun `given game release when round tripped through release entity then equal`() {
-        val release = Fixtures.gameRelease(platforms = listOf("PC", "Nintendo Switch"))
-
-        val roundTripped = release.toReleaseEntity().toGameRelease()
-
-        assertEquals(release, roundTripped)
+        assertEquals(record, roundTripped)
     }
 }

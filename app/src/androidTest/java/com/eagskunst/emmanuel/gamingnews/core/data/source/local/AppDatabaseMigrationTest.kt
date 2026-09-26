@@ -89,6 +89,52 @@ class AppDatabaseMigrationTest {
     }
 
     @Test
+    fun migrate3To4_rebuilds_the_release_cache_and_preserves_articles_and_mute_rules() {
+        val now = Date().time
+        helper.createDatabase(TEST_DB, 3).use { db ->
+            db.execSQL(
+                """
+                INSERT INTO articles (link, title, description, imageUrl, publicationDate, sourceName, savedAt, author)
+                VALUES ('https://example.com/article', 'Title', 'Description', NULL, $now, 'Source', $now, 'Author')
+                """.trimIndent()
+            )
+            // Old rows were merged by game id and can't be split back into per-platform
+            // records, so they must be discarded rather than migrated.
+            db.execSQL(
+                """
+                INSERT INTO releases (id, name, coverUrl, releaseDate, platforms, gameUrl, fetchedAt)
+                VALUES (1, 'Merged Game', NULL, $now, 'PC, PS5', NULL, $now)
+                """.trimIndent()
+            )
+            db.execSQL(
+                """
+                INSERT INTO mute_rules (id, text, matchMode, caseSensitive, appliesEverywhere)
+                VALUES ('rule-1', 'spoiler', 'CONTAINS', 0, 1)
+                """.trimIndent()
+            )
+        }
+
+        val db = helper.runMigrationsAndValidate(TEST_DB, 4, true, MIGRATION_3_4)
+
+        db.query("SELECT COUNT(*) FROM articles").use { cursor ->
+            assertTrue(cursor.moveToFirst())
+            assertEquals(1, cursor.getInt(0))
+        }
+        db.query("SELECT COUNT(*) FROM mute_rules").use { cursor ->
+            assertTrue(cursor.moveToFirst())
+            assertEquals(1, cursor.getInt(0))
+        }
+        db.query("SELECT COUNT(*) FROM releases").use { cursor ->
+            assertTrue(cursor.moveToFirst())
+            assertEquals(0, cursor.getInt(0))
+        }
+        db.query("SELECT COUNT(*) FROM release_coverage").use { cursor ->
+            assertTrue(cursor.moveToFirst())
+            assertEquals(0, cursor.getInt(0))
+        }
+    }
+
+    @Test
     fun migrate1To3_applies_the_full_migration_chain() {
         val now = Date().time
         helper.createDatabase(TEST_DB, 1).use { db ->

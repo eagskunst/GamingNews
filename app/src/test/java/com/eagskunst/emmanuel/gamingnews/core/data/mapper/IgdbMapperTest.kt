@@ -6,11 +6,12 @@ import com.eagskunst.emmanuel.gamingnews.core.data.source.remote.api.IgdbRelease
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
+import java.util.Date
 
 class IgdbMapperTest {
 
     @Test
-    fun `when the dto has all fields then it maps to a game release`() {
+    fun `when the dto has all fields then every id and the release date are preserved`() {
         val dto = IgdbReleaseDateDto(
             id = 123,
             date = 1_700_000_000,
@@ -24,13 +25,28 @@ class IgdbMapperTest {
             )
         )
 
-        val release = dto.toGameRelease()
+        val record = dto.toReleaseRecord()
 
-        assertEquals(456L, release?.id)
-        assertEquals("Test Game", release?.name)
-        assertEquals("https://images.igdb.com/t_cover_big/abc.jpg", release?.coverUrl)
-        assertEquals(listOf("PS4"), release?.platforms)
-        assertEquals("https://igdb.com/games/test-game", release?.gameUrl)
+        assertEquals(123L, record?.releaseId)
+        assertEquals(456L, record?.gameId)
+        assertEquals(48, record?.platformId)
+        assertEquals(Date(1_700_000_000L * 1000L), record?.releaseDate)
+        assertEquals("Test Game", record?.name)
+        assertEquals("https://images.igdb.com/t_cover_big/abc.jpg", record?.coverUrl)
+        assertEquals("https://igdb.com/games/test-game", record?.gameUrl)
+    }
+
+    @Test
+    fun `when the game is null then it returns null`() {
+        val dto = IgdbReleaseDateDto(
+            id = 123,
+            date = 1_700_000_000,
+            human = "Nov 2023",
+            platform = 48,
+            game = null
+        )
+
+        assertNull(dto.toReleaseRecord())
     }
 
     @Test
@@ -43,11 +59,11 @@ class IgdbMapperTest {
             game = IgdbGameDto(id = 456, name = null, url = null, cover = null)
         )
 
-        assertNull(dto.toGameRelease())
+        assertNull(dto.toReleaseRecord())
     }
 
     @Test
-    fun `when the platform id is unknown then it is ignored`() {
+    fun `when the platform id is unknown then the record keeps the raw platform id`() {
         val dto = IgdbReleaseDateDto(
             id = 123,
             date = 1_700_000_000,
@@ -56,7 +72,7 @@ class IgdbMapperTest {
             game = IgdbGameDto(id = 1, name = "Game", url = null, cover = null)
         )
 
-        assertEquals(emptyList<String>(), dto.toGameRelease()?.platforms)
+        assertEquals(999, dto.toReleaseRecord()?.platformId)
     }
 
     @Test
@@ -69,7 +85,7 @@ class IgdbMapperTest {
             game = IgdbGameDto(id = 456, name = "   ", url = null, cover = null)
         )
 
-        assertNull(dto.toGameRelease())
+        assertNull(dto.toReleaseRecord())
     }
 
     @Test
@@ -82,7 +98,7 @@ class IgdbMapperTest {
             game = IgdbGameDto(id = 456, name = "Test Game", url = null, cover = null)
         )
 
-        assertNull(dto.toGameRelease())
+        assertNull(dto.toReleaseRecord())
     }
 
     @Test
@@ -95,7 +111,7 @@ class IgdbMapperTest {
             game = IgdbGameDto(id = 456, name = "Test Game", url = null, cover = null)
         )
 
-        assertNull(dto.toGameRelease()?.coverUrl)
+        assertNull(dto.toReleaseRecord()?.coverUrl)
     }
 
     @Test
@@ -108,35 +124,6 @@ class IgdbMapperTest {
             game = IgdbGameDto(id = 456, name = "Test Game", url = null, cover = IgdbCoverDto(id = 1, url = null))
         )
 
-        assertNull(dto.toGameRelease()?.coverUrl)
+        assertNull(dto.toReleaseRecord()?.coverUrl)
     }
-
-    @Test
-    fun `when the platform id is 167 then it maps to PS5`() {
-        val dto = releaseDateDtoWithPlatform(167)
-
-        assertEquals(listOf("PS5"), dto.toGameRelease()?.platforms)
-    }
-
-    @Test
-    fun `when the platform id is 169 then it maps to Xbox Series`() {
-        val dto = releaseDateDtoWithPlatform(169)
-
-        assertEquals(listOf("Xbox Series"), dto.toGameRelease()?.platforms)
-    }
-
-    @Test
-    fun `when the platform id is 508 then it maps to Switch 2`() {
-        val dto = releaseDateDtoWithPlatform(508)
-
-        assertEquals(listOf("Switch 2"), dto.toGameRelease()?.platforms)
-    }
-
-    private fun releaseDateDtoWithPlatform(platform: Int) = IgdbReleaseDateDto(
-        id = 123,
-        date = 1_700_000_000,
-        human = "Nov 2023",
-        platform = platform,
-        game = IgdbGameDto(id = 456, name = "Test Game", url = null, cover = null)
-    )
 }

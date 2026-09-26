@@ -2,21 +2,29 @@ package com.eagskunst.emmanuel.gamingnews.core.data.mapper
 
 import com.eagskunst.emmanuel.gamingnews.core.data.source.remote.api.IgdbCoverDto
 import com.eagskunst.emmanuel.gamingnews.core.data.source.remote.api.IgdbReleaseDateDto
-import com.eagskunst.emmanuel.gamingnews.core.domain.model.GameRelease
+import com.eagskunst.emmanuel.gamingnews.core.domain.model.GameReleaseRecord
 import java.util.Date
 
-fun IgdbReleaseDateDto.toGameRelease(): GameRelease? {
-    val gameName = game?.name
+/**
+ * Maps one IGDB release-date record to a [GameReleaseRecord], preserving the release-record ID,
+ * game ID, platform ID and exact release date. Records are never merged here — grouping is a
+ * domain concern applied after filtering.
+ */
+fun IgdbReleaseDateDto.toReleaseRecord(): GameReleaseRecord? {
+    val gameDto = game ?: return null
+    val gameName = gameDto.name
+    val gameId = gameDto.id
     val releaseTimestamp = date
-    if (gameName.isNullOrBlank() || releaseTimestamp == null) return null
+    if (gameId == null || gameName.isNullOrBlank() || releaseTimestamp == null) return null
 
-    return GameRelease(
-        id = game.id ?: id,
-        name = gameName,
-        coverUrl = game.cover?.toCoverBigUrl(),
+    return GameReleaseRecord(
+        releaseId = id,
+        gameId = gameId,
+        platformId = platform,
         releaseDate = Date(releaseTimestamp * 1000L),
-        platforms = listOfNotNull(platform.toPlatformName()),
-        gameUrl = game.url
+        name = gameName,
+        coverUrl = gameDto.cover?.toCoverBigUrl(),
+        gameUrl = gameDto.url
     )
 }
 
@@ -27,15 +35,4 @@ private fun IgdbCoverDto.toCoverBigUrl(): String? {
         rawUrl.startsWith("//") -> "https:$rawUrl".replace("t_thumb", "t_cover_big")
         else -> null
     }
-}
-
-private fun Int.toPlatformName(): String? = when (this) {
-    6 -> "PC"
-    48 -> "PS4"
-    49 -> "Xbox One"
-    130 -> "Nintendo Switch"
-    167 -> "PS5"
-    169 -> "Xbox Series"
-    508 -> "Switch 2"
-    else -> null
 }
