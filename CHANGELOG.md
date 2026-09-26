@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.9.0] - 2026-09-26
+
+### Added
+- Platform filters on the Releases tab: a horizontally scrollable chip row (All, PS5, Switch 2, Xbox Series X|S, PC, Nintendo Switch, PS4, Xbox One) with multi-select OR matching that intersects the name search.
+- The selected platforms persist across sessions, and saved selections survive catalog changes: retired platforms are removed with a notice and unrecognized ones stay as removable chips.
+- Matching-release count labels that distinguish loaded versus complete results, a searching state while more pages load, and an empty state with a clear-filters action.
+- Catalog-change notices when saved platforms are retired or no longer recognized.
+
+### Changed
+- Releases are now cached as individual IGDB release records (per game, platform, and date) instead of merged per game, so different platform release dates for the same game show correctly and survive pagination.
+- The release cache tracks which platform set and date window it covers, so adding platforms can't leave stale data marked as complete; pagination keeps loading until matching results fill the viewport or pages run out.
+
 ## [2.8.1] - 2026-09-19
 
 ### Changed
