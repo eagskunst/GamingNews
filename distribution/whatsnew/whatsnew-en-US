@@ -1,1 +1,1 @@
-Filter upcoming releases by platform! New chips on the Releases tab — PS5, Switch 2, Xbox Series X|S, PC, Nintendo Switch, PS4, Xbox One — combine with search and are remembered between sessions. Platform-specific release dates for the same game are now shown correctly.
+Fixed an issue where the Releases list stopped loading with platform or search filters active. Keep scrolling to discover later matching releases. Loading errors now remain visible until you retry or refresh.
