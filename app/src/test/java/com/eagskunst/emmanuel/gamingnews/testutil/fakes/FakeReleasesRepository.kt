@@ -30,7 +30,11 @@ class FakeReleasesRepository(
     /** Results consumed in order by [loadNextPage], for multi-page scenarios. */
     val loadNextPageResults = ArrayDeque<Result<Boolean>>()
 
+    val loadNextPageRecords = ArrayDeque<List<GameReleaseRecord>>()
+
     var loadNextPageBlocker: CompletableDeferred<Unit>? = null
+
+    val loadNextPageBlockers = ArrayDeque<CompletableDeferred<Unit>>()
     var refreshResult: Result<Unit> = Result.Success(Unit)
     var refreshBlocker: CompletableDeferred<Unit>? = null
 
@@ -54,13 +58,24 @@ class FakeReleasesRepository(
 
     override suspend fun loadNextPage(): Result<Boolean> {
         loadNextPageInvocations++
-        loadNextPageBlocker?.await()
+        val blocker = if (loadNextPageBlockers.isNotEmpty()) {
+            loadNextPageBlockers.removeFirst()
+        } else {
+            loadNextPageBlocker
+        }
+        blocker?.await()
         val result = if (loadNextPageResults.isNotEmpty()) {
             loadNextPageResults.removeFirst()
         } else {
             loadNextPageResult
         }
-        if (result is Result.Success) hasMorePagesFlow.value = result.data
+        if (result is Result.Success) {
+            if (loadNextPageRecords.isNotEmpty()) {
+                val current = (releasesResultFlow.value as? Result.Success)?.data.orEmpty()
+                releasesResultFlow.value = Result.Success(current + loadNextPageRecords.removeFirst())
+            }
+            hasMorePagesFlow.value = result.data
+        }
         return result
     }
 }

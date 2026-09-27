@@ -74,6 +74,9 @@ class ReleasesViewModel @Inject constructor(
     // fetch un-started) until preferences are restored, avoiding an unfiltered flash.
     private val selectedPlatformIds = MutableStateFlow<Set<Int>?>(null)
     private val selectionMutex = Mutex()
+    private val isNearListEnd = MutableStateFlow(false)
+    private val pageRequested = MutableStateFlow(false)
+    private var paginationFailure: ReleasesError? = null
 
     init {
         observePlatformSelection()
@@ -109,7 +112,7 @@ class ReleasesViewModel @Inject constructor(
                         releases = result.data.releases,
                         matchCount = result.data.matchCount,
                         isLoading = false,
-                        error = it.error.persistedSelectionError()
+                        error = it.error.persistedSelectionError() ?: paginationFailure
                     )
                 }
                 is Result.Error -> _uiState.update {
@@ -132,15 +135,16 @@ class ReleasesViewModel @Inject constructor(
      * on exhaustion or failure; [retry] resumes after an error.
      */
     private fun autoLoadMatchingPages() = viewModelScope.launch {
-        uiState.collect {
+        combine(uiState, isNearListEnd, pageRequested) { state, _, _ -> state }.collect {
             while (shouldAutoLoad(_uiState.value)) {
                 _uiState.update { it.copy(isLoadingMore = true, error = null) }
+                pageRequested.value = false
                 when (val result = releasesRepository.loadNextPage()) {
-                    is Result.Error -> _uiState.update {
-                        it.copy(
-                            isLoadingMore = false,
-                            error = result.exception.toReleasesError(true)
-                        )
+                    is Result.Error -> {
+                        paginationFailure = result.exception.toReleasesError(true)
+                        _uiState.update {
+                            it.copy(isLoadingMore = false, error = paginationFailure)
+                        }
                     }
                     else -> _uiState.update {
                         // Sync immediately: the hasMorePages collector can't interleave while
@@ -159,7 +163,8 @@ class ReleasesViewModel @Inject constructor(
     }
 
     private fun shouldAutoLoad(state: ReleasesUiState): Boolean =
-        state.releases.size < MIN_PREFETCHED_MATCHES &&
+        (state.releases.size < MIN_PREFETCHED_MATCHES || isNearListEnd.value || pageRequested.value) &&
+            paginationFailure == null &&
             state.hasMorePages &&
             !state.isLoading &&
             !state.isRefreshing &&
@@ -169,8 +174,9 @@ class ReleasesViewModel @Inject constructor(
     fun refresh() {
         val state = _uiState.value
         if (state.isBusy) return
+        _uiState.update { it.copy(isRefreshing = true, error = null) }
+        paginationFailure = null
         viewModelScope.launch {
-            _uiState.update { it.copy(isRefreshing = true, error = null) }
             when (val result = releasesRepository.refresh()) {
                 is Result.Error -> _uiState.update {
                     it.copy(isRefreshing = false, error = result.exception.toReleasesError(false))
@@ -182,28 +188,23 @@ class ReleasesViewModel @Inject constructor(
 
     fun loadMore() {
         val state = _uiState.value
-        if (state.isLoading || state.isRefreshing || state.isLoadingMore || !state.hasMorePages) return
+        if (state.isBusy || !state.hasMorePages || state.error != null || paginationFailure != null) return
+        pageRequested.value = true
+    }
 
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoadingMore = true, error = null) }
-            when (val result = releasesRepository.loadNextPage()) {
-                is Result.Error -> {
-                    _uiState.update {
-                        it.copy(
-                            isLoadingMore = false,
-                            error = result.exception.toReleasesError(true)
-                        )
-                    }
-                }
-                else -> _uiState.update { it.copy(isLoadingMore = false) }
-            }
-        }
+    fun onListEndVisibilityChanged(isVisible: Boolean) {
+        isNearListEnd.value = isVisible
     }
 
     fun retry() {
         val error = _uiState.value.error ?: return
-        _uiState.update { it.copy(error = null) }
-        if (error == ReleasesError.PAGINATION) loadMore() else refresh()
+        if (paginationFailure != null || error == ReleasesError.PAGINATION) {
+            paginationFailure = null
+            pageRequested.value = true
+            _uiState.update { it.copy(error = null) }
+        } else {
+            refresh()
+        }
     }
 
     fun onSearchQueryChange(query: String) {

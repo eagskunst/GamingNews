@@ -4,6 +4,8 @@ import app.cash.turbine.test
 import com.eagskunst.emmanuel.gamingnews.core.common.Result
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.PlatformSelectionNotice
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.PlatformStatus
+import com.eagskunst.emmanuel.gamingnews.core.domain.model.UpcomingReleaseWindow
+import com.eagskunst.emmanuel.gamingnews.core.domain.repository.IgdbTokenAcquisitionException
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.PlatformCatalog
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetReleasesUseCase
 import com.eagskunst.emmanuel.gamingnews.testutil.Fixtures
@@ -34,6 +36,8 @@ class ReleasesViewModelTest {
 
     /** Inside the upcoming-release window the use case applies by default. */
     private fun upcomingDate() = Date(System.currentTimeMillis() + 86_400_000L)
+
+    private fun windowDate() = Date(UpcomingReleaseWindow.current().startMillis + 3_600_000L)
 
     /** Drains resumes queued on the unconfined main dispatcher (e.g. StateFlow re-collects). */
     private fun pumpMain() = mainDispatcher.scheduler.advanceUntilIdle()
@@ -299,6 +303,457 @@ class ReleasesViewModelTest {
         pumpMain()
 
         assertTrue(viewModel.uiState.value.hasMorePages)
+    }
+
+    @Test
+    fun `GIVEN a near end demand WHEN filtered pages do not match THEN pages drain until a match loads`() = runTest {
+        val prefs = FakeUserPreferencesRepository(catalog = catalog)
+        prefs.storedPlatformIds.value = setOf("6")
+        val day = windowDate()
+        val initial = List(6) { index ->
+            Fixtures.gameReleaseRecord(
+                releaseId = index.toLong(),
+                gameId = index.toLong(),
+                platformId = 6,
+                releaseDate = day,
+                name = "Match $index"
+            )
+        }
+        val releases = FakeReleasesRepository(Result.Success(initial), initialHasMorePages = true)
+        releases.loadNextPageResults.addAll(
+            listOf(Result.Success(true), Result.Success(true), Result.Success(false))
+        )
+        releases.loadNextPageRecords.addAll(
+            listOf(
+                listOf(
+                    Fixtures.gameReleaseRecord(
+                        releaseId = 100, gameId = 100, platformId = 48,
+                        releaseDate = day, name = "Match PS4"
+                    )
+                ),
+                listOf(
+                    Fixtures.gameReleaseRecord(
+                        releaseId = 101, gameId = 101, platformId = 6,
+                        releaseDate = day, name = "Other game"
+                    )
+                ),
+                listOf(
+                    Fixtures.gameReleaseRecord(
+                        releaseId = 102, gameId = 102, platformId = 6,
+                        releaseDate = day, name = "Match later"
+                    )
+                )
+            )
+        )
+        val viewModel = viewModel(releases, prefs)
+
+        viewModel.onSearchQueryChange("Match")
+        pumpMain()
+        assertEquals(0, releases.loadNextPageInvocations)
+
+        viewModel.onListEndVisibilityChanged(true)
+        pumpMain()
+
+        assertEquals(3, releases.loadNextPageInvocations)
+        assertTrue(viewModel.uiState.value.releases.any { it.name == "Match later" })
+        assertEquals(false, viewModel.uiState.value.hasMorePages)
+    }
+
+    @Test
+    fun `GIVEN a platform filter and near end WHEN pages have no platform match THEN paging continues to a match`() = runTest {
+        val prefs = FakeUserPreferencesRepository(catalog = catalog)
+        prefs.storedPlatformIds.value = setOf("6")
+        val day = windowDate()
+        val initial = List(6) { index ->
+            Fixtures.gameReleaseRecord(
+                releaseId = index.toLong(),
+                gameId = index.toLong(),
+                platformId = 6,
+                releaseDate = day,
+                name = "Game $index"
+            )
+        }
+        val releases = FakeReleasesRepository(Result.Success(initial), initialHasMorePages = true)
+        releases.loadNextPageResults.addAll(listOf(Result.Success(true), Result.Success(false)))
+        releases.loadNextPageRecords.addAll(
+            listOf(
+                listOf(
+                    Fixtures.gameReleaseRecord(
+                        releaseId = 100, gameId = 100, platformId = 48,
+                        releaseDate = day, name = "PS4 exclusive"
+                    )
+                ),
+                listOf(
+                    Fixtures.gameReleaseRecord(
+                        releaseId = 101, gameId = 101, platformId = 6,
+                        releaseDate = day, name = "PC exclusive"
+                    )
+                )
+            )
+        )
+        val viewModel = viewModel(releases, prefs)
+        pumpMain()
+
+        viewModel.onListEndVisibilityChanged(true)
+        pumpMain()
+
+        assertEquals(2, releases.loadNextPageInvocations)
+        assertTrue(viewModel.uiState.value.releases.any { it.name == "PC exclusive" })
+        assertTrue(viewModel.uiState.value.releases.none { it.name == "PS4 exclusive" })
+    }
+
+    @Test
+    fun `GIVEN duplicate page records WHEN near the end THEN no new cards appear and paging continues`() = runTest {
+        val day = windowDate()
+        val initial = List(6) { index ->
+            Fixtures.gameReleaseRecord(
+                releaseId = index.toLong(),
+                gameId = index.toLong(),
+                platformId = 6,
+                releaseDate = day,
+                name = "Game $index"
+            )
+        }
+        val releases = FakeReleasesRepository(Result.Success(initial), initialHasMorePages = true)
+        releases.loadNextPageResults.addAll(listOf(Result.Success(true), Result.Success(false)))
+        releases.loadNextPageRecords.addAll(
+            listOf(
+                listOf(
+                    Fixtures.gameReleaseRecord(
+                        releaseId = 100, gameId = 0, platformId = 48,
+                        releaseDate = day, name = "Game 0"
+                    )
+                ),
+                listOf(
+                    Fixtures.gameReleaseRecord(
+                        releaseId = 101, gameId = 101, platformId = 6,
+                        releaseDate = day, name = "Game new"
+                    )
+                )
+            )
+        )
+        val viewModel = viewModel(releases)
+        pumpMain()
+
+        viewModel.onListEndVisibilityChanged(true)
+        pumpMain()
+
+        assertEquals(2, releases.loadNextPageInvocations)
+        assertEquals(7, viewModel.uiState.value.releases.size)
+        assertTrue(viewModel.uiState.value.releases.any { it.name == "Game new" })
+    }
+
+    @Test
+    fun `GIVEN a page error WHEN near the end THEN paging stops until retry drains to exhaustion`() = runTest {
+        val prefs = FakeUserPreferencesRepository(catalog = catalog)
+        prefs.storedPlatformIds.value = setOf("6")
+        val day = windowDate()
+        val initial = List(6) { index ->
+            Fixtures.gameReleaseRecord(
+                releaseId = index.toLong(),
+                gameId = index.toLong(),
+                platformId = 6,
+                releaseDate = day,
+                name = "Game $index"
+            )
+        }
+        val releases = FakeReleasesRepository(Result.Success(initial), initialHasMorePages = true)
+        releases.loadNextPageResults.addAll(
+            listOf(
+                Result.Success(true),
+                Result.Error(RuntimeException("page failed")),
+                Result.Success(false)
+            )
+        )
+        releases.loadNextPageRecords.addAll(
+            listOf(
+                listOf(
+                    Fixtures.gameReleaseRecord(
+                        releaseId = 100, gameId = 100, platformId = 48,
+                        releaseDate = day, name = "PS4 only"
+                    )
+                ),
+                listOf(
+                    Fixtures.gameReleaseRecord(
+                        releaseId = 101, gameId = 101, platformId = 6,
+                        releaseDate = day, name = "Game recovered"
+                    )
+                )
+            )
+        )
+        val viewModel = viewModel(releases, prefs)
+        pumpMain()
+
+        viewModel.onListEndVisibilityChanged(true)
+        pumpMain()
+
+        assertEquals(2, releases.loadNextPageInvocations)
+        assertEquals(ReleasesError.PAGINATION, viewModel.uiState.value.error)
+
+        releases.releasesResultFlow.value = Result.Success(
+            initial + Fixtures.gameReleaseRecord(
+                releaseId = 103, gameId = 103, platformId = 48,
+                releaseDate = day, name = "Another PS4 only"
+            )
+        )
+        pumpMain()
+
+        assertEquals(ReleasesError.PAGINATION, viewModel.uiState.value.error)
+        assertEquals(2, releases.loadNextPageInvocations)
+
+        viewModel.onListEndVisibilityChanged(false)
+        pumpMain()
+        viewModel.onListEndVisibilityChanged(true)
+        pumpMain()
+
+        assertEquals(2, releases.loadNextPageInvocations)
+        assertEquals(ReleasesError.PAGINATION, viewModel.uiState.value.error)
+
+        viewModel.retry()
+        pumpMain()
+
+        assertEquals(3, releases.loadNextPageInvocations)
+        assertNull(viewModel.uiState.value.error)
+        assertTrue(viewModel.uiState.value.releases.any { it.name == "Game recovered" })
+        assertEquals(false, viewModel.uiState.value.hasMorePages)
+    }
+
+    @Test
+    fun `GIVEN a token failure on a page WHEN near the end THEN the auth error is shown and retry resumes paging`() = runTest {
+        val day = windowDate()
+        val initial = List(6) { index ->
+            Fixtures.gameReleaseRecord(
+                releaseId = index.toLong(),
+                gameId = index.toLong(),
+                platformId = 6,
+                releaseDate = day,
+                name = "Game $index"
+            )
+        }
+        val releases = FakeReleasesRepository(Result.Success(initial), initialHasMorePages = true)
+        releases.loadNextPageResults.addAll(
+            listOf(
+                Result.Error(IgdbTokenAcquisitionException(RuntimeException("token failed"))),
+                Result.Success(false)
+            )
+        )
+        val viewModel = viewModel(releases)
+        pumpMain()
+
+        viewModel.onListEndVisibilityChanged(true)
+        pumpMain()
+
+        assertEquals(1, releases.loadNextPageInvocations)
+        assertEquals(ReleasesError.TOKEN_ACQUISITION, viewModel.uiState.value.error)
+
+        viewModel.onListEndVisibilityChanged(false)
+        pumpMain()
+        viewModel.onListEndVisibilityChanged(true)
+        pumpMain()
+
+        assertEquals(1, releases.loadNextPageInvocations)
+        assertEquals(ReleasesError.TOKEN_ACQUISITION, viewModel.uiState.value.error)
+
+        viewModel.retry()
+        pumpMain()
+
+        assertEquals(2, releases.loadNextPageInvocations)
+        assertNull(viewModel.uiState.value.error)
+        assertEquals(false, viewModel.uiState.value.hasMorePages)
+    }
+
+    @Test
+    fun `GIVEN a pagination error WHEN refresh is invoked THEN the failure clears and demand resumes paging`() = runTest {
+        val day = windowDate()
+        val initial = List(6) { index ->
+            Fixtures.gameReleaseRecord(
+                releaseId = index.toLong(),
+                gameId = index.toLong(),
+                platformId = 6,
+                releaseDate = day,
+                name = "Game $index"
+            )
+        }
+        val releases = FakeReleasesRepository(Result.Success(initial), initialHasMorePages = true)
+        releases.loadNextPageResults.addAll(
+            listOf(
+                Result.Error(RuntimeException("page failed")),
+                Result.Success(false)
+            )
+        )
+        val viewModel = viewModel(releases)
+        pumpMain()
+
+        viewModel.onListEndVisibilityChanged(true)
+        pumpMain()
+
+        assertEquals(1, releases.loadNextPageInvocations)
+        assertEquals(ReleasesError.PAGINATION, viewModel.uiState.value.error)
+
+        viewModel.refresh()
+        pumpMain()
+
+        assertEquals(1, releases.refreshInvocations)
+        assertEquals(2, releases.loadNextPageInvocations)
+        assertNull(viewModel.uiState.value.error)
+        assertEquals(false, viewModel.uiState.value.hasMorePages)
+    }
+
+    @Test
+    fun `GIVEN a text only filter over many matches WHEN near the end THEN an unmatched page continues to a later match`() = runTest {
+        val day = windowDate()
+        val initial = List(7) { index ->
+            Fixtures.gameReleaseRecord(
+                releaseId = index.toLong(),
+                gameId = index.toLong(),
+                platformId = 6,
+                releaseDate = day,
+                name = "Quest $index"
+            )
+        }
+        val releases = FakeReleasesRepository(Result.Success(initial), initialHasMorePages = true)
+        releases.loadNextPageResults.addAll(listOf(Result.Success(true), Result.Success(false)))
+        releases.loadNextPageRecords.addAll(
+            listOf(
+                listOf(
+                    Fixtures.gameReleaseRecord(
+                        releaseId = 100, gameId = 100, platformId = 6,
+                        releaseDate = day, name = "Different game"
+                    )
+                ),
+                listOf(
+                    Fixtures.gameReleaseRecord(
+                        releaseId = 101, gameId = 101, platformId = 6,
+                        releaseDate = day, name = "Quest Final"
+                    )
+                )
+            )
+        )
+        val viewModel = viewModel(releases)
+
+        viewModel.onSearchQueryChange("Quest")
+        pumpMain()
+        assertEquals(0, releases.loadNextPageInvocations)
+
+        viewModel.onListEndVisibilityChanged(true)
+        pumpMain()
+
+        assertEquals(2, releases.loadNextPageInvocations)
+        assertTrue(viewModel.uiState.value.releases.any { it.name == "Quest Final" })
+        assertEquals(8, viewModel.uiState.value.releases.size)
+    }
+
+    @Test
+    fun `GIVEN an in flight page WHEN demand repeats THEN the request stays single and cleared demand stops paging`() = runTest {
+        val day = windowDate()
+        val initial = List(6) { index ->
+            Fixtures.gameReleaseRecord(
+                releaseId = index.toLong(),
+                gameId = index.toLong(),
+                platformId = 6,
+                releaseDate = day,
+                name = "Game $index"
+            )
+        }
+        val releases = FakeReleasesRepository(Result.Success(initial), initialHasMorePages = true)
+        val pendingLoad = CompletableDeferred<Unit>()
+        releases.loadNextPageBlocker = pendingLoad
+        releases.loadNextPageResult = Result.Success(true)
+        val viewModel = viewModel(releases)
+        pumpMain()
+
+        viewModel.onListEndVisibilityChanged(true)
+        pumpMain()
+        viewModel.onListEndVisibilityChanged(true)
+        viewModel.loadMore()
+        pumpMain()
+
+        assertEquals(1, releases.loadNextPageInvocations)
+
+        viewModel.onListEndVisibilityChanged(false)
+        pendingLoad.complete(Unit)
+        pumpMain()
+
+        assertEquals(1, releases.loadNextPageInvocations)
+    }
+
+    @Test
+    fun `GIVEN an in flight page WHEN filters change THEN the next page uses the latest criteria without restarting the stream`() = runTest {
+        val day = windowDate()
+        val initial = List(6) { index ->
+            Fixtures.gameReleaseRecord(
+                releaseId = index.toLong(),
+                gameId = index.toLong(),
+                platformId = 6,
+                releaseDate = day,
+                name = "Game $index"
+            )
+        }
+        val releases = FakeReleasesRepository(Result.Success(initial), initialHasMorePages = true)
+        val pendingLoad = CompletableDeferred<Unit>()
+        releases.loadNextPageBlocker = pendingLoad
+        releases.loadNextPageResults.add(Result.Success(false))
+        releases.loadNextPageRecords.add(
+            listOf(
+                Fixtures.gameReleaseRecord(
+                    releaseId = 100, gameId = 100, platformId = 6,
+                    releaseDate = day, name = "Zelda II"
+                )
+            )
+        )
+        val viewModel = viewModel(releases)
+        pumpMain()
+
+        viewModel.onListEndVisibilityChanged(true)
+        pumpMain()
+        assertEquals(1, releases.loadNextPageInvocations)
+
+        viewModel.onSearchQueryChange("zelda")
+        pumpMain()
+
+        assertEquals(1, releases.releasesStreamInvocations)
+        assertEquals(1, releases.loadNextPageInvocations)
+        assertEquals(0, viewModel.uiState.value.releases.size)
+
+        pendingLoad.complete(Unit)
+        pumpMain()
+
+        assertEquals(1, releases.releasesStreamInvocations)
+        assertEquals(listOf("Zelda II"), viewModel.uiState.value.releases.map { it.name })
+    }
+
+    @Test
+    fun `GIVEN enough matches without near end demand WHEN loadMore is called THEN only one page is fetched`() = runTest {
+        val prefs = FakeUserPreferencesRepository(catalog = catalog)
+        prefs.storedPlatformIds.value = setOf("6")
+        val day = windowDate()
+        val initial = List(6) { index ->
+            Fixtures.gameReleaseRecord(
+                releaseId = index.toLong(),
+                gameId = index.toLong(),
+                platformId = 6,
+                releaseDate = day,
+                name = "Game $index"
+            )
+        }
+        val releases = FakeReleasesRepository(Result.Success(initial), initialHasMorePages = true)
+        releases.loadNextPageResults.addAll(listOf(Result.Success(true), Result.Success(false)))
+        releases.loadNextPageRecords.add(
+            listOf(
+                Fixtures.gameReleaseRecord(
+                    releaseId = 100, gameId = 100, platformId = 48,
+                    releaseDate = day, name = "PS4 exclusive"
+                )
+            )
+        )
+        val viewModel = viewModel(releases, prefs)
+        pumpMain()
+
+        viewModel.loadMore()
+        pumpMain()
+
+        assertEquals(1, releases.loadNextPageInvocations)
+        assertEquals(true, viewModel.uiState.value.hasMorePages)
     }
 
     @Test

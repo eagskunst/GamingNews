@@ -55,7 +55,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import coil3.compose.AsyncImage
 import kotlinx.coroutines.flow.distinctUntilChanged
 import com.eagskunst.emmanuel.gamingnews.R
@@ -93,10 +96,17 @@ fun ReleasesScreen(
             totalItems > 0 && lastVisibleItem >= totalItems - LOAD_MORE_THRESHOLD
         }
     }
-    LaunchedEffect(shouldLoadMore) {
-        snapshotFlow { shouldLoadMore.value }
-            .distinctUntilChanged()
-            .collect { if (it) viewModel.loadMore() }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    LaunchedEffect(listState, viewModel, lifecycleOwner) {
+        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            try {
+                snapshotFlow { shouldLoadMore.value }
+                    .distinctUntilChanged()
+                    .collect(viewModel::onListEndVisibilityChanged)
+            } finally {
+                viewModel.onListEndVisibilityChanged(false)
+            }
+        }
     }
     LaunchedEffect(scrollToTopSignal) {
         if (scrollToTopSignal > 0) listState.animateScrollToItem(0)
@@ -347,7 +357,9 @@ private fun ReleaseList(
     onOpenGameUrl: (String) -> Unit
 ) {
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .testTag("releases_list"),
         state = listState,
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)

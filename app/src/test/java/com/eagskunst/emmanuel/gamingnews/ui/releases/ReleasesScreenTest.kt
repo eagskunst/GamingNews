@@ -1,6 +1,7 @@
 package com.eagskunst.emmanuel.gamingnews.ui.releases
 
 import androidx.activity.ComponentActivity
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.SemanticsProperties
@@ -17,6 +18,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToIndex
 import com.eagskunst.emmanuel.gamingnews.core.common.Result
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.PlatformStatus
+import com.eagskunst.emmanuel.gamingnews.core.domain.model.UpcomingReleaseWindow
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.PlatformCatalog
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetReleasesUseCase
 import com.eagskunst.emmanuel.gamingnews.testutil.Fixtures
@@ -24,8 +26,10 @@ import com.eagskunst.emmanuel.gamingnews.testutil.MainDispatcherRule
 import com.eagskunst.emmanuel.gamingnews.testutil.fakes.FakePlatformCatalog
 import com.eagskunst.emmanuel.gamingnews.testutil.fakes.FakeReleasesRepository
 import com.eagskunst.emmanuel.gamingnews.testutil.fakes.FakeUserPreferencesRepository
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -76,6 +80,8 @@ class ReleasesScreenTest {
 
     private fun upcomingDate() = Date(System.currentTimeMillis() + 86_400_000L)
 
+    private fun windowDate() = Date(UpcomingReleaseWindow.current().startMillis + 3_600_000L)
+
     @Test
     fun `given releases are loading when screen is shown then loading indicator is displayed`() {
         val releases = FakeReleasesRepository(Result.Loading)
@@ -117,11 +123,163 @@ class ReleasesScreenTest {
             )
         }
         val releases = FakeReleasesRepository(Result.Success(records), initialHasMorePages = true)
-        releases.loadNextPageResult = Result.Success(true)
+        val pendingLoad = CompletableDeferred<Unit>()
+        releases.loadNextPageBlocker = pendingLoad
         setContent(viewModel(releases))
         settle()
 
         composeTestRule.onNodeWithText("6 matching releases loaded").assertIsDisplayed()
+
+        releases.loadNextPageResult = Result.Success(false)
+        pendingLoad.complete(Unit)
+        settle()
+    }
+
+    @Test
+    fun `GIVEN filtered releases WHEN scrolled to the end THEN unmatched pages drain until a match loads`() {
+        val prefs = FakeUserPreferencesRepository(catalog = catalog)
+        prefs.storedPlatformIds.value = setOf("6")
+        val day = windowDate()
+        val initial = List(12) { index ->
+            Fixtures.gameReleaseRecord(
+                releaseId = index.toLong(),
+                gameId = index.toLong(),
+                platformId = 6,
+                releaseDate = day,
+                name = "Base Game $index"
+            )
+        }
+        val releases = FakeReleasesRepository(Result.Success(initial), initialHasMorePages = true)
+        releases.loadNextPageResults.addAll(
+            listOf(Result.Success(true), Result.Success(true), Result.Success(false))
+        )
+        releases.loadNextPageRecords.addAll(
+            listOf(
+                listOf(
+                    Fixtures.gameReleaseRecord(
+                        releaseId = 100, gameId = 100, platformId = 48,
+                        releaseDate = day, name = "PS4 Only 1"
+                    )
+                ),
+                listOf(
+                    Fixtures.gameReleaseRecord(
+                        releaseId = 101, gameId = 101, platformId = 48,
+                        releaseDate = day, name = "PS4 Only 2"
+                    )
+                ),
+                listOf(
+                    Fixtures.gameReleaseRecord(
+                        releaseId = 102, gameId = 102, platformId = 6,
+                        releaseDate = day, name = "Late PC Match"
+                    )
+                )
+            )
+        )
+        setContent(viewModel(releases, prefs))
+        settle()
+
+        composeTestRule.onNodeWithTag("releases_list").performScrollToIndex(initial.size)
+        settle()
+        composeTestRule.waitUntil(timeoutMillis = 5_000) {
+            releases.loadNextPageInvocations >= 3
+        }
+        settle()
+
+        composeTestRule.onNodeWithTag("releases_list").performScrollToIndex(initial.size + 1)
+        settle()
+
+        composeTestRule.onNodeWithText("Late PC Match").assertIsDisplayed()
+        assertEquals(3, releases.loadNextPageInvocations)
+    }
+
+    @Test
+    fun `GIVEN near list end WHEN a fetched page fills the viewport THEN paging stops`() {
+        val prefs = FakeUserPreferencesRepository(catalog = catalog)
+        prefs.storedPlatformIds.value = setOf("6")
+        val day = windowDate()
+        val initial = List(12) { index ->
+            Fixtures.gameReleaseRecord(
+                releaseId = index.toLong(),
+                gameId = index.toLong(),
+                platformId = 6,
+                releaseDate = day,
+                name = "Base Game $index"
+            )
+        }
+        val nextPage = List(20) { index ->
+            Fixtures.gameReleaseRecord(
+                releaseId = (100 + index).toLong(),
+                gameId = (100 + index).toLong(),
+                platformId = 6,
+                releaseDate = day,
+                name = "Page Game $index"
+            )
+        }
+        val releases = FakeReleasesRepository(Result.Success(initial), initialHasMorePages = true)
+        releases.loadNextPageResults.addAll(listOf(Result.Success(true), Result.Success(true)))
+        releases.loadNextPageRecords.add(nextPage)
+        val secondPageBlocker = CompletableDeferred<Unit>()
+        releases.loadNextPageBlockers.addAll(
+            listOf(CompletableDeferred(Unit), secondPageBlocker)
+        )
+        setContent(viewModel(releases, prefs))
+        settle()
+
+        composeTestRule.onNodeWithTag("releases_list").performScrollToIndex(initial.size)
+        composeTestRule.waitUntil(timeoutMillis = 5_000) {
+            releases.loadNextPageInvocations >= 2
+        }
+        settle()
+        secondPageBlocker.complete(Unit)
+        settle()
+
+        assertEquals(2, releases.loadNextPageInvocations)
+        assertEquals(true, releases.hasMorePages.value)
+    }
+
+    @Test
+    fun `GIVEN a blocked page near the end WHEN the screen leaves composition THEN no further page is requested`() {
+        val prefs = FakeUserPreferencesRepository(catalog = catalog)
+        prefs.storedPlatformIds.value = setOf("6")
+        val day = windowDate()
+        val initial = List(12) { index ->
+            Fixtures.gameReleaseRecord(
+                releaseId = index.toLong(),
+                gameId = index.toLong(),
+                platformId = 6,
+                releaseDate = day,
+                name = "Base Game $index"
+            )
+        }
+        val releases = FakeReleasesRepository(Result.Success(initial), initialHasMorePages = true)
+        val pendingLoad = CompletableDeferred<Unit>()
+        releases.loadNextPageBlocker = pendingLoad
+        releases.loadNextPageResult = Result.Success(true)
+        val showScreen = mutableStateOf(true)
+        val vm = viewModel(releases, prefs)
+        composeTestRule.setContent {
+            if (showScreen.value) {
+                ReleasesScreen(
+                    viewModel = vm,
+                    onSettingsClick = {},
+                    onOpenGameUrl = {}
+                )
+            }
+        }
+        settle()
+
+        composeTestRule.onNodeWithTag("releases_list").performScrollToIndex(initial.size)
+        composeTestRule.waitUntil(timeoutMillis = 5_000) {
+            releases.loadNextPageInvocations >= 1
+        }
+
+        showScreen.value = false
+        composeTestRule.waitForIdle()
+        mainDispatcher.scheduler.advanceUntilIdle()
+        pendingLoad.complete(Unit)
+        settle()
+
+        assertEquals(1, releases.loadNextPageInvocations)
     }
 
     @Test
