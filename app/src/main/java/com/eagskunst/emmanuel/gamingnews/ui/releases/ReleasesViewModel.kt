@@ -3,8 +3,8 @@ package com.eagskunst.emmanuel.gamingnews.ui.releases
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.eagskunst.emmanuel.gamingnews.core.common.Result
-import com.eagskunst.emmanuel.gamingnews.core.data.source.remote.IgdbRejectedTokenException
-import com.eagskunst.emmanuel.gamingnews.core.data.source.remote.IgdbTokenAcquisitionException
+import com.eagskunst.emmanuel.gamingnews.core.domain.repository.IgdbRejectedTokenException
+import com.eagskunst.emmanuel.gamingnews.core.domain.repository.IgdbTokenAcquisitionException
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.GamePlatform
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.GameRelease
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.PlatformSelectionNotice

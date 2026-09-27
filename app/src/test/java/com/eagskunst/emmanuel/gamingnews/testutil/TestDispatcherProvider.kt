@@ -9,7 +9,7 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
  * [DispatcherProvider] fake that routes every dispatcher to the same [TestDispatcher],
  * so coroutine-based code under test runs deterministically on the test thread.
  */
-@ExperimentalCoroutinesApi
+@OptIn(ExperimentalCoroutinesApi::class)
 class TestDispatcherProvider(
     dispatcher: TestDispatcher = UnconfinedTestDispatcher()
 ) : DispatcherProvider {

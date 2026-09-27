@@ -4,9 +4,11 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.ThemeMode
+import com.eagskunst.emmanuel.gamingnews.core.domain.model.reader.ReaderArticle
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetReaderArticleUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetUserPreferencesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -84,6 +86,8 @@ class ReaderViewModel @Inject constructor(
             } else {
                 ReaderUiState.Error
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             ReaderUiState.Error
         }
@@ -97,5 +101,5 @@ class ReaderViewModel @Inject constructor(
 sealed interface ReaderUiState {
     data object Loading : ReaderUiState
     data object Error : ReaderUiState
-    data class Content(val article: com.eagskunst.emmanuel.gamingnews.core.domain.model.reader.ReaderArticle) : ReaderUiState
+    data class Content(val article: ReaderArticle) : ReaderUiState
 }

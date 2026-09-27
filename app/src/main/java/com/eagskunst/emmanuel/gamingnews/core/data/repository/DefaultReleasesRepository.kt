@@ -53,7 +53,7 @@ class DefaultReleasesRepository @Inject constructor(
             // until fresh data is committed.
             releaseDao.upsertCoverage(coverage.copy(isComplete = false))
         }
-        _hasMorePages.value = coverageStale || !(coverage?.isComplete ?: false)
+        _hasMorePages.value = coverageStale || !coverage.isComplete
 
         if (coverageStale || cached.isEmpty()) {
             try {

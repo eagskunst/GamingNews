@@ -5,6 +5,8 @@ import com.eagskunst.emmanuel.gamingnews.core.data.source.local.IgdbAuthLocalDat
 import com.eagskunst.emmanuel.gamingnews.core.data.source.remote.api.IgdbApi
 import com.eagskunst.emmanuel.gamingnews.core.data.source.remote.api.IgdbReleaseDateDto
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.ReleaseDateRange
+import com.eagskunst.emmanuel.gamingnews.core.domain.repository.IgdbRejectedTokenException
+import com.eagskunst.emmanuel.gamingnews.core.domain.repository.IgdbTokenAcquisitionException
 import com.eagskunst.emmanuel.gamingnews.testutil.TestDispatcherProvider
 import io.mockk.coEvery
 import io.mockk.coVerify

@@ -1,10 +1,6 @@
 package com.eagskunst.emmanuel.gamingnews.ui.settings
 
-import android.Manifest
 import android.content.Context
-import android.content.pm.PackageManager
-import android.os.Build
-import androidx.core.content.ContextCompat
 import app.cash.turbine.test
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.ArticleOpenMode
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.ThemeMode
@@ -26,10 +22,8 @@ import com.eagskunst.emmanuel.gamingnews.testutil.MainDispatcherRule
 import com.eagskunst.emmanuel.gamingnews.testutil.fakes.FakeMuteRulesRepository
 import com.eagskunst.emmanuel.gamingnews.testutil.fakes.FakeTopicsRepository
 import com.eagskunst.emmanuel.gamingnews.testutil.fakes.FakeUserPreferencesRepository
-import io.mockk.every
+import com.eagskunst.emmanuel.gamingnews.worker.DailyReminderScheduler
 import io.mockk.mockk
-import io.mockk.mockkStatic
-import io.mockk.unmockkStatic
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -46,6 +40,7 @@ class SettingsViewModelTest {
     private val fakeTopicsRepository = FakeTopicsRepository()
     private val fakeMuteRulesRepository = FakeMuteRulesRepository()
     private val context: Context = mockk(relaxed = true)
+    private val reminderScheduler: DailyReminderScheduler = mockk(relaxed = true)
 
     private fun createViewModel(): SettingsViewModel = SettingsViewModel(
         context = context,
@@ -60,7 +55,8 @@ class SettingsViewModelTest {
         updateArticleOpenModeUseCase = UpdateArticleOpenModeUseCase(fakeUserPreferencesRepository),
         addTopicUseCase = AddTopicUseCase(fakeTopicsRepository),
         removeTopicUseCase = RemoveTopicUseCase(fakeTopicsRepository),
-        observeMuteRulesUseCase = ObserveMuteRulesUseCase(fakeMuteRulesRepository)
+        observeMuteRulesUseCase = ObserveMuteRulesUseCase(fakeMuteRulesRepository),
+        reminderScheduler = reminderScheduler
     )
 
     @Test
@@ -131,19 +127,19 @@ class SettingsViewModelTest {
         assertEquals(ArticleOpenMode.EXTERNAL_BROWSER, fakeUserPreferencesRepository.preferencesFlow.value.articleOpenMode)
     }
 
-    // toggleDailyReminder and setDailyReminderHour are intentionally not unit-tested here: they
-    // call into DailyReminderScheduler, which requires an initialized WorkManager (only available
-    // under Robolectric). That interaction is covered by SettingsScreenTest instead.
+    // toggleDailyReminder also consults the mocked Context for the POST_NOTIFICATIONS check;
+    // the scheduling hand-off to reminderScheduler is exercised by SettingsScreenTest
+    // (Robolectric, with WorkManagerTestInitHelper).
 
     @Test
-    fun `given permission is denied when onNotificationPermissionResult is called then it emits ShowMessage event`() = runTest {
+    fun `given permission is denied when onNotificationPermissionResult is called then it emits ShowNotificationPermissionDenied event`() = runTest {
         val viewModel = createViewModel()
 
         viewModel.uiEvent.test {
             viewModel.onNotificationPermissionResult(false)
 
             val event = awaitItem()
-            assertTrue(event is SettingsUiEvent.ShowMessage)
+            assertTrue(event is SettingsUiEvent.ShowNotificationPermissionDenied)
         }
     }
 

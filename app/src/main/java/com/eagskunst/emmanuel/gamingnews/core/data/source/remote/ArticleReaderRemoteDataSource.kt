@@ -17,11 +17,12 @@ class ArticleReaderRemoteDataSource @Inject constructor(
             .header("User-Agent", "Mozilla/5.0 (Linux; Android 10; Mobile) AppleWebKit/537.36")
             .build()
 
-        val response = okHttpClient.newCall(request).execute()
-        if (response.isSuccessful) {
-            response.body?.string()?.takeIf { it.isNotBlank() }
-        } else {
-            null
+        okHttpClient.newCall(request).execute().use { response ->
+            if (response.isSuccessful) {
+                response.body.string().takeIf { it.isNotBlank() }
+            } else {
+                null
+            }
         }
     }
 }

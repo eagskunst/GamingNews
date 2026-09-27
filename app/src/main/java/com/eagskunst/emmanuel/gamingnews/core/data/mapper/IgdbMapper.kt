@@ -13,13 +13,12 @@ import java.util.Date
 fun IgdbReleaseDateDto.toReleaseRecord(): GameReleaseRecord? {
     val gameDto = game ?: return null
     val gameName = gameDto.name
-    val gameId = gameDto.id
     val releaseTimestamp = date
-    if (gameId == null || gameName.isNullOrBlank() || releaseTimestamp == null) return null
+    if (gameName.isNullOrBlank() || releaseTimestamp == null) return null
 
     return GameReleaseRecord(
         releaseId = id,
-        gameId = gameId,
+        gameId = gameDto.id,
         platformId = platform,
         releaseDate = Date(releaseTimestamp * 1000L),
         name = gameName,

@@ -1,4 +1,4 @@
-package com.eagskunst.emmanuel.gamingnews.core.domain.usecase
+package com.eagskunst.emmanuel.gamingnews.ui
 
 import android.content.Context
 import android.content.Intent
@@ -9,7 +9,12 @@ import com.eagskunst.emmanuel.gamingnews.utility.openCustomTab
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
-class OpenArticleUseCase @Inject constructor(
+/**
+ * Opens an article link according to the user's preferred [ArticleOpenMode]. This is a
+ * platform action (Custom Tab, external browser, or the in-app reader), so it lives in the
+ * UI layer rather than the domain layer.
+ */
+class ArticleOpener @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
     operator fun invoke(url: String, mode: ArticleOpenMode) {

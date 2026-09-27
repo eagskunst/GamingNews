@@ -7,7 +7,6 @@ import android.os.Build
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.eagskunst.emmanuel.gamingnews.R
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.ArticleOpenMode
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.ThemeMode
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.Topic
@@ -40,7 +39,7 @@ import javax.inject.Inject
 
 sealed interface SettingsUiEvent {
     data object RequestNotificationPermission : SettingsUiEvent
-    data class ShowMessage(val message: String) : SettingsUiEvent
+    data object ShowNotificationPermissionDenied : SettingsUiEvent
 }
 
 data class SettingsUiState(
@@ -71,7 +70,8 @@ class SettingsViewModel @Inject constructor(
     private val updateArticleOpenModeUseCase: UpdateArticleOpenModeUseCase,
     private val addTopicUseCase: AddTopicUseCase,
     private val removeTopicUseCase: RemoveTopicUseCase,
-    observeMuteRulesUseCase: ObserveMuteRulesUseCase
+    observeMuteRulesUseCase: ObserveMuteRulesUseCase,
+    private val reminderScheduler: DailyReminderScheduler
 ) : ViewModel() {
 
     private val _uiEvent = MutableSharedFlow<SettingsUiEvent>()
@@ -132,11 +132,7 @@ class SettingsViewModel @Inject constructor(
             applyDailyReminder(true)
         } else {
             viewModelScope.launch {
-                _uiEvent.emit(
-                    SettingsUiEvent.ShowMessage(
-                        context.getString(R.string.notification_permission_rationale)
-                    )
-                )
+                _uiEvent.emit(SettingsUiEvent.ShowNotificationPermissionDenied)
             }
         }
     }
@@ -145,7 +141,7 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             updateDailyReminderHourUseCase(hour)
             if (uiState.value.dailyReminder) {
-                DailyReminderScheduler.schedule(context, hour)
+                reminderScheduler.schedule(hour)
             }
         }
     }
@@ -154,9 +150,9 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             updateDailyReminderUseCase(enabled)
             if (enabled) {
-                DailyReminderScheduler.schedule(context, uiState.value.dailyReminderHour)
+                reminderScheduler.schedule(uiState.value.dailyReminderHour)
             } else {
-                DailyReminderScheduler.cancel(context)
+                reminderScheduler.cancel()
             }
         }
     }

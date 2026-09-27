@@ -91,12 +91,11 @@ app/src/androidTest/java/com/eagskunst/emmanuel/gamingnews/
 
 - `RssRemoteDataSource` instantiates `RssParser()` internally, so it can't be faked without a
   production refactor; its test only checks that a bad URL fails fast rather than hanging.
-- `GetFeedUrlsUseCase` (reads `assets/urls.json` via `Context`) and `OpenArticleUseCase`
+- `GetFeedUrlsUseCase` (reads `assets/urls.json` via `Context`) and `ArticleOpener`
   (Android `Intent`/Custom Tabs heavy) are not unit tested directly; they're exercised indirectly
   through the ViewModel tests that mock them.
-- `SettingsViewModel.toggleDailyReminder(true)` schedules work via
-  `DailyReminderScheduler`/`WorkManager`, which isn't available in a plain (non-Robolectric) JVM
-  test — that interaction is covered by `SettingsScreenTest` (Robolectric, with
-  `WorkManagerTestInitHelper`) instead.
+- `SettingsViewModel` receives `DailyReminderScheduler` as an injectable mockable dependency,
+  but the real WorkManager interaction is covered by `SettingsScreenTest` (Robolectric, with
+  `WorkManagerTestInitHelper`).
 - The notification-topics section of `SettingsScreen` (gated behind a `false` feature flag in
   source) is not covered by Compose UI tests.

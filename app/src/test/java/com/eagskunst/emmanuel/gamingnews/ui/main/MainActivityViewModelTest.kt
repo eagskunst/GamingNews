@@ -4,9 +4,9 @@ import app.cash.turbine.test
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.ArticleOpenMode
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.ThemeMode
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetUserPreferencesUseCase
-import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.OpenArticleUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateArticleOpenModeUseCase
 import com.eagskunst.emmanuel.gamingnews.testutil.Fixtures
+import com.eagskunst.emmanuel.gamingnews.ui.ArticleOpener
 import com.eagskunst.emmanuel.gamingnews.testutil.MainDispatcherRule
 import com.eagskunst.emmanuel.gamingnews.testutil.fakes.FakeUserPreferencesRepository
 import io.mockk.mockk
@@ -24,11 +24,11 @@ class MainActivityViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private val fakeUserPreferencesRepository = FakeUserPreferencesRepository()
-    private val openArticleUseCase: OpenArticleUseCase = mockk(relaxed = true)
+    private val articleOpener: ArticleOpener = mockk(relaxed = true)
 
     private fun createViewModel(): MainActivityViewModel = MainActivityViewModel(
         getUserPreferencesUseCase = GetUserPreferencesUseCase(fakeUserPreferencesRepository),
-        openArticleUseCase = openArticleUseCase,
+        articleOpener = articleOpener,
         updateArticleOpenModeUseCase = UpdateArticleOpenModeUseCase(fakeUserPreferencesRepository)
     )
 
@@ -64,21 +64,21 @@ class MainActivityViewModelTest {
     }
 
     @Test
-    fun `given url and mode when openArticle is called then use case is invoked with them`() = runTest {
+    fun `given url and mode when openArticle is called then article opener is invoked with them`() = runTest {
         val viewModel = createViewModel()
 
         viewModel.openArticle("https://example.com/a", ArticleOpenMode.EXTERNAL_BROWSER)
 
-        verify { openArticleUseCase.invoke("https://example.com/a", ArticleOpenMode.EXTERNAL_BROWSER) }
+        verify { articleOpener.invoke("https://example.com/a", ArticleOpenMode.EXTERNAL_BROWSER) }
     }
 
     @Test
-    fun `given url and mode when openArticleWithMode is called then preference is updated and use case is invoked`() = runTest {
+    fun `given url and mode when openArticleWithMode is called then preference is updated and article opener is invoked`() = runTest {
         val viewModel = createViewModel()
 
         viewModel.openArticleWithMode("https://example.com/b", ArticleOpenMode.READER_MODE)
 
         assertEquals(ArticleOpenMode.READER_MODE, fakeUserPreferencesRepository.preferencesFlow.value.articleOpenMode)
-        verify { openArticleUseCase.invoke("https://example.com/b", ArticleOpenMode.READER_MODE) }
+        verify { articleOpener.invoke("https://example.com/b", ArticleOpenMode.READER_MODE) }
     }
 }

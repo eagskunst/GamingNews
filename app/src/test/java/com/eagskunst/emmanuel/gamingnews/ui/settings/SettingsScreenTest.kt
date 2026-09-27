@@ -30,6 +30,7 @@ import com.eagskunst.emmanuel.gamingnews.testutil.MainDispatcherRule
 import com.eagskunst.emmanuel.gamingnews.testutil.fakes.FakeMuteRulesRepository
 import com.eagskunst.emmanuel.gamingnews.testutil.fakes.FakeTopicsRepository
 import com.eagskunst.emmanuel.gamingnews.testutil.fakes.FakeUserPreferencesRepository
+import com.eagskunst.emmanuel.gamingnews.worker.DailyReminderScheduler
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -80,7 +81,8 @@ class SettingsScreenTest {
             updateArticleOpenModeUseCase = UpdateArticleOpenModeUseCase(fakeUserPreferencesRepository),
             addTopicUseCase = AddTopicUseCase(fakeTopicsRepository),
             removeTopicUseCase = RemoveTopicUseCase(fakeTopicsRepository),
-            observeMuteRulesUseCase = ObserveMuteRulesUseCase(fakeMuteRulesRepository)
+            observeMuteRulesUseCase = ObserveMuteRulesUseCase(fakeMuteRulesRepository),
+            reminderScheduler = DailyReminderScheduler(context)
         )
     }
 

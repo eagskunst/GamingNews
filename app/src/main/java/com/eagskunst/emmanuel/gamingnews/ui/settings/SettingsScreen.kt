@@ -83,6 +83,7 @@ fun SettingsScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
+    val permissionDeniedMessage = stringResource(R.string.notification_permission_rationale)
 
     val requestPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -97,9 +98,9 @@ fun SettingsScreen(
                     requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
                 }
 
-                is SettingsUiEvent.ShowMessage -> {
+                is SettingsUiEvent.ShowNotificationPermissionDenied -> {
                     coroutineScope.launch {
-                        snackbarHostState.showSnackbar(event.message)
+                        snackbarHostState.showSnackbar(permissionDeniedMessage)
                     }
                 }
             }

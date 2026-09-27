@@ -23,7 +23,7 @@ class ReviewCatalogDataSourceTest {
 
     @Test
     fun `given spanish locale when selectedSource then returns eurogamer es`() {
-        val source = dataSource.selectedSource(Locale("es"))
+        val source = dataSource.selectedSource(Locale.forLanguageTag("es"))
 
         assertNotNull(source)
         assertEquals("reviews-eurogamer-es", source?.id)
@@ -33,7 +33,7 @@ class ReviewCatalogDataSourceTest {
 
     @Test
     fun `given spanish regional locale when selectedSource then returns eurogamer es`() {
-        val source = dataSource.selectedSource(Locale("es", "MX"))
+        val source = dataSource.selectedSource(Locale.forLanguageTag("es-MX"))
 
         assertNotNull(source)
         assertEquals("reviews-eurogamer-es", source?.id)
@@ -51,7 +51,7 @@ class ReviewCatalogDataSourceTest {
 
     @Test
     fun `given unsupported locale when selectedSource then falls back to english`() {
-        val source = dataSource.selectedSource(Locale("fr"))
+        val source = dataSource.selectedSource(Locale.forLanguageTag("fr"))
 
         assertNotNull(source)
         assertEquals("reviews-eurogamer-en", source?.id)

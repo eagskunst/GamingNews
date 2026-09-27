@@ -13,6 +13,7 @@ import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetSavedArticlesUse
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetUserPreferencesUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.ToggleSavedArticleUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -51,7 +52,7 @@ class NewsViewModel @Inject constructor(
     private val searchQueryFlow = MutableStateFlow("")
     private val revealMutedFlow = MutableStateFlow(false)
 
-    private var refreshJob: kotlinx.coroutines.Job? = null
+    private var refreshJob: Job? = null
 
     init {
         viewModelScope.launch {

@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -342,7 +343,7 @@ private fun EmptyState(
 private fun ReleaseList(
     groupedReleases: Map<String, List<GameRelease>>,
     isLoadingMore: Boolean,
-    listState: androidx.compose.foundation.lazy.LazyListState,
+    listState: LazyListState,
     onOpenGameUrl: (String) -> Unit
 ) {
     LazyColumn(

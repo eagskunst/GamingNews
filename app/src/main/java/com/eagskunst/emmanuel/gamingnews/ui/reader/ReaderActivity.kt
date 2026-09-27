@@ -29,9 +29,9 @@ class ReaderActivity : ComponentActivity() {
             val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
             val dynamicColor by viewModel.dynamicColor.collectAsStateWithLifecycle()
             val isDark = when (themeMode) {
-                com.eagskunst.emmanuel.gamingnews.core.domain.model.ThemeMode.SYSTEM -> androidx.compose.foundation.isSystemInDarkTheme()
-                com.eagskunst.emmanuel.gamingnews.core.domain.model.ThemeMode.LIGHT -> false
-                com.eagskunst.emmanuel.gamingnews.core.domain.model.ThemeMode.DARK -> true
+                ThemeMode.SYSTEM -> isSystemInDarkTheme()
+                ThemeMode.LIGHT -> false
+                ThemeMode.DARK -> true
             }
             GamingNewsTheme(themeMode = themeMode, dynamicColor = dynamicColor) {
                 ReaderScreen(

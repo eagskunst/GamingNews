@@ -10,6 +10,7 @@ import com.eagskunst.emmanuel.gamingnews.core.data.source.remote.RssRemoteDataSo
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.NewsArticle
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.NewsRepository
 import com.prof18.rssparser.model.RssChannel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.Flow
@@ -44,6 +45,8 @@ class DefaultNewsRepository @Inject constructor(
             val articles = fetchAndMergeArticles(urls)
             feedCache[key] = articles
             emit(Result.Success(articles))
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             if (!cached.isNullOrEmpty()) {
                 emit(Result.Success(cached))
@@ -86,6 +89,8 @@ class DefaultNewsRepository @Inject constructor(
                     val channel = rssRemoteDataSource.fetchChannel(url)
                     // Log.i("Channel response", "Channel articles: ${channel.items}")
                     channel
+                } catch (e: CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     null
                 }

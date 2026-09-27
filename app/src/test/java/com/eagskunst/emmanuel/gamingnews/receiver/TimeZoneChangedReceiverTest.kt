@@ -6,6 +6,7 @@ import androidx.work.testing.WorkManagerTestInitHelper
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.ArticleOpenMode
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.ThemeMode
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.UserPreferences
+import com.eagskunst.emmanuel.gamingnews.worker.DailyReminderScheduler
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -39,7 +40,7 @@ class TimeZoneChangedReceiverTest {
             articleOpenMode = ArticleOpenMode.CUSTOM_TAB
         )
 
-        TimeZoneChangedReceiver.reschedule(context, preferences)
+        TimeZoneChangedReceiver.reschedule(DailyReminderScheduler(context), preferences)
 
         // WorkManager does not expose a synchronous query in the test helper without
         // TestDriver; we assert the operation completed without throwing.
@@ -58,7 +59,7 @@ class TimeZoneChangedReceiverTest {
             articleOpenMode = ArticleOpenMode.CUSTOM_TAB
         )
 
-        TimeZoneChangedReceiver.reschedule(context, preferences)
+        TimeZoneChangedReceiver.reschedule(DailyReminderScheduler(context), preferences)
 
         assertTrue(true)
     }

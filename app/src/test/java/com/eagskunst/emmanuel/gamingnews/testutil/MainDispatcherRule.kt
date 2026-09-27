@@ -13,7 +13,7 @@ import org.junit.runner.Description
  * JUnit rule that swaps [Dispatchers.Main] for a [TestDispatcher] for the duration of a test,
  * so code that launches coroutines on `Dispatchers.Main` (e.g. `viewModelScope`) is testable.
  */
-@ExperimentalCoroutinesApi
+@OptIn(ExperimentalCoroutinesApi::class)
 class MainDispatcherRule(
     private val testDispatcher: TestDispatcher = UnconfinedTestDispatcher()
 ) : TestWatcher() {

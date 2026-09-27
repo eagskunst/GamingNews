@@ -6,8 +6,8 @@ import com.eagskunst.emmanuel.gamingnews.core.domain.model.ArticleOpenMode
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.ThemeMode
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetUserPreferencesUseCase
 
-import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.OpenArticleUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateArticleOpenModeUseCase
+import com.eagskunst.emmanuel.gamingnews.ui.ArticleOpener
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -19,7 +19,7 @@ import javax.inject.Inject
 @HiltViewModel
 class MainActivityViewModel @Inject constructor(
     getUserPreferencesUseCase: GetUserPreferencesUseCase,
-    private val openArticleUseCase: OpenArticleUseCase,
+    private val articleOpener: ArticleOpener,
     private val updateArticleOpenModeUseCase: UpdateArticleOpenModeUseCase
 ) : ViewModel() {
 
@@ -57,11 +57,11 @@ class MainActivityViewModel @Inject constructor(
 
 
     fun openArticle(url: String, mode: ArticleOpenMode) {
-        openArticleUseCase(url, mode)
+        articleOpener(url, mode)
     }
 
     fun openArticleWithMode(url: String, mode: ArticleOpenMode) {
         viewModelScope.launch { updateArticleOpenModeUseCase(mode) }
-        openArticleUseCase(url, mode)
+        articleOpener(url, mode)
     }
 }

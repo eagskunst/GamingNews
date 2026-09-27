@@ -4,14 +4,18 @@ import android.content.Context
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import dagger.hilt.android.qualifiers.ApplicationContext
 import java.util.Calendar
 import java.util.concurrent.TimeUnit
+import javax.inject.Inject
+import javax.inject.Singleton
 
-object DailyReminderScheduler {
+@Singleton
+class DailyReminderScheduler @Inject constructor(
+    @ApplicationContext private val context: Context
+) {
 
-    private const val WORK_NAME = "daily_reminder"
-
-    fun schedule(context: Context, hour: Int) {
+    fun schedule(hour: Int) {
         val initialDelay = computeInitialDelay(hour)
 
         val request = PeriodicWorkRequestBuilder<DailyReminderWorker>(1, TimeUnit.DAYS)
@@ -26,21 +30,25 @@ object DailyReminderScheduler {
             )
     }
 
-    fun cancel(context: Context) {
+    fun cancel() {
         WorkManager.getInstance(context).cancelUniqueWork(WORK_NAME)
     }
 
-    internal fun computeInitialDelay(hour: Int): Long {
-        val current = Calendar.getInstance()
-        val target = Calendar.getInstance().apply {
-            set(Calendar.HOUR_OF_DAY, hour)
-            set(Calendar.MINUTE, 0)
-            set(Calendar.SECOND, 0)
-            set(Calendar.MILLISECOND, 0)
-            if (before(current)) {
-                add(Calendar.DAY_OF_YEAR, 1)
+    companion object {
+        private const val WORK_NAME = "daily_reminder"
+
+        internal fun computeInitialDelay(hour: Int): Long {
+            val current = Calendar.getInstance()
+            val target = Calendar.getInstance().apply {
+                set(Calendar.HOUR_OF_DAY, hour)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+                if (before(current)) {
+                    add(Calendar.DAY_OF_YEAR, 1)
+                }
             }
+            return target.timeInMillis - current.timeInMillis
         }
-        return target.timeInMillis - current.timeInMillis
     }
 }
