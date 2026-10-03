@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.10.0] - 2026-10-03
+
+### Added
+- Share action in the reader mode toolbar that sends the article title and original link through the Android share sheet with a branded Gaming News message, plus a Copy link fallback in the overflow menu.
+
+### Changed
+- Shares from article lists now include the article title and the branded message instead of the bare link.
+
 ## [2.9.1] - 2026-09-27
 
 ### Fixed
