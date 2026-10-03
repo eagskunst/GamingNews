@@ -58,7 +58,7 @@ fun ReviewsScreen(
     onManageMutedWords: () -> Unit,
     onOpenArticle: (String) -> Unit,
     onOpenArticleWithMode: (String, ArticleOpenMode) -> Unit,
-    onShareArticle: (String) -> Unit,
+    onShareArticle: (NewsArticle) -> Unit,
     scrollToTopSignal: Int = 0
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -179,7 +179,7 @@ private fun ReviewsList(
     onToggleSave: (NewsArticle) -> Unit,
     onOpenArticle: (String) -> Unit,
     onOpenArticleWithMode: (String, ArticleOpenMode) -> Unit,
-    onShareArticle: (String) -> Unit,
+    onShareArticle: (NewsArticle) -> Unit,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(

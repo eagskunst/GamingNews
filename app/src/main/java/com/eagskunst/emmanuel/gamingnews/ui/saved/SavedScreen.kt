@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.eagskunst.emmanuel.gamingnews.R
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.ArticleOpenMode
+import com.eagskunst.emmanuel.gamingnews.core.domain.model.NewsArticle
 import com.eagskunst.emmanuel.gamingnews.ui.components.ArticleCard
 import com.eagskunst.emmanuel.gamingnews.ui.components.ArticleMenuAction
 import com.eagskunst.emmanuel.gamingnews.ui.components.MainTopAppBar
@@ -37,7 +38,7 @@ fun SavedScreen(
     onSettingsClick: () -> Unit,
     onOpenArticle: (String) -> Unit,
     onOpenArticleWithMode: (String, ArticleOpenMode) -> Unit,
-    onShareArticle: (String) -> Unit,
+    onShareArticle: (NewsArticle) -> Unit,
     scrollToTopSignal: Int = 0
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()

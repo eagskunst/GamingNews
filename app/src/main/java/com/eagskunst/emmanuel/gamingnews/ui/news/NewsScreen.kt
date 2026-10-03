@@ -47,6 +47,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.eagskunst.emmanuel.gamingnews.R
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.ArticleOpenMode
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.FilteredFeed
+import com.eagskunst.emmanuel.gamingnews.core.domain.model.NewsArticle
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.NewsCategory
 import com.eagskunst.emmanuel.gamingnews.ui.components.AllMutedEmptyState
 import com.eagskunst.emmanuel.gamingnews.ui.components.ArticleCard
@@ -70,7 +71,7 @@ fun NewsScreen(
     onManageMutedWords: () -> Unit,
     onOpenArticle: (String) -> Unit,
     onOpenArticleWithMode: (String, ArticleOpenMode) -> Unit,
-    onShareArticle: (String) -> Unit,
+    onShareArticle: (NewsArticle) -> Unit,
     scrollToTopSignal: Int = 0
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()

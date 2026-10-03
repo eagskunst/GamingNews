@@ -250,14 +250,14 @@ fun handleArticleMenuAction(
     article: NewsArticle,
     action: ArticleMenuAction,
     onOpenArticleWithMode: (String, ArticleOpenMode) -> Unit,
-    onShareArticle: (String) -> Unit,
+    onShareArticle: (NewsArticle) -> Unit,
     onToggleSave: () -> Unit
 ) {
     when (action) {
         ArticleMenuAction.OPEN_CUSTOM_TAB -> onOpenArticleWithMode(article.link, ArticleOpenMode.CUSTOM_TAB)
         ArticleMenuAction.OPEN_EXTERNAL_BROWSER -> onOpenArticleWithMode(article.link, ArticleOpenMode.EXTERNAL_BROWSER)
         ArticleMenuAction.OPEN_READER_MODE -> onOpenArticleWithMode(article.link, ArticleOpenMode.READER_MODE)
-        ArticleMenuAction.SHARE -> onShareArticle(article.link)
+        ArticleMenuAction.SHARE -> onShareArticle(article)
         ArticleMenuAction.TOGGLE_SAVE -> onToggleSave()
     }
 }

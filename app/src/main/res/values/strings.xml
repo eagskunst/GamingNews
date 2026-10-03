@@ -56,12 +56,18 @@
     <string name="reader_open_browser_button">Open in browser</string>
     <string name="reader_image_content_description">Article image</string>
     <string name="reader_image_hidden">Image hidden while data saver is on</string>
+    <string name="reader_copy_link">Copy link</string>
+    <string name="reader_link_copied">Link copied</string>
+    <string name="reader_more_options">More options</string>
 
     <string name="article_menu_title">Open article</string>
     <string name="article_open_custom_tab">Open in custom tab</string>
     <string name="article_open_external_browser">Open in external browser</string>
     <string name="article_open_reader_mode">Open in reader mode</string>
     <string name="article_share">Share</string>
+    <string name="article_share_text">%1$s\n\n%2$s\n\nShared via Gaming News</string>
+    <string name="article_share_text_url_only">%1$s\n\nShared via Gaming News</string>
+    <string name="article_share_chooser_title">Share article</string>
     <string name="article_save">Save</string>
     <string name="article_remove_save">Remove from saved</string>
 

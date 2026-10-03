@@ -49,6 +49,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.eagskunst.emmanuel.gamingnews.R
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.ArticleOpenMode
+import com.eagskunst.emmanuel.gamingnews.core.domain.model.NewsArticle
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.ThemeMode
 import com.eagskunst.emmanuel.gamingnews.ui.main.MainActivityViewModel
 
@@ -61,6 +62,7 @@ import com.eagskunst.emmanuel.gamingnews.ui.reviews.ReviewsViewModel
 import com.eagskunst.emmanuel.gamingnews.ui.saved.SavedScreen
 import com.eagskunst.emmanuel.gamingnews.ui.saved.SavedViewModel
 import com.eagskunst.emmanuel.gamingnews.ui.theme.GamingNewsTheme
+import com.eagskunst.emmanuel.gamingnews.utility.shareArticle
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -80,7 +82,7 @@ class MainActivity : ComponentActivity() {
                     activity = this,
                     onOpenArticle = { url -> viewModel.openArticle(url, articleOpenMode) },
                     onOpenArticleWithMode = viewModel::openArticleWithMode,
-                    onShareArticle = { url -> shareArticle(url) },
+                    onShareArticle = { article -> shareArticle(article.title, article.link) },
                     onOpenGameUrl = { url -> viewModel.openArticleWithMode(url, ArticleOpenMode.CUSTOM_TAB) },
                     onSettingsClick = { startActivity(Intent(this, SettingsActivity::class.java)) },
                     onManageMutedWords = {
@@ -95,13 +97,6 @@ class MainActivity : ComponentActivity() {
 
     }
 
-    private fun shareArticle(url: String) {
-        val intent = Intent(Intent.ACTION_SEND).apply {
-            type = "text/plain"
-            putExtra(Intent.EXTRA_TEXT, url)
-        }
-        startActivity(Intent.createChooser(intent, null))
-    }
 }
 
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
@@ -110,7 +105,7 @@ private fun MainScreen(
     activity: ComponentActivity,
     onOpenArticle: (String) -> Unit,
     onOpenArticleWithMode: (String, ArticleOpenMode) -> Unit,
-    onShareArticle: (String) -> Unit,
+    onShareArticle: (NewsArticle) -> Unit,
     onOpenGameUrl: (String) -> Unit,
     onSettingsClick: () -> Unit,
     onManageMutedWords: () -> Unit
