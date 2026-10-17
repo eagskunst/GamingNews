@@ -34,15 +34,37 @@ class IgdbRemoteDataSource @Inject constructor(
         offset: Int = 0,
         window: ReleaseDateRange
     ): List<IgdbReleaseDateDto> = withContext(dispatchers.io) {
-        val body = buildQuery(offset, window).toRequestBody(MEDIA_TYPE)
+        executeQuery(buildQuery(offset, window).toRequestBody(MEDIA_TYPE))
+    }
+
+    /**
+     * Fetches exact (day-precision) release dates for a set of game IDs on supported
+     * platforms, chunked so a single query never exceeds IGDB's URL/expr limits. Used by the
+     * followed-games sync; a missing ID in the result means the game has no exact date left.
+     */
+    suspend fun fetchReleaseDatesForGames(
+        gameIds: Collection<Long>
+    ): List<IgdbReleaseDateDto> = withContext(dispatchers.io) {
+        gameIds.toList()
+            .chunked(GAME_ID_CHUNK_SIZE)
+            .flatMap { chunk ->
+                executeQuery(buildFollowedGamesQuery(chunk).toRequestBody(MEDIA_TYPE))
+            }
+    }
+
+    /**
+     * Runs [body] against the release_dates endpoint, renewing the access token once when
+     * IGDB rejects it with a 401.
+     */
+    private suspend fun executeQuery(body: RequestBody): List<IgdbReleaseDateDto> {
         val token = getValidAccessToken()
         try {
-            requestReleases(token, body)
+            return requestReleases(token, body)
         } catch (exception: HttpException) {
             if (exception.code() != 401) throw exception
             val replacement = renewRejectedToken(token)
             try {
-                requestReleases(replacement, body)
+                return requestReleases(replacement, body)
             } catch (retryException: HttpException) {
                 if (retryException.code() == 401) {
                     throw IgdbRejectedTokenException(retryException)
@@ -60,7 +82,7 @@ class IgdbRemoteDataSource @Inject constructor(
         val windowStartSeconds = window.startMillis / 1000
         val windowEndSeconds = window.endMillis / 1000
         return buildString {
-            appendLine("fields id,date,human,platform,game.name,game.url,game.cover.url;")
+            appendLine("fields id,date,human,date_format,platform,game.name,game.url,game.cover.url;")
             appendLine(
                 "where platform = ($supportedIds) " +
                     "& date >= $windowStartSeconds & date <= $windowEndSeconds;"
@@ -68,6 +90,19 @@ class IgdbRemoteDataSource @Inject constructor(
             appendLine("sort date asc;")
             appendLine("limit $PAGE_LIMIT;")
             appendLine("offset $offset;")
+        }
+    }
+
+    private fun buildFollowedGamesQuery(gameIds: List<Long>): String {
+        val ids = gameIds.joinToString(",")
+        val supportedIds = platformCatalog.supportedIds().sorted().joinToString(",")
+        return buildString {
+            appendLine("fields id,date,date_format,platform,game.id;")
+            appendLine(
+                "where game = ($ids) & platform = ($supportedIds) & date_format = 0;"
+            )
+            appendLine("sort date asc;")
+            appendLine("limit $FOLLOWED_GAMES_LIMIT;")
         }
     }
 
@@ -101,5 +136,9 @@ class IgdbRemoteDataSource @Inject constructor(
     companion object {
         private val MEDIA_TYPE = "text/plain".toMediaType()
         const val PAGE_LIMIT = 50
+
+        /** Game IDs per query chunk; keeps the where-clause comfortably under IGDB's limits. */
+        const val GAME_ID_CHUNK_SIZE = 100
+        const val FOLLOWED_GAMES_LIMIT = 500
     }
 }

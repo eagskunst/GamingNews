@@ -32,6 +32,7 @@ import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSiz
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -64,14 +65,22 @@ import com.eagskunst.emmanuel.gamingnews.ui.saved.SavedViewModel
 import com.eagskunst.emmanuel.gamingnews.ui.theme.GamingNewsTheme
 import com.eagskunst.emmanuel.gamingnews.utility.shareArticle
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     private val viewModel: MainActivityViewModel by viewModels()
 
+    /** Incremented whenever a notification wants the app to open on the Releases tab. */
+    private val _openReleasesSignal = MutableStateFlow(0)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (intent.getBooleanExtra(EXTRA_OPEN_RELEASES, false)) {
+            _openReleasesSignal.value++
+        }
         enableEdgeToEdge()
         setContent {
             val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
@@ -90,11 +99,24 @@ class MainActivity : ComponentActivity() {
                             Intent(this, SettingsActivity::class.java)
                                 .putExtra(SettingsActivity.EXTRA_OPEN_MUTED_WORDS, true)
                         )
-                    }
+                    },
+                    openReleasesSignal = _openReleasesSignal
                 )
             }
         }
 
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        if (intent.getBooleanExtra(EXTRA_OPEN_RELEASES, false)) {
+            _openReleasesSignal.value++
+        }
+    }
+
+    companion object {
+        /** Set by notifications that should land on the Releases tab when tapped. */
+        const val EXTRA_OPEN_RELEASES = "com.eagskunst.emmanuel.gamingnews.extra.OPEN_RELEASES"
     }
 
 }
@@ -108,11 +130,17 @@ private fun MainScreen(
     onShareArticle: (NewsArticle) -> Unit,
     onOpenGameUrl: (String) -> Unit,
     onSettingsClick: () -> Unit,
-    onManageMutedWords: () -> Unit
+    onManageMutedWords: () -> Unit,
+    openReleasesSignal: StateFlow<Int>
 ) {
     val windowSizeClass = calculateWindowSizeClass(activity)
     val navController = rememberNavController()
     val useNavigationRail = windowSizeClass.widthSizeClass != WindowWidthSizeClass.Compact
+
+    val releasesSignal by openReleasesSignal.collectAsStateWithLifecycle()
+    LaunchedEffect(releasesSignal) {
+        if (releasesSignal > 0) navController.navigateToTopLevel(BottomNavRoute.Releases.route)
+    }
 
     var newsScrollToTopEvent by remember { mutableIntStateOf(0) }
     var savedScrollToTopEvent by remember { mutableIntStateOf(0) }

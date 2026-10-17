@@ -1,5 +1,8 @@
 package com.eagskunst.emmanuel.gamingnews.ui.releases
 
+import android.Manifest
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -26,7 +29,9 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -35,8 +40,13 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -44,11 +54,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -61,6 +73,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import coil3.compose.AsyncImage
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import com.eagskunst.emmanuel.gamingnews.R
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.GameRelease
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.PlatformSelectionNotice
@@ -97,6 +111,47 @@ fun ReleasesScreen(
         }
     }
     val lifecycleOwner = LocalLifecycleOwner.current
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val permissionDeniedMessage = stringResource(R.string.notification_permission_rationale)
+    val undoLabel = stringResource(R.string.action_undo)
+
+    val requestPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        viewModel.onPermissionResult(isGranted)
+    }
+
+    LaunchedEffect(viewModel) {
+        viewModel.uiEvent.collect { event ->
+            when (event) {
+                is ReleasesUiEvent.RequestNotificationPermission -> {
+                    requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                }
+                is ReleasesUiEvent.ShowPermissionDenied -> {
+                    coroutineScope.launch {
+                        snackbarHostState.showSnackbar(permissionDeniedMessage)
+                    }
+                }
+                is ReleasesUiEvent.ShowReminderRemoved -> {
+                    // A label-bearing snackbar defaults to Indefinite (no timeout, no swipe
+                    // dismissal), so cap it with an explicit timeout and a timed duration.
+                    val result = withTimeoutOrNull(UNDO_SNACKBAR_TIMEOUT_MS) {
+                        snackbarHostState.showSnackbar(
+                            message = context.getString(R.string.reminder_removed, event.game.name),
+                            actionLabel = undoLabel,
+                            duration = SnackbarDuration.Long
+                        )
+                    }
+                    if (result == SnackbarResult.ActionPerformed) {
+                        viewModel.undoUnfollow(event.game)
+                    }
+                }
+            }
+        }
+    }
+
     LaunchedEffect(listState, viewModel, lifecycleOwner) {
         lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
             try {
@@ -128,13 +183,18 @@ fun ReleasesScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = viewModel::refresh) {
-                Icon(
-                    imageVector = Icons.Default.Refresh,
-                    contentDescription = stringResource(R.string.releases_refresh_content_description)
-                )
+            // Scaffold lifts a visible snackbar above the FAB, leaving it floating over the
+            // cards; hiding the FAB instead lets the snackbar anchor above the bottom nav.
+            if (snackbarHostState.currentSnackbarData == null) {
+                FloatingActionButton(onClick = viewModel::refresh) {
+                    Icon(
+                        imageVector = Icons.Default.Refresh,
+                        contentDescription = stringResource(R.string.releases_refresh_content_description)
+                    )
+                }
             }
-        }
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
         Column(
             modifier = Modifier
@@ -185,6 +245,8 @@ fun ReleasesScreen(
                         groupedReleases = groupedReleases,
                         isLoadingMore = uiState.isLoadingMore,
                         listState = listState,
+                        followedGameIds = uiState.followedGameIds,
+                        onBellClick = viewModel::onBellClick,
                         onOpenGameUrl = onOpenGameUrl
                     )
                     uiState.isBusy || (uiState.hasMorePages && uiState.error == null) -> {
@@ -197,6 +259,14 @@ fun ReleasesScreen(
                 }
             }
         }
+    }
+
+    uiState.offsetPickerFor?.let { release ->
+        ReminderOffsetSheet(
+            release = release,
+            onConfirm = viewModel::onOffsetsConfirmed,
+            onDismiss = viewModel::onPickerDismissed
+        )
     }
 }
 
@@ -354,6 +424,8 @@ private fun ReleaseList(
     groupedReleases: Map<String, List<GameRelease>>,
     isLoadingMore: Boolean,
     listState: LazyListState,
+    followedGameIds: Set<Long>,
+    onBellClick: (GameRelease) -> Unit,
     onOpenGameUrl: (String) -> Unit
 ) {
     LazyColumn(
@@ -377,6 +449,8 @@ private fun ReleaseList(
             items(releases, key = { "${it.id}_${it.releaseDate.time}" }) { release ->
                 ReleaseCard(
                     release = release,
+                    isFollowed = release.id in followedGameIds,
+                    onBellClick = { onBellClick(release) },
                     onClick = { release.gameUrl?.let(onOpenGameUrl) },
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
@@ -400,6 +474,8 @@ private fun ReleaseList(
 @Composable
 private fun ReleaseCard(
     release: GameRelease,
+    isFollowed: Boolean,
+    onBellClick: () -> Unit,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -451,10 +527,36 @@ private fun ReleaseCard(
                     }
                 }
             }
+            // Follow bell only on day-precision cards; approximate cards get no trailing slot.
+            if (release.hasExactDate) {
+                IconButton(
+                    onClick = onBellClick,
+                    modifier = Modifier.testTag("release_bell_${release.id}")
+                ) {
+                    Icon(
+                        imageVector = if (isFollowed) {
+                            Icons.Filled.NotificationsActive
+                        } else {
+                            Icons.Outlined.Notifications
+                        },
+                        contentDescription = stringResource(
+                            if (isFollowed) R.string.releases_unfollow_cd
+                            else R.string.releases_follow_cd,
+                            release.name
+                        ),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
         }
         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
         Text(
-            text = dayFormatter.format(release.releaseDate),
+            // Approximate releases carry no meaningful day; show IGDB's own label instead.
+            text = if (release.hasExactDate) {
+                dayFormatter.format(release.releaseDate)
+            } else {
+                release.human.orEmpty()
+            },
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface,
@@ -486,3 +588,6 @@ private val ReleasesError.messageResource: Int
     }
 
 private const val LOAD_MORE_THRESHOLD = 5
+
+/** How long the unfollow/Undo snackbar stays up before dismissing itself. */
+private const val UNDO_SNACKBAR_TIMEOUT_MS = 3_000L

@@ -27,4 +27,10 @@ interface ReleasesRepository {
 
     /** Whether more pages remain for the current coverage. */
     val hasMorePages: StateFlow<Boolean>
+
+    /**
+     * Earliest exact (day-precision) release day per game ID, expressed as a UTC epoch day.
+     * Games with no exact date left are absent from the map. Does not touch the release cache.
+     */
+    suspend fun fetchExactReleaseDays(gameIds: Collection<Long>): Result<Map<Long, Long>>
 }

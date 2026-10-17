@@ -4,15 +4,22 @@ import app.cash.turbine.test
 import com.eagskunst.emmanuel.gamingnews.core.common.Result
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.PlatformSelectionNotice
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.PlatformStatus
+import com.eagskunst.emmanuel.gamingnews.core.domain.model.ReminderOffset
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.UpcomingReleaseWindow
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.IgdbTokenAcquisitionException
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.PlatformCatalog
+import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.FollowGameUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetReleasesUseCase
+import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.ObserveFollowedGameIdsUseCase
+import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UnfollowGameUseCase
 import com.eagskunst.emmanuel.gamingnews.testutil.Fixtures
 import com.eagskunst.emmanuel.gamingnews.testutil.MainDispatcherRule
+import com.eagskunst.emmanuel.gamingnews.testutil.fakes.FakeFollowedGamesRepository
 import com.eagskunst.emmanuel.gamingnews.testutil.fakes.FakePlatformCatalog
 import com.eagskunst.emmanuel.gamingnews.testutil.fakes.FakeReleasesRepository
 import com.eagskunst.emmanuel.gamingnews.testutil.fakes.FakeUserPreferencesRepository
+import com.eagskunst.emmanuel.gamingnews.worker.GameReleaseScheduler
+import io.mockk.mockk
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -44,11 +51,17 @@ class ReleasesViewModelTest {
 
     private fun viewModel(
         releases: FakeReleasesRepository = FakeReleasesRepository(),
-        prefs: FakeUserPreferencesRepository = FakeUserPreferencesRepository(catalog = catalog)
+        prefs: FakeUserPreferencesRepository = FakeUserPreferencesRepository(catalog = catalog),
+        followedGames: FakeFollowedGamesRepository = FakeFollowedGamesRepository(),
+        scheduler: GameReleaseScheduler = mockk(relaxed = true)
     ): ReleasesViewModel = ReleasesViewModel(
+        context = mockk(relaxed = true),
         getReleases = GetReleasesUseCase(releases, catalog),
         releasesRepository = releases,
         userPreferencesRepository = prefs,
+        observeFollowedGameIds = ObserveFollowedGameIdsUseCase(followedGames),
+        followGame = FollowGameUseCase(followedGames, scheduler),
+        unfollowGame = UnfollowGameUseCase(followedGames, scheduler),
         catalog = catalog
     )
 
@@ -772,5 +785,101 @@ class ReleasesViewModelTest {
         viewModel.dismissCatalogNotice()
 
         assertNull(viewModel.uiState.value.catalogNotice)
+    }
+
+    @Test
+    fun `given an exact release when the bell is tapped then the offset picker opens`() = runTest {
+        // On the JVM test runtime SDK_INT is 0, so the permission gate reports granted.
+        val viewModel = viewModel()
+        pumpMain()
+        val release = Fixtures.gameRelease(id = 42, hasExactDate = true)
+
+        viewModel.onBellClick(release)
+
+        assertEquals(release, viewModel.uiState.value.offsetPickerFor)
+    }
+
+    @Test
+    fun `given an approximate release when the bell is tapped then nothing happens`() = runTest {
+        val viewModel = viewModel()
+        pumpMain()
+
+        viewModel.onBellClick(Fixtures.gameRelease(hasExactDate = false, human = "TBA"))
+
+        assertNull(viewModel.uiState.value.offsetPickerFor)
+    }
+
+    @Test
+    fun `given the picker is open when dismissed then it closes`() = runTest {
+        val viewModel = viewModel()
+        pumpMain()
+        viewModel.onBellClick(Fixtures.gameRelease(id = 42))
+
+        viewModel.onPickerDismissed()
+
+        assertNull(viewModel.uiState.value.offsetPickerFor)
+    }
+
+    @Test
+    fun `given the picker is open when offsets are confirmed then the game is followed`() = runTest {
+        val followedGames = FakeFollowedGamesRepository()
+        val viewModel = viewModel(followedGames = followedGames)
+        pumpMain()
+        val release = Fixtures.gameRelease(id = 42, name = "Exact Game")
+        viewModel.onBellClick(release)
+        pumpMain()
+
+        viewModel.onOffsetsConfirmed(
+            setOf(ReminderOffset.RELEASE_DAY, ReminderOffset.ONE_WEEK_BEFORE)
+        )
+        pumpMain()
+
+        assertNull(viewModel.uiState.value.offsetPickerFor)
+        val stored = followedGames.getAll().single()
+        assertEquals(42L, stored.gameId)
+        assertEquals(
+            setOf(ReminderOffset.RELEASE_DAY, ReminderOffset.ONE_WEEK_BEFORE),
+            stored.offsets
+        )
+        assertTrue(42L in viewModel.uiState.value.followedGameIds)
+    }
+
+    @Test
+    fun `given a followed game when the bell is tapped then it is unfollowed and a snackbar event is emitted`() = runTest {
+        val followedGames = FakeFollowedGamesRepository(
+            listOf(Fixtures.followedGame(gameId = 42, name = "Followed Game"))
+        )
+        val viewModel = viewModel(followedGames = followedGames)
+        pumpMain()
+        assertTrue(42L in viewModel.uiState.value.followedGameIds)
+
+        viewModel.uiEvent.test {
+            viewModel.onBellClick(Fixtures.gameRelease(id = 42, name = "Followed Game"))
+            pumpMain()
+
+            val event = awaitItem()
+            assertTrue(event is ReleasesUiEvent.ShowReminderRemoved)
+            assertEquals("Followed Game", (event as ReleasesUiEvent.ShowReminderRemoved).game.name)
+            assertTrue(followedGames.getAll().isEmpty())
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `given an unfollowed game when undo is invoked then the follow is restored`() = runTest {
+        val followedGames = FakeFollowedGamesRepository(
+            listOf(Fixtures.followedGame(gameId = 42))
+        )
+        val viewModel = viewModel(followedGames = followedGames)
+        pumpMain()
+        viewModel.onBellClick(Fixtures.gameRelease(id = 42))
+        pumpMain()
+        assertTrue(followedGames.getAll().isEmpty())
+
+        viewModel.undoUnfollow(Fixtures.followedGame(gameId = 42))
+        pumpMain()
+
+        assertEquals(42L, followedGames.getAll().single().gameId)
+        assertTrue(42L in viewModel.uiState.value.followedGameIds)
     }
 }

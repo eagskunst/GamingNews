@@ -7,6 +7,7 @@ import com.eagskunst.emmanuel.gamingnews.core.data.mapper.toReleaseRecord
 import com.eagskunst.emmanuel.gamingnews.core.data.source.local.ReleaseDao
 import com.eagskunst.emmanuel.gamingnews.core.data.source.local.entity.ReleaseCoverageEntity
 import com.eagskunst.emmanuel.gamingnews.core.data.source.remote.IgdbRemoteDataSource
+import com.eagskunst.emmanuel.gamingnews.core.data.source.remote.api.IGDB_DATE_FORMAT_YYYYMMDD
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.GameReleaseRecord
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.ReleaseDateRange
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.UpcomingReleaseWindow
@@ -108,6 +109,27 @@ class DefaultReleasesRepository @Inject constructor(
         }
     }
 
+    override suspend fun fetchExactReleaseDays(
+        gameIds: Collection<Long>
+    ): Result<Map<Long, Long>> = withContext(dispatchers.io) {
+        try {
+            val earliestDay = mutableMapOf<Long, Long>()
+            igdbRemoteDataSource.fetchReleaseDatesForGames(gameIds).forEach { dto ->
+                val gameId = dto.game?.id ?: return@forEach
+                val epochDay = dto.date
+                    ?.let { Math.floorDiv(it * 1_000L, MILLIS_PER_DAY) }
+                    ?: return@forEach
+                if (dto.dateFormat != IGDB_DATE_FORMAT_YYYYMMDD) return@forEach
+                earliestDay.merge(gameId, epochDay) { stored, fresh -> minOf(stored, fresh) }
+            }
+            Result.Success(earliestDay)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Result.Error(e)
+        }
+    }
+
     /**
      * Fetches one page for the current supported-platform set and query window, then commits
      * records and coverage metadata together. Coverage is only marked complete when the page
@@ -141,4 +163,8 @@ class DefaultReleasesRepository @Inject constructor(
     }
 
     private data class CoverageContext(val key: String, val window: ReleaseDateRange)
+
+    private companion object {
+        const val MILLIS_PER_DAY = 86_400_000L
+    }
 }

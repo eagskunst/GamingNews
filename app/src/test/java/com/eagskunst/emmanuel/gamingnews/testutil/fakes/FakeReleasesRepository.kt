@@ -44,6 +44,11 @@ class FakeReleasesRepository(
         private set
     var refreshInvocations = 0
         private set
+    var fetchExactReleaseDaysInvocations = 0
+        private set
+
+    /** Returned by [fetchExactReleaseDays]; absent IDs mean "no exact date left". */
+    var exactReleaseDaysResult: Result<Map<Long, Long>> = Result.Success(emptyMap())
 
     override fun releasesStream(): Flow<Result<List<GameReleaseRecord>>> {
         releasesStreamInvocations++
@@ -77,5 +82,10 @@ class FakeReleasesRepository(
             hasMorePagesFlow.value = result.data
         }
         return result
+    }
+
+    override suspend fun fetchExactReleaseDays(gameIds: Collection<Long>): Result<Map<Long, Long>> {
+        fetchExactReleaseDaysInvocations++
+        return exactReleaseDaysResult
     }
 }

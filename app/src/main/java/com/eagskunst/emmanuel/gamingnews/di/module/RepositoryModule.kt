@@ -2,6 +2,7 @@ package com.eagskunst.emmanuel.gamingnews.di.module
 
 import com.eagskunst.emmanuel.gamingnews.core.data.repository.DefaultArticleReaderRepository
 import com.eagskunst.emmanuel.gamingnews.core.data.repository.DefaultFeedProvidersRepository
+import com.eagskunst.emmanuel.gamingnews.core.data.repository.DefaultFollowedGamesRepository
 import com.eagskunst.emmanuel.gamingnews.core.data.repository.DefaultMuteRulesRepository
 import com.eagskunst.emmanuel.gamingnews.core.data.repository.DefaultNewsRepository
 import com.eagskunst.emmanuel.gamingnews.core.data.repository.DefaultReleasesRepository
@@ -10,6 +11,7 @@ import com.eagskunst.emmanuel.gamingnews.core.data.repository.DefaultTopicsRepos
 import com.eagskunst.emmanuel.gamingnews.core.data.repository.DefaultUserPreferencesRepository
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.ArticleReaderRepository
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.FeedProvidersRepository
+import com.eagskunst.emmanuel.gamingnews.core.domain.repository.FollowedGamesRepository
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.MuteRulesRepository
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.NewsRepository
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.ReleasesRepository
@@ -73,4 +75,10 @@ abstract class RepositoryModule {
     abstract fun bindMuteRulesRepository(
         impl: DefaultMuteRulesRepository
     ): MuteRulesRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindFollowedGamesRepository(
+        impl: DefaultFollowedGamesRepository
+    ): FollowedGamesRepository
 }

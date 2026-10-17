@@ -165,6 +165,8 @@ class ReleaseDaoTest {
         coverUrl = null,
         releaseDate = releaseDate,
         gameUrl = null,
+        hasExactDate = true,
+        human = null,
         fetchedAt = Date()
     )
 }

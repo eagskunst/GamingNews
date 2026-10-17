@@ -20,6 +20,12 @@
             android:name="android.webkit.WebView.EnableSafeBrowsing"
             android:value="true" />
 
+        <!-- FCM topic pushes (which carry no channel override) land on this channel;
+             must match NotificationChannelSpec.NEWS_TOPICS. -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="news_topics" />
+
         <provider
             android:name="androidx.startup.InitializationProvider"
             android:authorities="${applicationId}.androidx-startup"

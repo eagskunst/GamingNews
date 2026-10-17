@@ -135,6 +135,57 @@ class AppDatabaseMigrationTest {
     }
 
     @Test
+    fun migrate4To5_defaults_existing_releases_to_exact_and_adds_nullable_human() {
+        val now = Date().time
+        helper.createDatabase(TEST_DB, 4).use { db ->
+            db.execSQL(
+                """
+                INSERT INTO releases (id, gameId, platformId, name, coverUrl, releaseDate, gameUrl, fetchedAt)
+                VALUES (1, 10, 6, 'Exact Game', NULL, $now, NULL, $now)
+                """.trimIndent()
+            )
+        }
+
+        val db = helper.runMigrationsAndValidate(TEST_DB, 5, true, MIGRATION_4_5)
+
+        db.query("SELECT hasExactDate, human FROM releases WHERE id = 1").use { cursor ->
+            assertTrue(cursor.moveToFirst())
+            assertEquals(1, cursor.getInt(cursor.getColumnIndexOrThrow("hasExactDate")))
+            assertNull(cursor.getString(cursor.getColumnIndexOrThrow("human")))
+        }
+    }
+
+    @Test
+    fun migrate5To6_creates_the_followed_games_table() {
+        helper.createDatabase(TEST_DB, 5).use { db ->
+            db.execSQL(
+                """
+                INSERT INTO releases (id, gameId, platformId, name, coverUrl, releaseDate, gameUrl, hasExactDate, human, fetchedAt)
+                VALUES (1, 10, 6, 'Game', NULL, 1700000000000, NULL, 1, NULL, 1700000000000)
+                """.trimIndent()
+            )
+        }
+
+        val db = helper.runMigrationsAndValidate(TEST_DB, 6, true, MIGRATION_5_6)
+
+        db.query("SELECT COUNT(*) FROM followed_games").use { cursor ->
+            assertTrue(cursor.moveToFirst())
+            assertEquals(0, cursor.getInt(0))
+        }
+        db.execSQL(
+            """
+            INSERT INTO followed_games (gameId, name, coverUrl, gameUrl, releaseEpochDay, offsets, notifiedOffsets, platformsLabel, followedAt, lastSyncedAt)
+            VALUES (10, 'Game', NULL, NULL, 20000, 7, 0, 'PC', 1700000000000, NULL)
+            """.trimIndent()
+        )
+        db.query("SELECT offsets, platformsLabel FROM followed_games WHERE gameId = 10").use { cursor ->
+            assertTrue(cursor.moveToFirst())
+            assertEquals(7, cursor.getInt(cursor.getColumnIndexOrThrow("offsets")))
+            assertEquals("PC", cursor.getString(cursor.getColumnIndexOrThrow("platformsLabel")))
+        }
+    }
+
+    @Test
     fun migrate1To3_applies_the_full_migration_chain() {
         val now = Date().time
         helper.createDatabase(TEST_DB, 1).use { db ->

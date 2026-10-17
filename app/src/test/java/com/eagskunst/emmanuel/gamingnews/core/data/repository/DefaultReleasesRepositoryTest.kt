@@ -4,6 +4,7 @@ import app.cash.turbine.test
 import com.eagskunst.emmanuel.gamingnews.core.common.Result
 import com.eagskunst.emmanuel.gamingnews.core.data.source.local.entity.ReleaseCoverageEntity
 import com.eagskunst.emmanuel.gamingnews.core.data.source.remote.IgdbRemoteDataSource
+import com.eagskunst.emmanuel.gamingnews.core.data.source.remote.api.IGDB_DATE_FORMAT_YYYYMMDD
 import com.eagskunst.emmanuel.gamingnews.core.data.source.remote.api.IgdbGameDto
 import com.eagskunst.emmanuel.gamingnews.core.data.source.remote.api.IgdbReleaseDateDto
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.UpcomingReleaseWindow
@@ -256,17 +257,54 @@ class DefaultReleasesRepositoryTest {
         coVerify(exactly = 0) { remoteDataSource.fetchUpcomingReleases(any(), any()) }
     }
 
+    @Test
+    fun `given platform variants at different days when fetching exact days then the earliest day wins`() = runTest {
+        val dayOneSeconds = 20_000L * 86_400L
+        val dayTwoSeconds = 20_005L * 86_400L
+        coEvery { remoteDataSource.fetchReleaseDatesForGames(setOf(100L)) } returns listOf(
+            releaseDto(id = 1, gameId = 100, name = "Game", platform = 6, dateSeconds = dayTwoSeconds),
+            releaseDto(id = 2, gameId = 100, name = "Game", platform = 48, dateSeconds = dayOneSeconds)
+        )
+
+        val result = repository.fetchExactReleaseDays(setOf(100L))
+
+        assertEquals(mapOf(100L to 20_000L), (result as Result.Success).data)
+    }
+
+    @Test
+    fun `given approximate records when fetching exact days then they are ignored`() = runTest {
+        coEvery { remoteDataSource.fetchReleaseDatesForGames(setOf(100L)) } returns listOf(
+            releaseDto(id = 1, gameId = 100, name = "Game", platform = 6, dateSeconds = 20_000L * 86_400L, dateFormat = null)
+        )
+
+        val result = repository.fetchExactReleaseDays(setOf(100L))
+
+        assertEquals(emptyMap<Long, Long>(), (result as Result.Success).data)
+    }
+
+    @Test
+    fun `given the fetch fails when fetching exact days then an error result is returned`() = runTest {
+        coEvery { remoteDataSource.fetchReleaseDatesForGames(any()) } throws IllegalStateException("offline")
+
+        val result = repository.fetchExactReleaseDays(setOf(100L))
+
+        assertTrue(result is Result.Error)
+    }
+
     private fun releaseDto(
         id: Long,
         gameId: Long,
         name: String,
         platform: Int,
-        dateOffsetSeconds: Long
+        dateOffsetSeconds: Long = 0,
+        dateSeconds: Long = System.currentTimeMillis() / 1000 + dateOffsetSeconds,
+        dateFormat: Int? = IGDB_DATE_FORMAT_YYYYMMDD
     ): IgdbReleaseDateDto = IgdbReleaseDateDto(
         id = id,
-        date = System.currentTimeMillis() / 1000 + dateOffsetSeconds,
+        date = dateSeconds,
         human = null,
         platform = platform,
+        dateFormat = dateFormat,
         game = IgdbGameDto(
             id = gameId,
             name = name,

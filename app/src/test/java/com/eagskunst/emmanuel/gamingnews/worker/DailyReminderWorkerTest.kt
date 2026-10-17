@@ -7,6 +7,7 @@ import androidx.work.ListenableWorker
 import androidx.work.WorkerFactory
 import androidx.work.WorkerParameters
 import androidx.work.testing.TestListenableWorkerBuilder
+import com.eagskunst.emmanuel.gamingnews.core.notification.AppNotifier
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -30,7 +31,7 @@ class DailyReminderWorkerTest {
                     workerClassName: String,
                     workerParameters: WorkerParameters
                 ): ListenableWorker? {
-                    return DailyReminderWorker(appContext, workerParameters)
+                    return DailyReminderWorker(appContext, workerParameters, AppNotifier(appContext))
                 }
             })
             .build()

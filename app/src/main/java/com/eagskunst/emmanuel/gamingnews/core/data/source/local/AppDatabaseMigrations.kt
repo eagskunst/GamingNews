@@ -77,3 +77,38 @@ val MIGRATION_3_4 = object : Migration(3, 4) {
         )
     }
 }
+
+/**
+ * Adds IGDB date precision to release records: [ReleaseEntity.hasExactDate] marks rows whose
+ * date is day-precision, and `human` stores the label IGDB returns for approximate records.
+ * Pre-existing rows default to exact; the coverage-key bump forces a refetch anyway.
+ */
+val MIGRATION_4_5 = object : Migration(4, 5) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE releases ADD COLUMN hasExactDate INTEGER NOT NULL DEFAULT 1")
+        db.execSQL("ALTER TABLE releases ADD COLUMN human TEXT")
+    }
+}
+
+/** Creates the followed-games table backing release reminder notifications. */
+val MIGRATION_5_6 = object : Migration(5, 6) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `followed_games` (
+                `gameId` INTEGER NOT NULL,
+                `name` TEXT NOT NULL,
+                `coverUrl` TEXT,
+                `gameUrl` TEXT,
+                `releaseEpochDay` INTEGER NOT NULL,
+                `offsets` INTEGER NOT NULL,
+                `notifiedOffsets` INTEGER NOT NULL,
+                `platformsLabel` TEXT NOT NULL,
+                `followedAt` INTEGER NOT NULL,
+                `lastSyncedAt` INTEGER,
+                PRIMARY KEY(`gameId`)
+            )
+            """.trimIndent()
+        )
+    }
+}

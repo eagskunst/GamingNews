@@ -32,12 +32,16 @@ app/src/test/java/com/eagskunst/emmanuel/gamingnews/
 ├── core/data/source/remote/      Remote data source tests (MockK)
 ├── core/data/repository/         Repository tests (fakes + MockK)
 ├── core/domain/usecase/          Use case tests (fakes)
+├── core/notification/            AppNotifier tests (Robolectric shadow NotificationManager)
+├── receiver/                     BroadcastReceiver tests (Robolectric)
 ├── ui/<feature>/                 ViewModel tests + Robolectric Compose screen tests
 ├── ui/components/                Robolectric Compose component tests
-└── worker/                       WorkManager CoroutineWorker test (Robolectric)
+└── worker/                       WorkManager tests (Robolectric + TestListenableWorkerBuilder
+                                  + WorkManagerTestInitHelper)
 
 app/src/androidTest/java/com/eagskunst/emmanuel/gamingnews/
-└── core/data/source/local/       Room DAO tests against a real in-memory SQLite database
+└── core/data/source/local/       Room DAO tests against a real in-memory SQLite database,
+                                  plus AppDatabaseMigrationTest (MigrationTestHelper)
 ```
 
 ## Shared test utilities (`testutil/`)
@@ -49,9 +53,11 @@ app/src/androidTest/java/com/eagskunst/emmanuel/gamingnews/
 - `Fixtures` — factory functions for domain models (`Fixtures.newsArticle()`,
   `Fixtures.gameRelease()`, `Fixtures.topic()`, `Fixtures.userPreferences()`) to avoid repeating
   literals across test classes.
-- `testutil/fakes/` — one canonical, reusable fake per repository/DAO, shared across every use
-  case/ViewModel/Compose UI test that needs it (`FakeNewsRepository`, `FakeReleasesRepository`,
-  `FakeTopicsRepository`, `FakeUserPreferencesRepository`, `FakeArticleDao`, `FakeReleaseDao`).
+- `testutil/fakes/` — one canonical, reusable fake per repository/DAO/notifier, shared across
+  every use case/ViewModel/Compose UI test that needs it (`FakeNewsRepository`,
+  `FakeReleasesRepository`, `FakeFollowedGamesRepository`, `FakeTopicsRepository`,
+  `FakeUserPreferencesRepository`, `FakeArticleDao`, `FakeReleaseDao`, `FakeFollowedGameDao`,
+  `FakeReleaseNotifier`, `FakePlatformCatalog`).
   **Always reuse these instead of writing a new private fake inside a test file** — this keeps
   fake behavior consistent and easy to evolve in one place as the interfaces change.
 

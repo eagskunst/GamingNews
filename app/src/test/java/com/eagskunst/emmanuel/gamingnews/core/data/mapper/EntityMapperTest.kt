@@ -1,6 +1,7 @@
 package com.eagskunst.emmanuel.gamingnews.core.data.mapper
 
 import com.eagskunst.emmanuel.gamingnews.core.data.source.local.entity.ArticleEntity
+import com.eagskunst.emmanuel.gamingnews.core.domain.model.ReminderOffset
 import com.eagskunst.emmanuel.gamingnews.testutil.Fixtures
 import java.util.Date
 import org.junit.Assert.assertEquals
@@ -120,6 +121,22 @@ class EntityMapperTest {
         assertEquals(record.name, entity.name)
         assertEquals(record.coverUrl, entity.coverUrl)
         assertEquals(record.gameUrl, entity.gameUrl)
+        assertEquals(record.hasExactDate, entity.hasExactDate)
+        assertEquals(record.human, entity.human)
+    }
+
+    @Test
+    fun `given followed game when round tripped through entity then bitmasks and fields survive`() {
+        val game = Fixtures.followedGame(
+            gameId = 42L,
+            releaseEpochDay = 20_001,
+            offsets = setOf(ReminderOffset.RELEASE_DAY, ReminderOffset.ONE_WEEK_BEFORE),
+            notifiedOffsets = setOf(ReminderOffset.ONE_WEEK_BEFORE)
+        )
+
+        val roundTripped = game.toFollowedGameEntity().toFollowedGame()
+
+        assertEquals(game, roundTripped)
     }
 
     @Test

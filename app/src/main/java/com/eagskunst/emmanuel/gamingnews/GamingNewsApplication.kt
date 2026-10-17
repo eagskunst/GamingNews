@@ -7,6 +7,7 @@ import coil3.ImageLoader
 import coil3.PlatformContext
 import coil3.SingletonImageLoader
 import coil3.network.okhttp.OkHttpNetworkFetcherFactory
+import com.eagskunst.emmanuel.gamingnews.core.notification.AppNotifier
 import dagger.hilt.android.HiltAndroidApp
 import okhttp3.OkHttpClient
 import javax.inject.Inject
@@ -16,6 +17,14 @@ class GamingNewsApplication : Application(), Configuration.Provider, SingletonIm
 
     @Inject
     lateinit var workerFactory: HiltWorkerFactory
+
+    @Inject
+    lateinit var appNotifier: AppNotifier
+
+    override fun onCreate() {
+        super.onCreate()
+        appNotifier.ensureChannels()
+    }
 
     override val workManagerConfiguration: Configuration
         get() = Configuration.Builder()

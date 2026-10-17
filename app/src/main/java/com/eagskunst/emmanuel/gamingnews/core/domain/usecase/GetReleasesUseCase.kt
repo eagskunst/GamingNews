@@ -67,7 +67,10 @@ class GetReleasesUseCase(
             coverUrl = group.firstNotNullOfOrNull { it.coverUrl },
             releaseDate = Date(key.second * MILLIS_PER_DAY),
             platforms = platformLabels,
-            gameUrl = group.firstNotNullOfOrNull { it.gameUrl }
+            gameUrl = group.firstNotNullOfOrNull { it.gameUrl },
+            // A card is only as precise as its least-precise record.
+            hasExactDate = group.all { it.hasExactDate },
+            human = group.firstNotNullOfOrNull { it.human }
         )
     }
 

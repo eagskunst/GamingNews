@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.11.0] - 2026-10-17
+
+### Added
+- Follow upcoming games from the Releases tab: tap the bell on any release with a confirmed date and pick which reminders you want — on release day, 1 day before, or 1 week before.
+- Release reminder notifications in English and Spanish, delivered by a daily check that also catches date changes and lets you know when a followed game moves.
+- Tap the bell again on a followed game to stop reminders, with an Undo option in case it was a mistake. Tapping a notification opens the game's IGDB page.
+
 ## [2.10.0] - 2026-10-03
 
 ### Added

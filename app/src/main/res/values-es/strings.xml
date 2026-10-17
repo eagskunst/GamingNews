@@ -34,6 +34,15 @@
     <string name="releases_unknown_platform_chip">Plataforma %1$d</string>
     <string name="releases_remove_unknown_cd">Quitar este filtro de plataforma</string>
     <string name="releases_dismiss">Descartar</string>
+    <string name="releases_follow_cd">Recibir recordatorios de %1$s</string>
+    <string name="releases_unfollow_cd">Dejar de seguir los recordatorios de %1$s</string>
+    <string name="reminder_sheet_title">Recordatorios de lanzamiento</string>
+    <string name="reminder_sheet_date_hint">Sale el %1$s</string>
+    <string name="reminder_offset_release_day">El día del lanzamiento</string>
+    <string name="reminder_offset_day_before">1 día antes</string>
+    <string name="reminder_offset_week_before">1 semana antes</string>
+    <string name="reminder_removed">Se quitaron los recordatorios de %1$s</string>
+    <string name="action_undo">Deshacer</string>
     <string name="title_activity_settings">Configuración</string>
     <string name="summary_topics">Cambia los temas de los cuales quieres recibir notificaciones</string>
     <string name="add_topic">Añadir un tema</string>
@@ -87,6 +96,28 @@
     <string name="settings_daily_reminder_disclosure">Los recordatorios se programan al inicio de la hora seleccionada. Android puede retrasar la entrega ligeramente para ahorrar batería.</string>
     <string name="notification_permission_rationale">Se necesita permiso de notificaciones para recibir recordatorios.</string>
     <string name="confirm">Aceptar</string>
+
+    <string name="notification_channel_daily_reminder_name">Recordatorios diarios</string>
+    <string name="notification_channel_daily_reminder_description">Un recordatorio diario para ver las últimas noticias de videojuegos.</string>
+    <string name="notification_channel_game_releases_name">Lanzamientos de juegos</string>
+    <string name="notification_channel_game_releases_description">Recordatorios de lanzamientos que sigues.</string>
+    <string name="notification_channel_news_topics_name">Temas de noticias</string>
+    <string name="notification_channel_news_topics_description">Notificaciones sobre nuevos artículos en tus temas.</string>
+    <string name="daily_reminder_notification_body">¡Mira las noticias de videojuegos de hoy!</string>
+
+    <string-array name="notification_release_day">
+        <item>¡%1$s ya está disponible!</item>
+        <item>¡Hoy sale %1$s!</item>
+    </string-array>
+    <string-array name="notification_release_day_before">
+        <item>%1$s sale mañana</item>
+    </string-array>
+    <string-array name="notification_release_week_before">
+        <item>Falta una semana para %1$s</item>
+    </string-array>
+    <string-array name="notification_release_date_moved">
+        <item>%1$s se movió al %2$s</item>
+    </string-array>
 
     <string name="settings_feed_sources_header">Feeds y fuentes</string>
     <string name="settings_customize_feed">Personalizar feed</string>

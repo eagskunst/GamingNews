@@ -1,5 +1,6 @@
 package com.eagskunst.emmanuel.gamingnews.core.data.mapper
 
+import com.eagskunst.emmanuel.gamingnews.core.data.source.remote.api.IGDB_DATE_FORMAT_YYYYMMDD
 import com.eagskunst.emmanuel.gamingnews.core.data.source.remote.api.IgdbCoverDto
 import com.eagskunst.emmanuel.gamingnews.core.data.source.remote.api.IgdbGameDto
 import com.eagskunst.emmanuel.gamingnews.core.data.source.remote.api.IgdbReleaseDateDto
@@ -34,6 +35,54 @@ class IgdbMapperTest {
         assertEquals("Test Game", record?.name)
         assertEquals("https://images.igdb.com/t_cover_big/abc.jpg", record?.coverUrl)
         assertEquals("https://igdb.com/games/test-game", record?.gameUrl)
+    }
+
+    @Test
+    fun `when the dto reports a full date format then the record is marked exact`() {
+        val dto = IgdbReleaseDateDto(
+            id = 123,
+            date = 1_700_000_000,
+            human = "Nov 14, 2023",
+            platform = 48,
+            dateFormat = IGDB_DATE_FORMAT_YYYYMMDD,
+            game = IgdbGameDto(id = 456, name = "Test Game", url = null, cover = null)
+        )
+
+        val record = dto.toReleaseRecord()
+
+        assertEquals(true, record?.hasExactDate)
+        assertEquals("Nov 14, 2023", record?.human)
+    }
+
+    @Test
+    fun `when the dto reports a quarter format then the record is approximate`() {
+        val dto = IgdbReleaseDateDto(
+            id = 123,
+            date = 1_700_000_000,
+            human = "Q4 2023",
+            platform = 48,
+            dateFormat = 6,
+            game = IgdbGameDto(id = 456, name = "Test Game", url = null, cover = null)
+        )
+
+        val record = dto.toReleaseRecord()
+
+        assertEquals(false, record?.hasExactDate)
+        assertEquals("Q4 2023", record?.human)
+    }
+
+    @Test
+    fun `when the dto has no date format then the record is approximate`() {
+        val dto = IgdbReleaseDateDto(
+            id = 123,
+            date = 1_700_000_000,
+            human = "2023",
+            platform = 48,
+            dateFormat = null,
+            game = IgdbGameDto(id = 456, name = "Test Game", url = null, cover = null)
+        )
+
+        assertEquals(false, dto.toReleaseRecord()?.hasExactDate)
     }
 
     @Test

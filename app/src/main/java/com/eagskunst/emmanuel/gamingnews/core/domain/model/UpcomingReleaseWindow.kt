@@ -39,6 +39,10 @@ object UpcomingReleaseWindow {
      */
     fun coverageKey(platformIds: Set<Int>, range: ReleaseDateRange): String =
         buildString {
+            // v3: precision now comes from IGDB's date_format (v2 used a nonexistent `d`
+            // field, marking everything approximate). Bumping the key forces a one-time
+            // refetch so every cached row has correct precision information.
+            append("v3|")
             append(platformIds.sorted().joinToString(","))
             append('|')
             append(range.startMillis)

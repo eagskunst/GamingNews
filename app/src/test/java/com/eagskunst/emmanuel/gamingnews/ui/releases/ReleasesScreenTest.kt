@@ -1,5 +1,7 @@
 package com.eagskunst.emmanuel.gamingnews.ui.releases
 
+import android.Manifest
+import android.content.Context
 import androidx.activity.ComponentActivity
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.semantics.ProgressBarRangeInfo
@@ -12,23 +14,34 @@ import androidx.compose.ui.test.hasProgressBarRangeInfo
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToIndex
+import androidx.test.core.app.ApplicationProvider
+import com.eagskunst.emmanuel.gamingnews.R
 import com.eagskunst.emmanuel.gamingnews.core.common.Result
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.PlatformStatus
+import com.eagskunst.emmanuel.gamingnews.core.domain.model.ReminderOffset
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.UpcomingReleaseWindow
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.PlatformCatalog
+import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.FollowGameUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetReleasesUseCase
+import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.ObserveFollowedGameIdsUseCase
+import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UnfollowGameUseCase
 import com.eagskunst.emmanuel.gamingnews.testutil.Fixtures
 import com.eagskunst.emmanuel.gamingnews.testutil.MainDispatcherRule
+import com.eagskunst.emmanuel.gamingnews.testutil.fakes.FakeFollowedGamesRepository
 import com.eagskunst.emmanuel.gamingnews.testutil.fakes.FakePlatformCatalog
 import com.eagskunst.emmanuel.gamingnews.testutil.fakes.FakeReleasesRepository
 import com.eagskunst.emmanuel.gamingnews.testutil.fakes.FakeUserPreferencesRepository
+import com.eagskunst.emmanuel.gamingnews.worker.GameReleaseScheduler
+import io.mockk.mockk
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -52,13 +65,21 @@ class ReleasesScreenTest {
 
     private var catalog: PlatformCatalog = FakePlatformCatalog()
 
+    private fun appContext(): Context = ApplicationProvider.getApplicationContext()
+
     private fun viewModel(
         releases: FakeReleasesRepository = FakeReleasesRepository(),
-        prefs: FakeUserPreferencesRepository = FakeUserPreferencesRepository(catalog = catalog)
+        prefs: FakeUserPreferencesRepository = FakeUserPreferencesRepository(catalog = catalog),
+        followedGames: FakeFollowedGamesRepository = FakeFollowedGamesRepository(),
+        scheduler: GameReleaseScheduler = mockk(relaxed = true)
     ): ReleasesViewModel = ReleasesViewModel(
+        context = appContext(),
         getReleases = GetReleasesUseCase(releases, catalog),
         releasesRepository = releases,
         userPreferencesRepository = prefs,
+        observeFollowedGameIds = ObserveFollowedGameIdsUseCase(followedGames),
+        followGame = FollowGameUseCase(followedGames, scheduler),
+        unfollowGame = UnfollowGameUseCase(followedGames, scheduler),
         catalog = catalog
     )
 
@@ -388,5 +409,96 @@ class ReleasesScreenTest {
         composeTestRule
             .onNodeWithText("The platforms you selected are no longer available. Showing all platforms.")
             .assertIsDisplayed()
+    }
+
+    @Test
+    fun `given an exact release when the screen is shown then the follow bell is rendered`() {
+        val release = Fixtures.gameReleaseRecord(
+            releaseId = 10L, gameId = 10L, platformId = 6,
+            releaseDate = upcomingDate(), name = "Exact Game", hasExactDate = true
+        )
+        val releases = FakeReleasesRepository(Result.Success(listOf(release)))
+        setContent(viewModel(releases))
+        settle()
+
+        composeTestRule
+            .onNodeWithContentDescription(
+                appContext().getString(R.string.releases_follow_cd, "Exact Game")
+            )
+            .assertIsDisplayed()
+    }
+
+    @Test
+    fun `given an approximate release when the screen is shown then no bell is rendered and the human label shows`() {
+        val release = Fixtures.gameReleaseRecord(
+            releaseId = 10L, gameId = 10L, platformId = 6,
+            releaseDate = upcomingDate(), name = "TBA Game",
+            hasExactDate = false, human = "Holiday 2026"
+        )
+        val releases = FakeReleasesRepository(Result.Success(listOf(release)))
+        setContent(viewModel(releases))
+        settle()
+
+        composeTestRule.onNodeWithText("Holiday 2026").assertIsDisplayed()
+        composeTestRule
+            .onNodeWithContentDescription(
+                appContext().getString(R.string.releases_follow_cd, "TBA Game")
+            )
+            .assertDoesNotExist()
+        composeTestRule.onNodeWithTag("release_bell_10").assertDoesNotExist()
+    }
+
+    @Test
+    fun `given a followed game when the screen is shown then the filled bell is rendered`() {
+        val release = Fixtures.gameReleaseRecord(
+            releaseId = 10L, gameId = 10L, platformId = 6,
+            releaseDate = upcomingDate(), name = "Followed Game", hasExactDate = true
+        )
+        val releases = FakeReleasesRepository(Result.Success(listOf(release)))
+        val followedGames = FakeFollowedGamesRepository(
+            listOf(Fixtures.followedGame(gameId = 10L, name = "Followed Game"))
+        )
+        setContent(viewModel(releases, followedGames = followedGames))
+        settle()
+
+        composeTestRule
+            .onNodeWithContentDescription(
+                appContext().getString(R.string.releases_unfollow_cd, "Followed Game")
+            )
+            .assertIsDisplayed()
+    }
+
+    @Test
+    fun `given notification permission when the bell is tapped then the offset sheet opens and confirm follows`() = runTest {
+        org.robolectric.Shadows.shadowOf(appContext() as android.app.Application)
+            .grantPermissions(Manifest.permission.POST_NOTIFICATIONS)
+        val release = Fixtures.gameReleaseRecord(
+            releaseId = 10L, gameId = 10L, platformId = 6,
+            releaseDate = upcomingDate(), name = "Exact Game", hasExactDate = true
+        )
+        val releases = FakeReleasesRepository(Result.Success(listOf(release)))
+        val followedGames = FakeFollowedGamesRepository()
+        setContent(viewModel(releases, followedGames = followedGames))
+        settle()
+
+        composeTestRule
+            .onNodeWithContentDescription(
+                appContext().getString(R.string.releases_follow_cd, "Exact Game")
+            )
+            .performClick()
+        settle()
+
+        composeTestRule.onNodeWithText("Release reminders").assertIsDisplayed()
+        composeTestRule.onNodeWithText("On release day").assertIsDisplayed()
+        // Lower sheet rows can sit outside the small Robolectric window bounds.
+        composeTestRule.onNodeWithText("1 day before").assertExists()
+        composeTestRule.onNodeWithText("1 week before").assertExists()
+
+        composeTestRule.onNodeWithText("OK").performClick()
+        settle()
+
+        val stored = followedGames.getAll().single()
+        org.junit.Assert.assertEquals(10L, stored.gameId)
+        org.junit.Assert.assertEquals(setOf(ReminderOffset.RELEASE_DAY), stored.offsets)
     }
 }

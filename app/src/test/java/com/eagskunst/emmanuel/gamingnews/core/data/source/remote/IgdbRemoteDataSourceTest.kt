@@ -227,6 +227,36 @@ class IgdbRemoteDataSourceTest {
         coVerify(exactly = 2) { api.getReleaseDates(clientId, "Bearer replacement-token", any()) }
     }
 
+    @Test
+    fun `given followed game ids when fetchReleaseDatesForGames then the by-id query requests day precision`() = runTest {
+        val bodySlot = slot<RequestBody>()
+        coEvery { authLocalDataSource.getAccessToken(clientId) } returns "cached-token"
+        coEvery { api.getReleaseDates(any(), any(), capture(bodySlot)) } returns emptyList()
+
+        dataSource.fetchReleaseDatesForGames(listOf(10L, 20L, 30L))
+
+        val text = bodySlot.captured.bodyString()
+        assertTrue(text.contains("fields id,date,date_format,platform,game.id;"))
+        assertTrue(text.contains("game = (10,20,30)"))
+        assertTrue(text.contains("platform = (6,48,49,130,167,169,508)"))
+        assertTrue(text.contains("date_format = 0"))
+        assertTrue(text.contains("limit ${IgdbRemoteDataSource.FOLLOWED_GAMES_LIMIT}"))
+    }
+
+    @Test
+    fun `given more game ids than the chunk size when fetchReleaseDatesForGames then queries are chunked`() = runTest {
+        val bodies = mutableListOf<RequestBody>()
+        coEvery { authLocalDataSource.getAccessToken(clientId) } returns "cached-token"
+        coEvery { api.getReleaseDates(any(), any(), capture(bodies)) } returns emptyList()
+
+        val ids = (1L..IgdbRemoteDataSource.GAME_ID_CHUNK_SIZE + 1L).toList()
+        dataSource.fetchReleaseDatesForGames(ids)
+
+        assertEquals(2, bodies.size)
+        assertTrue(bodies[0].bodyString().contains("game = (" + (1L..100L).joinToString(",") + ")"))
+        assertTrue(bodies[1].bodyString().contains("game = (101)"))
+    }
+
     private fun httpException(code: Int): HttpException = HttpException(
         Response.error<List<IgdbReleaseDateDto>>(code, "error".toResponseBody())
     )
@@ -244,7 +274,7 @@ class IgdbRemoteDataSourceTest {
     private fun assertRequestBodyContainsQueryParts(body: RequestBody, offset: Int) {
         val text = body.bodyString()
         assertTrue(text.isNotBlank())
-        assertTrue(text.contains("fields id,date,human,platform,game.name,game.url,game.cover.url"))
+        assertTrue(text.contains("fields id,date,human,date_format,platform,game.name,game.url,game.cover.url"))
         assertTrue(text.contains("limit ${IgdbRemoteDataSource.PAGE_LIMIT}"))
         assertTrue(text.contains("offset $offset"))
         assertTrue(text.contains("platform = (6,48,49,130,167,169,508)"))

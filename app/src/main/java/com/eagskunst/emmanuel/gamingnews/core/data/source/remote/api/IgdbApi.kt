@@ -25,8 +25,13 @@ data class IgdbReleaseDateDto(
     val date: Long? = null,
     val human: String? = null,
     val platform: Int,
+    /** IGDB date-format id; [IGDB_DATE_FORMAT_YYYYMMDD] means a full day-precision date. */
+    @SerialName("date_format") val dateFormat: Int? = null,
     @SerialName("game") val game: IgdbGameDto? = null
 )
+
+/** IGDB `date_format` id for full `YYYYMMDD` dates; anything else is approximate. */
+const val IGDB_DATE_FORMAT_YYYYMMDD = 0
 
 @Serializable
 data class IgdbGameDto(

@@ -233,6 +233,43 @@ class GetReleasesUseCaseTest {
     }
 
     @Test
+    fun `given a mixed precision group when grouped then the card is not exact`() = runTest {
+        val day = Date(86_400_000L * 20_000L)
+        val records = listOf(
+            Fixtures.gameReleaseRecord(
+                releaseId = 1, gameId = 10, platformId = 6,
+                releaseDate = day, name = "Shared Game", hasExactDate = true
+            ),
+            Fixtures.gameReleaseRecord(
+                releaseId = 2, gameId = 10, platformId = 48,
+                releaseDate = day, name = "Shared Game",
+                hasExactDate = false, human = "Nov 2025"
+            )
+        )
+        fakeRepository.releasesResultFlow.value = Result.Success(records)
+
+        val result = useCase(flowOf(filters())).first() as Result.Success
+
+        val card = result.data.releases.single()
+        assertEquals(false, card.hasExactDate)
+        assertEquals("Nov 2025", card.human)
+    }
+
+    @Test
+    fun `given an all exact group when grouped then the card stays exact`() = runTest {
+        val day = Date(86_400_000L * 20_000L)
+        val records = listOf(
+            Fixtures.gameReleaseRecord(releaseId = 1, gameId = 10, platformId = 6, releaseDate = day),
+            Fixtures.gameReleaseRecord(releaseId = 2, gameId = 10, platformId = 48, releaseDate = day)
+        )
+        fakeRepository.releasesResultFlow.value = Result.Success(records)
+
+        val result = useCase(flowOf(filters())).first() as Result.Success
+
+        assertEquals(true, result.data.releases.single().hasExactDate)
+    }
+
+    @Test
     fun `given grouped results when emitted then cards and count derive from the same result`() = runTest {
         val records = listOf(
             Fixtures.gameReleaseRecord(releaseId = 1, gameId = 10, platformId = 6, name = "Game A"),

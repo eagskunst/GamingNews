@@ -17,6 +17,10 @@ data class ReleaseEntity(
     val coverUrl: String?,
     val releaseDate: Date,
     val gameUrl: String?,
+    /** Whether IGDB reported a day-precision date (`date_format = 0`) for this record. */
+    val hasExactDate: Boolean,
+    /** IGDB's human-readable date label, shown for approximate records. */
+    val human: String?,
     val fetchedAt: Date = Date()
 )
 

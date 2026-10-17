@@ -3,6 +3,7 @@ package com.eagskunst.emmanuel.gamingnews.di.module
 import com.eagskunst.emmanuel.gamingnews.core.common.DispatcherProvider
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.ArticleReaderRepository
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.FeedProvidersRepository
+import com.eagskunst.emmanuel.gamingnews.core.domain.repository.FollowedGamesRepository
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.MuteRulesRepository
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.NewsRepository
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.PlatformCatalog
@@ -12,6 +13,7 @@ import com.eagskunst.emmanuel.gamingnews.core.domain.repository.TopicsRepository
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.UserPreferencesRepository
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.AddTopicUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.DeleteMuteRuleUseCase
+import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.FollowGameUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetFeedProvidersUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetFeedUrlsUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetNewsUseCase
@@ -22,12 +24,14 @@ import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetSavedArticlesUse
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetTopicsUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetArticleOpenModeUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetUserPreferencesUseCase
+import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.ObserveFollowedGameIdsUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.ObserveMuteRulesUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.RemoveTopicUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.RestoreFeedProvidersDefaultsUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.SaveMuteRuleUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.SetFeedProviderEnabledUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.ToggleSavedArticleUseCase
+import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UnfollowGameUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateApplyGlobalMuteRulesToReviewsUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateArticleOpenModeUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateDailyReminderHourUseCase
@@ -36,6 +40,7 @@ import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateDarkThemeUseC
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateDynamicColorUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateLoadImagesUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateThemeModeUseCase
+import com.eagskunst.emmanuel.gamingnews.worker.GameReleaseScheduler
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -164,5 +169,22 @@ object UseCaseModule {
         repository: UserPreferencesRepository
     ): UpdateApplyGlobalMuteRulesToReviewsUseCase =
         UpdateApplyGlobalMuteRulesToReviewsUseCase(repository)
+
+    @Provides
+    fun provideObserveFollowedGameIdsUseCase(
+        repository: FollowedGamesRepository
+    ): ObserveFollowedGameIdsUseCase = ObserveFollowedGameIdsUseCase(repository)
+
+    @Provides
+    fun provideFollowGameUseCase(
+        repository: FollowedGamesRepository,
+        scheduler: GameReleaseScheduler
+    ): FollowGameUseCase = FollowGameUseCase(repository, scheduler)
+
+    @Provides
+    fun provideUnfollowGameUseCase(
+        repository: FollowedGamesRepository,
+        scheduler: GameReleaseScheduler
+    ): UnfollowGameUseCase = UnfollowGameUseCase(repository, scheduler)
 }
 

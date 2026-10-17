@@ -1,15 +1,19 @@
 package com.eagskunst.emmanuel.gamingnews.testutil
 
+import com.eagskunst.emmanuel.gamingnews.core.data.source.local.entity.FollowedGameEntity
 import com.eagskunst.emmanuel.gamingnews.core.data.source.local.entity.ReleaseEntity
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.ArticleOpenMode
+import com.eagskunst.emmanuel.gamingnews.core.domain.model.FollowedGame
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.GameRelease
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.GameReleaseRecord
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.MuteMatchMode
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.MuteRule
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.MuteScope
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.NewsArticle
+import com.eagskunst.emmanuel.gamingnews.core.domain.model.ReminderOffset
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.Topic
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.UserPreferences
+import com.eagskunst.emmanuel.gamingnews.core.domain.model.toMask
 import java.util.Date
 
 /**
@@ -41,14 +45,18 @@ object Fixtures {
         coverUrl: String? = "https://example.com/cover.png",
         releaseDate: Date = Date(0),
         platforms: List<String> = listOf("PC"),
-        gameUrl: String? = "https://example.com/game"
+        gameUrl: String? = "https://example.com/game",
+        hasExactDate: Boolean = true,
+        human: String? = null
     ) = GameRelease(
         id = id,
         name = name,
         coverUrl = coverUrl,
         releaseDate = releaseDate,
         platforms = platforms,
-        gameUrl = gameUrl
+        gameUrl = gameUrl,
+        hasExactDate = hasExactDate,
+        human = human
     )
 
     fun gameReleaseRecord(
@@ -58,7 +66,9 @@ object Fixtures {
         releaseDate: Date = Date(0),
         name: String = "Some Game",
         coverUrl: String? = "https://example.com/cover.png",
-        gameUrl: String? = "https://example.com/game"
+        gameUrl: String? = "https://example.com/game",
+        hasExactDate: Boolean = true,
+        human: String? = null
     ) = GameReleaseRecord(
         releaseId = releaseId,
         gameId = gameId,
@@ -66,7 +76,9 @@ object Fixtures {
         releaseDate = releaseDate,
         name = name,
         coverUrl = coverUrl,
-        gameUrl = gameUrl
+        gameUrl = gameUrl,
+        hasExactDate = hasExactDate,
+        human = human
     )
 
     fun releaseEntity(
@@ -76,7 +88,9 @@ object Fixtures {
         name: String = "Some Game",
         coverUrl: String? = "https://example.com/cover.png",
         releaseDate: Date = Date(0),
-        gameUrl: String? = "https://example.com/game"
+        gameUrl: String? = "https://example.com/game",
+        hasExactDate: Boolean = true,
+        human: String? = null
     ) = ReleaseEntity(
         id = id,
         gameId = gameId,
@@ -84,7 +98,57 @@ object Fixtures {
         name = name,
         coverUrl = coverUrl,
         releaseDate = releaseDate,
-        gameUrl = gameUrl
+        gameUrl = gameUrl,
+        hasExactDate = hasExactDate,
+        human = human
+    )
+
+    fun followedGame(
+        gameId: Long = 1L,
+        name: String = "Some Game",
+        coverUrl: String? = "https://example.com/cover.png",
+        gameUrl: String? = "https://example.com/game",
+        releaseEpochDay: Long = 20_000L,
+        offsets: Set<ReminderOffset> = setOf(ReminderOffset.RELEASE_DAY),
+        notifiedOffsets: Set<ReminderOffset> = emptySet(),
+        platformsLabel: String = "PC",
+        followedAt: Date = Date(0),
+        lastSyncedAt: Date? = null
+    ) = FollowedGame(
+        gameId = gameId,
+        name = name,
+        coverUrl = coverUrl,
+        gameUrl = gameUrl,
+        releaseEpochDay = releaseEpochDay,
+        offsets = offsets,
+        notifiedOffsets = notifiedOffsets,
+        platformsLabel = platformsLabel,
+        followedAt = followedAt,
+        lastSyncedAt = lastSyncedAt
+    )
+
+    fun followedGameEntity(
+        gameId: Long = 1L,
+        name: String = "Some Game",
+        coverUrl: String? = "https://example.com/cover.png",
+        gameUrl: String? = "https://example.com/game",
+        releaseEpochDay: Long = 20_000L,
+        offsets: Set<ReminderOffset> = setOf(ReminderOffset.RELEASE_DAY),
+        notifiedOffsets: Set<ReminderOffset> = emptySet(),
+        platformsLabel: String = "PC",
+        followedAt: Date = Date(0),
+        lastSyncedAt: Date? = null
+    ) = FollowedGameEntity(
+        gameId = gameId,
+        name = name,
+        coverUrl = coverUrl,
+        gameUrl = gameUrl,
+        releaseEpochDay = releaseEpochDay,
+        offsets = offsets.toMask(),
+        notifiedOffsets = notifiedOffsets.toMask(),
+        platformsLabel = platformsLabel,
+        followedAt = followedAt,
+        lastSyncedAt = lastSyncedAt
     )
 
     fun topic(name: String = "RPG") = Topic(name)

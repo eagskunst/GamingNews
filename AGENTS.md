@@ -51,6 +51,10 @@ These are exposed as `BuildConfig.TWITCH_CLIENT_ID` and `BuildConfig.TWITCH_CLIE
 6. Daily reminder WorkManager scheduled from settings.
 7. Unit test coverage added across mappers, data sources, repositories, use cases, ViewModels,
    and Compose UI (screens/components), plus instrumented Room DAO tests. See `docs/testing.md`.
+8. Game release reminders: users can follow exact-date releases from the Releases tab
+   (notification bell + reminder-offset sheet). Follows persist in Room (`followed_games`,
+   DB version 6), a daily 09:00 WorkManager check posts localized reminders and detects
+   date slips, and all notification posting goes through `AppNotifier`/`ReleaseNotifier`.
 
 ## Agent Skills
 

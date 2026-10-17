@@ -1,5 +1,6 @@
 package com.eagskunst.emmanuel.gamingnews.core.data.mapper
 
+import com.eagskunst.emmanuel.gamingnews.core.data.source.remote.api.IGDB_DATE_FORMAT_YYYYMMDD
 import com.eagskunst.emmanuel.gamingnews.core.data.source.remote.api.IgdbCoverDto
 import com.eagskunst.emmanuel.gamingnews.core.data.source.remote.api.IgdbReleaseDateDto
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.GameReleaseRecord
@@ -23,7 +24,9 @@ fun IgdbReleaseDateDto.toReleaseRecord(): GameReleaseRecord? {
         releaseDate = Date(releaseTimestamp * 1000L),
         name = gameName,
         coverUrl = gameDto.cover?.toCoverBigUrl(),
-        gameUrl = gameDto.url
+        gameUrl = gameDto.url,
+        hasExactDate = dateFormat == IGDB_DATE_FORMAT_YYYYMMDD,
+        human = human
     )
 }
 
