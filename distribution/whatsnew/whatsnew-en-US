@@ -1,1 +1,1 @@
-Follow upcoming releases from the Releases tab! Tap the bell on any game with a confirmed date and choose your reminders: release day, 1 day before, or 1 week before. We'll also let you know if a followed game moves its date. Tap again to unfollow, with Undo.
+Bug fix: release reminders for followed games (and daily news reminders) were never delivered. They now work as expected — existing follows resume automatically at the next daily check.

@@ -51,8 +51,8 @@ android {
         applicationId = "com.eagskunst.emmanuel.gamingnews"
         minSdk = 24
         targetSdk = 37
-        versionCode = 39
-        versionName = "2.11.0"
+        versionCode = 40
+        versionName = "2.11.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
         buildConfigField("String", "TWITCH_CLIENT_ID", "\"${localProperty("twitch.client.id")}\"")
@@ -134,6 +134,7 @@ dependencies {
     implementation(libs.androidx.hilt.lifecycle.viewmodel.compose)
     implementation(libs.androidx.hilt.navigation.compose)
     implementation(libs.androidx.hilt.work)
+    ksp(libs.androidx.hilt.compiler)
 
     // Compose
     implementation(libs.androidx.activity.compose)
