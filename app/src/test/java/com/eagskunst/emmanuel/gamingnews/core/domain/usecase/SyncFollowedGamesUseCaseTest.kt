@@ -130,7 +130,7 @@ class SyncFollowedGamesUseCaseTest {
     }
 
     @Test
-    fun `given a slipped date when syncing then it is stored announced and the mask resets`() = runTest {
+    fun `given a slipped date when syncing then it is stored silently and the mask resets`() = runTest {
         followedRepository.follow(
             Fixtures.followedGame(
                 gameId = 10,
@@ -143,11 +143,22 @@ class SyncFollowedGamesUseCaseTest {
 
         useCase()()
 
-        assertEquals(listOf(10L to todayDay() + 10), notifier.dateMovedNotifications)
+        assertTrue(notifier.offsetNotifications.isEmpty())
         assertEquals(1, followedRepository.updateReleaseDateCalls)
         val stored = followedRepository.getAll().single()
         assertEquals(todayDay() + 10, stored.releaseEpochDay)
         assertTrue(stored.notifiedOffsets.isEmpty())
+    }
+
+    @Test
+    fun `given follows when syncing then the fetch is bounded by stored days and the prune horizon`() = runTest {
+        followedRepository.follow(Fixtures.followedGame(gameId = 10, releaseEpochDay = todayDay() + 5))
+        freshDays(10L to todayDay() + 5)
+
+        useCase()()
+
+        assertEquals(mapOf(10L to todayDay() + 5), releasesRepository.lastFetchStoredDays)
+        assertEquals((todayDay() - 7) * 86_400L, releasesRepository.lastFetchNotBeforeEpochSeconds)
     }
 
     @Test
@@ -159,7 +170,6 @@ class SyncFollowedGamesUseCaseTest {
         useCase()()
 
         assertEquals(listOf(20L), followedRepository.getAll().map { it.gameId })
-        assertTrue(notifier.dateMovedNotifications.isEmpty())
         assertTrue(notifier.offsetNotifications.isEmpty())
     }
 

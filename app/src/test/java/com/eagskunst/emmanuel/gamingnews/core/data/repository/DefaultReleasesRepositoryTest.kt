@@ -258,35 +258,37 @@ class DefaultReleasesRepositoryTest {
     }
 
     @Test
-    fun `given platform variants at different days when fetching exact days then the earliest day wins`() = runTest {
+    fun `given platform variants at different days when fetching exact days then the stored-closest day wins`() = runTest {
         val dayOneSeconds = 20_000L * 86_400L
         val dayTwoSeconds = 20_005L * 86_400L
-        coEvery { remoteDataSource.fetchReleaseDatesForGames(setOf(100L)) } returns listOf(
+        coEvery { remoteDataSource.fetchReleaseDatesForGames(setOf(100L), any()) } returns listOf(
             releaseDto(id = 1, gameId = 100, name = "Game", platform = 6, dateSeconds = dayTwoSeconds),
             releaseDto(id = 2, gameId = 100, name = "Game", platform = 48, dateSeconds = dayOneSeconds)
         )
 
-        val result = repository.fetchExactReleaseDays(setOf(100L))
+        // Stored day matches the later variant: an older port of the same game must not win.
+        val result = repository.fetchExactReleaseDays(mapOf(100L to 20_005L), notBeforeEpochSeconds = 0L)
 
-        assertEquals(mapOf(100L to 20_000L), (result as Result.Success).data)
+        assertEquals(mapOf(100L to 20_005L), (result as Result.Success).data)
+        coVerify { remoteDataSource.fetchReleaseDatesForGames(setOf(100L), 0L) }
     }
 
     @Test
     fun `given approximate records when fetching exact days then they are ignored`() = runTest {
-        coEvery { remoteDataSource.fetchReleaseDatesForGames(setOf(100L)) } returns listOf(
+        coEvery { remoteDataSource.fetchReleaseDatesForGames(setOf(100L), any()) } returns listOf(
             releaseDto(id = 1, gameId = 100, name = "Game", platform = 6, dateSeconds = 20_000L * 86_400L, dateFormat = null)
         )
 
-        val result = repository.fetchExactReleaseDays(setOf(100L))
+        val result = repository.fetchExactReleaseDays(mapOf(100L to 20_000L), notBeforeEpochSeconds = 0L)
 
         assertEquals(emptyMap<Long, Long>(), (result as Result.Success).data)
     }
 
     @Test
     fun `given the fetch fails when fetching exact days then an error result is returned`() = runTest {
-        coEvery { remoteDataSource.fetchReleaseDatesForGames(any()) } throws IllegalStateException("offline")
+        coEvery { remoteDataSource.fetchReleaseDatesForGames(any(), any()) } throws IllegalStateException("offline")
 
-        val result = repository.fetchExactReleaseDays(setOf(100L))
+        val result = repository.fetchExactReleaseDays(mapOf(100L to 20_000L), notBeforeEpochSeconds = 0L)
 
         assertTrue(result is Result.Error)
     }

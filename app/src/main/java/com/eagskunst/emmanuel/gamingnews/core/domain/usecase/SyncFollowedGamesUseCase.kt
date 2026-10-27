@@ -21,10 +21,10 @@ enum class SyncOutcome {
 /**
  * Daily maintenance pass over followed games:
  *
- * 1. Fetches fresh exact release days from IGDB. When a date changed it is stored (resetting
- *    the delivered-reminders bitmask) and announced with a "moved to" notification; when a
- *    game no longer reports an exact date the follow is removed silently. A failed fetch is
- *    non-fatal — reminders still fire from stored dates and the worker retries later.
+ * 1. Fetches fresh exact release days from IGDB and silently stores any changed date
+ *    (resetting the delivered-reminders bitmask); when a game no longer reports an exact
+ *    date the follow is removed. A failed fetch is non-fatal — reminders still fire from
+ *    stored dates and the worker retries later.
  * 2. Fires due reminders per follow, earliest-offset first (week → day-before → release day).
  *    A "week before" reminder is skipped when the release is already within a day — that
  *    catch-up would only fire for follows created inside the last week.
@@ -47,7 +47,15 @@ class SyncFollowedGamesUseCase @Inject constructor(
         val remaining = LinkedHashMap<Long, FollowedGame>()
         follows.forEach { remaining[it.gameId] = it }
 
-        when (val result = releasesRepository.fetchExactReleaseDays(remaining.keys)) {
+        val storedDays = remaining.mapValues { it.value.releaseEpochDay }
+        val notBeforeEpochSeconds =
+            (clock().toEpochDay() - RELEASED_PRUNE_GRACE_DAYS) * SECONDS_PER_DAY
+        when (
+            val result = releasesRepository.fetchExactReleaseDays(
+                storedDays,
+                notBeforeEpochSeconds
+            )
+        ) {
             is Result.Success -> reconcile(result.data, follows, remaining)
             else -> outcome = SyncOutcome.RetryNetwork
         }
@@ -81,7 +89,6 @@ class SyncFollowedGamesUseCase @Inject constructor(
                 }
                 freshDay != game.releaseEpochDay -> {
                     followedGamesRepository.updateReleaseDate(game.gameId, freshDay)
-                    releaseNotifier.notifyDateMoved(game, freshDay)
                     remaining[game.gameId] = game.copy(
                         releaseEpochDay = freshDay,
                         notifiedOffsets = emptySet()
@@ -122,5 +129,6 @@ class SyncFollowedGamesUseCase @Inject constructor(
             ReminderOffset.RELEASE_DAY
         )
         const val RELEASED_PRUNE_GRACE_DAYS = 7L
+        const val SECONDS_PER_DAY = 86_400L
     }
 }

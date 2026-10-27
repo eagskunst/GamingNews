@@ -1,1 +1,1 @@
-Bug fix: release reminders for followed games (and daily news reminders) were never delivered. They now work as expected — existing follows resume automatically at the next daily check.
+Fix: followed games could get a bogus "release date moved" notification and fire every reminder at once. Those alerts are gone — reminders still arrive on the day you picked, and real date changes are applied silently in the background.

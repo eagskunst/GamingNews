@@ -110,19 +110,30 @@ class DefaultReleasesRepository @Inject constructor(
     }
 
     override suspend fun fetchExactReleaseDays(
-        gameIds: Collection<Long>
+        storedDays: Map<Long, Long>,
+        notBeforeEpochSeconds: Long
     ): Result<Map<Long, Long>> = withContext(dispatchers.io) {
         try {
-            val earliestDay = mutableMapOf<Long, Long>()
-            igdbRemoteDataSource.fetchReleaseDatesForGames(gameIds).forEach { dto ->
-                val gameId = dto.game?.id ?: return@forEach
-                val epochDay = dto.date
-                    ?.let { Math.floorDiv(it * 1_000L, MILLIS_PER_DAY) }
-                    ?: return@forEach
-                if (dto.dateFormat != IGDB_DATE_FORMAT_YYYYMMDD) return@forEach
-                earliestDay.merge(gameId, epochDay) { stored, fresh -> minOf(stored, fresh) }
-            }
-            Result.Success(earliestDay)
+            // A game ID maps to many release rows (one per platform launch over the years),
+            // so each game's candidate day is the row closest to the stored one — not the
+            // earliest, which is usually an old port of the same game.
+            val candidates = mutableMapOf<Long, MutableList<Long>>()
+            igdbRemoteDataSource
+                .fetchReleaseDatesForGames(storedDays.keys, notBeforeEpochSeconds)
+                .forEach { dto ->
+                    val gameId = dto.game?.id ?: return@forEach
+                    val epochDay = dto.date
+                        ?.let { Math.floorDiv(it * 1_000L, MILLIS_PER_DAY) }
+                        ?: return@forEach
+                    if (dto.dateFormat != IGDB_DATE_FORMAT_YYYYMMDD) return@forEach
+                    candidates.getOrPut(gameId) { mutableListOf() } += epochDay
+                }
+            Result.Success(
+                candidates.mapValues { (gameId, days) ->
+                    val storedDay = storedDays.getValue(gameId)
+                    days.minBy { kotlin.math.abs(it - storedDay) }
+                }
+            )
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {

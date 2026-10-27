@@ -29,8 +29,14 @@ interface ReleasesRepository {
     val hasMorePages: StateFlow<Boolean>
 
     /**
-     * Earliest exact (day-precision) release day per game ID, expressed as a UTC epoch day.
-     * Games with no exact date left are absent from the map. Does not touch the release cache.
+     * Exact (day-precision) release day per game ID, expressed as a UTC epoch day: the
+     * IGDB release row closest to each stored day in [storedDays]. Games with no exact
+     * date left are absent from the map. Does not touch the release cache.
+     * [notBeforeEpochSeconds] bounds the remote query below so historical per-platform
+     * releases of long-lived games can't win the match.
      */
-    suspend fun fetchExactReleaseDays(gameIds: Collection<Long>): Result<Map<Long, Long>>
+    suspend fun fetchExactReleaseDays(
+        storedDays: Map<Long, Long>,
+        notBeforeEpochSeconds: Long
+    ): Result<Map<Long, Long>>
 }

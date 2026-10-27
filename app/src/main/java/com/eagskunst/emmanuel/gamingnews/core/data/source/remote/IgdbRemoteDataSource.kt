@@ -41,14 +41,18 @@ class IgdbRemoteDataSource @Inject constructor(
      * Fetches exact (day-precision) release dates for a set of game IDs on supported
      * platforms, chunked so a single query never exceeds IGDB's URL/expr limits. Used by the
      * followed-games sync; a missing ID in the result means the game has no exact date left.
+     * [notBeforeEpochSeconds] keeps old per-platform release rows of long-lived games (each
+     * game ID accumulates one row per platform launch) out of the result — only dates near
+     * or after the stored follows matter.
      */
     suspend fun fetchReleaseDatesForGames(
-        gameIds: Collection<Long>
+        gameIds: Collection<Long>,
+        notBeforeEpochSeconds: Long
     ): List<IgdbReleaseDateDto> = withContext(dispatchers.io) {
         gameIds.toList()
             .chunked(GAME_ID_CHUNK_SIZE)
             .flatMap { chunk ->
-                executeQuery(buildFollowedGamesQuery(chunk).toRequestBody(MEDIA_TYPE))
+                executeQuery(buildFollowedGamesQuery(chunk, notBeforeEpochSeconds).toRequestBody(MEDIA_TYPE))
             }
     }
 
@@ -93,13 +97,14 @@ class IgdbRemoteDataSource @Inject constructor(
         }
     }
 
-    private fun buildFollowedGamesQuery(gameIds: List<Long>): String {
+    private fun buildFollowedGamesQuery(gameIds: List<Long>, notBeforeEpochSeconds: Long): String {
         val ids = gameIds.joinToString(",")
         val supportedIds = platformCatalog.supportedIds().sorted().joinToString(",")
         return buildString {
             appendLine("fields id,date,date_format,platform,game.id;")
             appendLine(
-                "where game = ($ids) & platform = ($supportedIds) & date_format = 0;"
+                "where game = ($ids) & platform = ($supportedIds) & date_format = 0 " +
+                    "& date >= $notBeforeEpochSeconds;"
             )
             appendLine("sort date asc;")
             appendLine("limit $FOLLOWED_GAMES_LIMIT;")

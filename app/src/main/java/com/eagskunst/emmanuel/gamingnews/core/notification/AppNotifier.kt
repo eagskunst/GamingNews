@@ -17,10 +17,7 @@ import com.eagskunst.emmanuel.gamingnews.core.domain.model.ReminderOffset
 import com.eagskunst.emmanuel.gamingnews.core.domain.notification.ReleaseNotifier
 import com.eagskunst.emmanuel.gamingnews.views.MainActivity
 import dagger.hilt.android.qualifiers.ApplicationContext
-import java.text.SimpleDateFormat
-import java.util.Date
 import java.util.Locale
-import java.util.TimeZone
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -102,18 +99,6 @@ class AppNotifier @Inject constructor(
         )
     }
 
-    override fun notifyDateMoved(game: FollowedGame, newEpochDay: Long) {
-        showGameRelease(
-            GameReleaseNotification(
-                gameId = game.gameId,
-                name = game.name,
-                platformsLabel = game.platformsLabel,
-                gameUrl = game.gameUrl,
-                kind = GameReleaseNotification.Kind.DateMoved(newEpochDay)
-            )
-        )
-    }
-
     fun showGameRelease(notification: GameReleaseNotification) {
         val title = buildTitle(notification)
         val releaseNotification = NotificationCompat
@@ -133,19 +118,8 @@ class AppNotifier @Inject constructor(
     private fun buildTitle(notification: GameReleaseNotification): String {
         val templates = context.resources.getStringArray(notification.kind.titleArrayRes)
         val template = templates.random()
-        // Templates take the game name as %1$s; the date-moved kind also takes the new
-        // release date as %2$s (extra arguments are ignored by the other templates).
-        val dateLabel = (notification.kind as? GameReleaseNotification.Kind.DateMoved)
-            ?.let { formatEpochDay(it.epochDay) }
-            .orEmpty()
-        return String.format(Locale.getDefault(), template, notification.name, dateLabel)
+        return String.format(Locale.getDefault(), template, notification.name)
     }
-
-    /** UTC calendar-day formatting so IGDB midnight dates match the release card footer. */
-    private fun formatEpochDay(epochDay: Long): String =
-        SimpleDateFormat("MMM d", Locale.getDefault())
-            .apply { timeZone = TimeZone.getTimeZone("UTC") }
-            .format(Date(epochDay * MILLIS_PER_DAY))
 
     private fun contentIntent(notification: GameReleaseNotification): PendingIntent {
         val intent = notification.gameUrl
@@ -173,6 +147,5 @@ class AppNotifier @Inject constructor(
 
     private companion object {
         const val DAILY_REMINDER_NOTIFICATION_ID = 1
-        const val MILLIS_PER_DAY = 86_400_000L
     }
 }

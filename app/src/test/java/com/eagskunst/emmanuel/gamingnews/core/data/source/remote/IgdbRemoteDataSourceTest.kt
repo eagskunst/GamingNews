@@ -233,13 +233,14 @@ class IgdbRemoteDataSourceTest {
         coEvery { authLocalDataSource.getAccessToken(clientId) } returns "cached-token"
         coEvery { api.getReleaseDates(any(), any(), capture(bodySlot)) } returns emptyList()
 
-        dataSource.fetchReleaseDatesForGames(listOf(10L, 20L, 30L))
+        dataSource.fetchReleaseDatesForGames(listOf(10L, 20L, 30L), notBeforeEpochSeconds = 1_700_000_000L)
 
         val text = bodySlot.captured.bodyString()
         assertTrue(text.contains("fields id,date,date_format,platform,game.id;"))
         assertTrue(text.contains("game = (10,20,30)"))
         assertTrue(text.contains("platform = (6,48,49,130,167,169,508)"))
         assertTrue(text.contains("date_format = 0"))
+        assertTrue(text.contains("date >= 1700000000"))
         assertTrue(text.contains("limit ${IgdbRemoteDataSource.FOLLOWED_GAMES_LIMIT}"))
     }
 
@@ -250,7 +251,7 @@ class IgdbRemoteDataSourceTest {
         coEvery { api.getReleaseDates(any(), any(), capture(bodies)) } returns emptyList()
 
         val ids = (1L..IgdbRemoteDataSource.GAME_ID_CHUNK_SIZE + 1L).toList()
-        dataSource.fetchReleaseDatesForGames(ids)
+        dataSource.fetchReleaseDatesForGames(ids, notBeforeEpochSeconds = 0L)
 
         assertEquals(2, bodies.size)
         assertTrue(bodies[0].bodyString().contains("game = (" + (1L..100L).joinToString(",") + ")"))

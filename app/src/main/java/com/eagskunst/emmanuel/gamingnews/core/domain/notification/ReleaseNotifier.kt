@@ -14,7 +14,4 @@ interface ReleaseNotifier {
 
     /** Posts (or schedules) a reminder for [game] at [offset]. */
     fun notifyOffset(game: FollowedGame, offset: ReminderOffset)
-
-    /** Announces that a followed game's release date changed to [newEpochDay]. */
-    fun notifyDateMoved(game: FollowedGame, newEpochDay: Long)
 }

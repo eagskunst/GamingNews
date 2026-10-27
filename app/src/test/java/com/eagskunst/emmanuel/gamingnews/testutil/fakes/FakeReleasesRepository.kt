@@ -50,6 +50,12 @@ class FakeReleasesRepository(
     /** Returned by [fetchExactReleaseDays]; absent IDs mean "no exact date left". */
     var exactReleaseDaysResult: Result<Map<Long, Long>> = Result.Success(emptyMap())
 
+    /** Arguments captured by the last [fetchExactReleaseDays] call. */
+    var lastFetchStoredDays: Map<Long, Long>? = null
+        private set
+    var lastFetchNotBeforeEpochSeconds: Long? = null
+        private set
+
     override fun releasesStream(): Flow<Result<List<GameReleaseRecord>>> {
         releasesStreamInvocations++
         return releasesResultFlow
@@ -84,8 +90,13 @@ class FakeReleasesRepository(
         return result
     }
 
-    override suspend fun fetchExactReleaseDays(gameIds: Collection<Long>): Result<Map<Long, Long>> {
+    override suspend fun fetchExactReleaseDays(
+        storedDays: Map<Long, Long>,
+        notBeforeEpochSeconds: Long
+    ): Result<Map<Long, Long>> {
         fetchExactReleaseDaysInvocations++
+        lastFetchStoredDays = storedDays
+        lastFetchNotBeforeEpochSeconds = notBeforeEpochSeconds
         return exactReleaseDaysResult
     }
 }

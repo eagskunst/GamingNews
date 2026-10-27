@@ -1,1 +1,1 @@
-Corrección: los recordatorios de lanzamiento de juegos seguidos (y los recordatorios diarios de noticias) nunca llegaban. Ahora funcionan — los seguimientos existentes se reanudan solos en la próxima revisión diaria.
+Corrección: los juegos seguidos podían recibir una notificación falsa de "fecha de lanzamiento cambiada" y disparar todos los recordatorios a la vez. Se eliminaron esas alertas — los recordatorios siguen llegando el día que elegiste y los cambios de fecha reales se aplican en segundo plano.

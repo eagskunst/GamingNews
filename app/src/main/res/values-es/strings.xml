@@ -115,9 +115,6 @@
     <string-array name="notification_release_week_before">
         <item>Falta una semana para %1$s</item>
     </string-array>
-    <string-array name="notification_release_date_moved">
-        <item>%1$s se movió al %2$s</item>
-    </string-array>
 
     <string name="settings_feed_sources_header">Feeds y fuentes</string>
     <string name="settings_customize_feed">Personalizar feed</string>

@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.11.2] - 2026-10-27
+
+### Fixed
+- Removed the "release date moved" notifications: the daily check compared each followed game against the oldest IGDB release for that game across all platforms, so a bogus "moved to" alert arrived next to every reminder and could even fire all reminders at once and drop the follow. Reminders still arrive on the chosen day, and genuine date changes are now applied silently in the background.
+
 ## [2.11.1] - 2026-10-20
 
 ### Fixed

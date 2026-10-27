@@ -39,11 +39,6 @@ class GameReleaseNotification(
                     ReminderOffset.RELEASE_DAY -> R.array.notification_release_day
                 }
         }
-
-        data class DateMoved(val epochDay: Long) : Kind {
-            override val kindIndex: Int get() = 3
-            override val titleArrayRes: Int get() = R.array.notification_release_date_moved
-        }
     }
 
     /** Notification ID: each kind gets its own slot so reminders for one game can coexist. */
