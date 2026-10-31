@@ -48,9 +48,9 @@ class InAppReviewPrompter @Inject constructor(
     }
 
     private companion object {
-        const val MIN_ARTICLES_OPENED = 10
+        const val MIN_ARTICLES_OPENED = 5
         val MIN_INSTALL_AGE_MS = TimeUnit.DAYS.toMillis(3)
-        val COOLDOWN_MS = TimeUnit.DAYS.toMillis(90)
+        val COOLDOWN_MS = TimeUnit.DAYS.toMillis(30)
         val ARTICLES_OPENED = intPreferencesKey("articles_opened")
         val LAST_SHOWN_AT = longPreferencesKey("last_shown_at")
     }
