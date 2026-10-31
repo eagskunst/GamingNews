@@ -4,6 +4,7 @@
     <string name="search_hint">Search articles…</string>
     <string name="saved">Saved</string>
     <string name="no_saved_articles">You haven\'t saved any articles yet</string>
+    <string name="no_saved_results">No saved articles match your search</string>
     <string name="reviews">Reviews</string>
     <string name="no_reviews">No reviews available right now</string>
     <string name="no_review_search_results">No reviews match your search</string>

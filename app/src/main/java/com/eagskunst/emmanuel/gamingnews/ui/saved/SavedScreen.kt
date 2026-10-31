@@ -46,7 +46,10 @@ fun SavedScreen(
         if (uiState.searchQuery.isBlank()) {
             uiState.articles
         } else {
-            uiState.articles.filter { it.title.contains(uiState.searchQuery, ignoreCase = true) }
+            uiState.articles.filter {
+                it.title.contains(uiState.searchQuery, ignoreCase = true) ||
+                    it.sourceName.contains(uiState.searchQuery, ignoreCase = true)
+            }
         }
     }
     val listState = rememberLazyListState()
@@ -75,7 +78,9 @@ fun SavedScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = stringResource(R.string.no_saved_articles),
+                    text = stringResource(
+                        if (uiState.articles.isEmpty()) R.string.no_saved_articles else R.string.no_saved_results
+                    ),
                     style = MaterialTheme.typography.bodyMedium
                 )
             }

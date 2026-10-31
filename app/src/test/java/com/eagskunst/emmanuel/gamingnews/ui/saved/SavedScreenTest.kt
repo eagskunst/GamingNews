@@ -94,4 +94,20 @@ class SavedScreenTest {
             .onNodeWithText(composeTestRule.activity.getString(R.string.no_saved_articles))
             .assertIsDisplayed()
     }
+
+    @Test
+    fun `given saved articles when search matches none then the no results message is shown`() {
+        fakeNewsRepository.savedArticlesFlow.value = listOf(
+            Fixtures.newsArticle(title = "Saved Headline", link = "https://example.com/saved")
+        )
+        val viewModel = createViewModel()
+        setContent(viewModel)
+
+        viewModel.onSearchQueryChange("zzz")
+        composeTestRule.waitForIdle()
+
+        composeTestRule
+            .onNodeWithText(composeTestRule.activity.getString(R.string.no_saved_results))
+            .assertIsDisplayed()
+    }
 }

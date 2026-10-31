@@ -4,6 +4,7 @@
     <string name="search_hint">Busca artículos…</string>
     <string name="saved">Favoritos</string>
     <string name="no_saved_articles">No has guardado ninguna noticia aún</string>
+    <string name="no_saved_results">Ninguna noticia guardada coincide con tu búsqueda</string>
     <string name="reviews">Análisis</string>
     <string name="no_reviews">No hay análisis disponibles en este momento</string>
     <string name="no_review_search_results">Ningún análisis coincide con tu búsqueda</string>
