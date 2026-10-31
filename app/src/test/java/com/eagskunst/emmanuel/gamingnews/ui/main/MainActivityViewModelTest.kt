@@ -7,6 +7,7 @@ import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetUserPreferencesU
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateArticleOpenModeUseCase
 import com.eagskunst.emmanuel.gamingnews.testutil.Fixtures
 import com.eagskunst.emmanuel.gamingnews.ui.ArticleOpener
+import com.eagskunst.emmanuel.gamingnews.ui.InAppReviewPrompter
 import com.eagskunst.emmanuel.gamingnews.testutil.MainDispatcherRule
 import com.eagskunst.emmanuel.gamingnews.testutil.fakes.FakeUserPreferencesRepository
 import io.mockk.mockk
@@ -25,10 +26,12 @@ class MainActivityViewModelTest {
 
     private val fakeUserPreferencesRepository = FakeUserPreferencesRepository()
     private val articleOpener: ArticleOpener = mockk(relaxed = true)
+    private val reviewPrompter: InAppReviewPrompter = mockk(relaxed = true)
 
     private fun createViewModel(): MainActivityViewModel = MainActivityViewModel(
         getUserPreferencesUseCase = GetUserPreferencesUseCase(fakeUserPreferencesRepository),
         articleOpener = articleOpener,
+        reviewPrompter = reviewPrompter,
         updateArticleOpenModeUseCase = UpdateArticleOpenModeUseCase(fakeUserPreferencesRepository)
     )
 

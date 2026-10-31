@@ -40,6 +40,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.lifecycleScope
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -67,11 +68,17 @@ import com.eagskunst.emmanuel.gamingnews.utility.shareArticle
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     private val viewModel: MainActivityViewModel by viewModels()
+
+    override fun onResume() {
+        super.onResume()
+        lifecycleScope.launch { viewModel.maybeRequestReview(this@MainActivity) }
+    }
 
     /** Incremented whenever a notification wants the app to open on the Releases tab. */
     private val _openReleasesSignal = MutableStateFlow(0)

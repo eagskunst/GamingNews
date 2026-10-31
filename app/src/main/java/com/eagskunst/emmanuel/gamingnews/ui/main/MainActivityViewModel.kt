@@ -8,6 +8,7 @@ import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetUserPreferencesU
 
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateArticleOpenModeUseCase
 import com.eagskunst.emmanuel.gamingnews.ui.ArticleOpener
+import com.eagskunst.emmanuel.gamingnews.ui.InAppReviewPrompter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -20,6 +21,7 @@ import javax.inject.Inject
 class MainActivityViewModel @Inject constructor(
     getUserPreferencesUseCase: GetUserPreferencesUseCase,
     private val articleOpener: ArticleOpener,
+    private val reviewPrompter: InAppReviewPrompter,
     private val updateArticleOpenModeUseCase: UpdateArticleOpenModeUseCase
 ) : ViewModel() {
 
@@ -58,10 +60,22 @@ class MainActivityViewModel @Inject constructor(
 
     fun openArticle(url: String, mode: ArticleOpenMode) {
         articleOpener(url, mode)
+        viewModelScope.launch { reviewPrompter.onArticleOpened() }
+    }
+
+    /** Safe to call on every resume; the prompter decides whether to ask. Failures never reach the user. */
+    suspend fun maybeRequestReview(activity: android.app.Activity) {
+        try {
+            reviewPrompter.maybePrompt(activity)
+        } catch (e: kotlin.coroutines.cancellation.CancellationException) {
+            throw e
+        } catch (_: Exception) {
+        }
     }
 
     fun openArticleWithMode(url: String, mode: ArticleOpenMode) {
         viewModelScope.launch { updateArticleOpenModeUseCase(mode) }
         articleOpener(url, mode)
+        viewModelScope.launch { reviewPrompter.onArticleOpened() }
     }
 }

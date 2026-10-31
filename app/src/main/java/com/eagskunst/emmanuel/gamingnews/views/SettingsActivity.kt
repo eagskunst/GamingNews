@@ -69,7 +69,8 @@ class SettingsActivity : ComponentActivity() {
                             },
                             onPrivacyPolicyClick = {
                                 openCustomTab(getString(R.string.privacy_policy_url).toUri())
-                            }
+                            },
+                            onRateClick = ::openPlayStoreListing
                         )
                     }
                     composable("feed_sources") {
@@ -103,6 +104,15 @@ class SettingsActivity : ComponentActivity() {
         } catch (e: ActivityNotFoundException) {
             Toast.makeText(this, ContactInfo.EMAIL, Toast.LENGTH_LONG).show()
             openCustomTab(getString(R.string.contact_website_url).toUri())
+        }
+    }
+
+    private fun openPlayStoreListing() {
+        try {
+            startActivity(Intent(Intent.ACTION_VIEW, "market://details?id=$packageName".toUri()))
+        } catch (e: ActivityNotFoundException) {
+            // No Play Store app installed.
+            openCustomTab("https://play.google.com/store/apps/details?id=$packageName".toUri())
         }
     }
 }

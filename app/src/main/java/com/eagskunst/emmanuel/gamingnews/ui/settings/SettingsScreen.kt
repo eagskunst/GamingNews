@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.PrivacyTip
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -78,7 +79,8 @@ fun SettingsScreen(
     onMutedWordsClick: () -> Unit,
     onContactEmailClick: () -> Unit,
     onContactWebsiteClick: () -> Unit,
-    onPrivacyPolicyClick: () -> Unit
+    onPrivacyPolicyClick: () -> Unit,
+    onRateClick: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -141,7 +143,8 @@ fun SettingsScreen(
             onRemoveTopic = viewModel::removeTopic,
             onContactEmailClick = onContactEmailClick,
             onContactWebsiteClick = onContactWebsiteClick,
-            onPrivacyPolicyClick = onPrivacyPolicyClick
+            onPrivacyPolicyClick = onPrivacyPolicyClick,
+            onRateClick = onRateClick
         )
     }
 }
@@ -163,7 +166,8 @@ private fun SettingsContent(
     onRemoveTopic: (Topic) -> Unit = {},
     onContactEmailClick: () -> Unit = {},
     onContactWebsiteClick: () -> Unit = {},
-    onPrivacyPolicyClick: () -> Unit = {}
+    onPrivacyPolicyClick: () -> Unit = {},
+    onRateClick: () -> Unit = {}
 ) {
     Column(modifier = modifier.padding(16.dp)) {
         ThemeModePreferenceRow(
@@ -310,7 +314,8 @@ private fun SettingsContent(
         AboutAndContactSection(
             onContactEmailClick = onContactEmailClick,
             onContactWebsiteClick = onContactWebsiteClick,
-            onPrivacyPolicyClick = onPrivacyPolicyClick
+            onPrivacyPolicyClick = onPrivacyPolicyClick,
+            onRateClick = onRateClick
         )
     }
 }
@@ -471,7 +476,8 @@ private fun DailyReminderTimeRow(
 private fun AboutAndContactSection(
     onContactEmailClick: () -> Unit,
     onContactWebsiteClick: () -> Unit,
-    onPrivacyPolicyClick: () -> Unit
+    onPrivacyPolicyClick: () -> Unit,
+    onRateClick: () -> Unit
 ) {
     Text(
         text = stringResource(R.string.about_and_contact),
@@ -496,6 +502,12 @@ private fun AboutAndContactSection(
         title = stringResource(R.string.contact_website_title),
         subtitle = stringResource(R.string.contact_website_url),
         onClick = onContactWebsiteClick
+    )
+    LinkRow(
+        icon = Icons.Filled.Star,
+        title = stringResource(R.string.rate_app_title),
+        subtitle = stringResource(R.string.rate_app_subtitle),
+        onClick = onRateClick
     )
     LinkRow(
         icon = Icons.Filled.PrivacyTip,

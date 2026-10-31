@@ -53,6 +53,8 @@
     <string name="about_app_description">Gaming News is a news aggregator: it gathers headlines from the public RSS feeds of gaming news outlets and lists upcoming game releases. Articles open on the original publisher\'s website.</string>
     <string name="contact_email_title">Contact us by email</string>
     <string name="contact_website_title">Contact page and website</string>
+    <string name="rate_app_title">Rate Gaming News</string>
+    <string name="rate_app_subtitle">Leave a rating on Google Play</string>
     <string name="privacy_policy_title">Privacy policy</string>
     <string name="email_subject">Gaming News support</string>
     <string name="app_version">Version %1$s</string>
