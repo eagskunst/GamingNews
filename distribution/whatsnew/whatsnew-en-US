@@ -1,1 +1,1 @@
-Fix: followed games could get a bogus "release date moved" notification and fire every reminder at once. Those alerts are gone — reminders still arrive on the day you picked, and real date changes are applied silently in the background.
+New: notifications now use a proper gaming icon instead of a plain white circle. Search your saved articles by source, with a clear message when nothing matches. Added a "Rate Gaming News" shortcut in Settings, and an occasional, unobtrusive prompt to rate the app on Google Play.
