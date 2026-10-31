@@ -74,7 +74,8 @@ class AppNotifier @Inject constructor(
     fun showDailyReminder() {
         val notification = NotificationCompat
             .Builder(context, NotificationChannelSpec.DAILY_REMINDER.channelId)
-            .setSmallIcon(R.mipmap.ic_launcher_round)
+            .setSmallIcon(R.drawable.ic_stat_notification)
+            .setColor(ContextCompat.getColor(context, R.color.colorPrimary))
             .setContentTitle(context.getString(R.string.app_name))
             .setContentText(context.getString(R.string.daily_reminder_notification_body))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
@@ -103,7 +104,8 @@ class AppNotifier @Inject constructor(
         val title = buildTitle(notification)
         val releaseNotification = NotificationCompat
             .Builder(context, NotificationChannelSpec.GAME_RELEASES.channelId)
-            .setSmallIcon(R.mipmap.ic_launcher_round)
+            .setSmallIcon(R.drawable.ic_stat_notification)
+            .setColor(ContextCompat.getColor(context, R.color.colorPrimary))
             .setContentTitle(title)
             .setContentText(notification.platformsLabel)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
