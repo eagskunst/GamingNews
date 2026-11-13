@@ -3,6 +3,7 @@ package com.eagskunst.emmanuel.gamingnews.core.data.source.remote
 import com.eagskunst.emmanuel.gamingnews.core.data.source.local.BundledPlatformCatalog
 import com.eagskunst.emmanuel.gamingnews.core.data.source.local.IgdbAuthLocalDataSource
 import com.eagskunst.emmanuel.gamingnews.core.data.source.remote.api.IgdbApi
+import com.eagskunst.emmanuel.gamingnews.core.data.source.remote.api.IgdbGameDetailsDto
 import com.eagskunst.emmanuel.gamingnews.core.data.source.remote.api.IgdbReleaseDateDto
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.ReleaseDateRange
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.IgdbRejectedTokenException
@@ -270,6 +271,30 @@ class IgdbRemoteDataSourceTest {
             return exception as T
         }
         throw AssertionError("Expected ${T::class.java.name}")
+    }
+
+    @Test
+    fun `when fetchGameDetails then the games endpoint is queried by id and the first game is returned`() = runTest {
+        val bodySlot = slot<RequestBody>()
+        val game = IgdbGameDetailsDto(id = 1942, name = "The Witcher 3: Wild Hunt")
+        coEvery { authLocalDataSource.getAccessToken(clientId) } returns "token"
+        coEvery { api.getGames(clientId, "Bearer token", capture(bodySlot)) } returns listOf(game)
+
+        val result = dataSource.fetchGameDetails(1942)
+
+        assertEquals(game, result)
+        val query = bodySlot.captured.bodyString()
+        assertTrue(query.contains("where id = 1942;"))
+        assertTrue(query.contains("release_dates.platform.abbreviation"))
+        assertTrue(query.contains("websites.type.type"))
+    }
+
+    @Test
+    fun `given IGDB knows no such game when fetchGameDetails then null is returned`() = runTest {
+        coEvery { authLocalDataSource.getAccessToken(clientId) } returns "token"
+        coEvery { api.getGames(any(), any(), any()) } returns emptyList()
+
+        assertEquals(null, dataSource.fetchGameDetails(1))
     }
 
     private fun assertRequestBodyContainsQueryParts(body: RequestBody, offset: Int) {

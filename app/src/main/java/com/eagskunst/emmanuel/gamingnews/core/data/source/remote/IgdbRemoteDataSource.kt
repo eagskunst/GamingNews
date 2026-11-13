@@ -3,6 +3,7 @@ package com.eagskunst.emmanuel.gamingnews.core.data.source.remote
 import com.eagskunst.emmanuel.gamingnews.core.common.DispatcherProvider
 import com.eagskunst.emmanuel.gamingnews.core.data.source.local.IgdbAuthLocalDataSource
 import com.eagskunst.emmanuel.gamingnews.core.data.source.remote.api.IgdbApi
+import com.eagskunst.emmanuel.gamingnews.core.data.source.remote.api.IgdbGameDetailsDto
 import com.eagskunst.emmanuel.gamingnews.core.data.source.remote.api.IgdbReleaseDateDto
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.ReleaseDateRange
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.IgdbRejectedTokenException
@@ -34,7 +35,8 @@ class IgdbRemoteDataSource @Inject constructor(
         offset: Int = 0,
         window: ReleaseDateRange
     ): List<IgdbReleaseDateDto> = withContext(dispatchers.io) {
-        executeQuery(buildQuery(offset, window).toRequestBody(MEDIA_TYPE))
+        val body = buildQuery(offset, window).toRequestBody(MEDIA_TYPE)
+        executeQuery { token -> requestReleases(token, body) }
     }
 
     /**
@@ -52,23 +54,30 @@ class IgdbRemoteDataSource @Inject constructor(
         gameIds.toList()
             .chunked(GAME_ID_CHUNK_SIZE)
             .flatMap { chunk ->
-                executeQuery(buildFollowedGamesQuery(chunk, notBeforeEpochSeconds).toRequestBody(MEDIA_TYPE))
+                val body = buildFollowedGamesQuery(chunk, notBeforeEpochSeconds).toRequestBody(MEDIA_TYPE)
+                executeQuery { token -> requestReleases(token, body) }
             }
     }
 
+    /** Everything the game detail page shows, in one request; null when IGDB has no such game. */
+    suspend fun fetchGameDetails(gameId: Long): IgdbGameDetailsDto? = withContext(dispatchers.io) {
+        val body = buildGameDetailsQuery(gameId).toRequestBody(MEDIA_TYPE)
+        executeQuery { token -> api.getGames(clientId, "Bearer $token", body) }.firstOrNull()
+    }
+
     /**
-     * Runs [body] against the release_dates endpoint, renewing the access token once when
-     * IGDB rejects it with a 401.
+     * Runs [request] with a valid access token, renewing the token once when IGDB rejects it
+     * with a 401.
      */
-    private suspend fun executeQuery(body: RequestBody): List<IgdbReleaseDateDto> {
+    private suspend fun <T> executeQuery(request: suspend (token: String) -> T): T {
         val token = getValidAccessToken()
         try {
-            return requestReleases(token, body)
+            return request(token)
         } catch (exception: HttpException) {
             if (exception.code() != 401) throw exception
             val replacement = renewRejectedToken(token)
             try {
-                return requestReleases(replacement, body)
+                return request(replacement)
             } catch (retryException: HttpException) {
                 if (retryException.code() == 401) {
                     throw IgdbRejectedTokenException(retryException)
@@ -109,6 +118,23 @@ class IgdbRemoteDataSource @Inject constructor(
             appendLine("sort date asc;")
             appendLine("limit $FOLLOWED_GAMES_LIMIT;")
         }
+    }
+
+    private fun buildGameDetailsQuery(gameId: Long): String = buildString {
+        appendLine(
+            "fields name,summary,url,rating,rating_count,aggregated_rating," +
+                "aggregated_rating_count,hypes,cover.url,genres.name,game_modes.name," +
+                "franchises.name,platforms.name,platforms.abbreviation," +
+                "involved_companies.developer,involved_companies.publisher," +
+                "involved_companies.company.name,age_ratings.organization.name," +
+                "age_ratings.rating_category.rating,release_dates.date,release_dates.human," +
+                "release_dates.date_format,release_dates.platform.name," +
+                "release_dates.platform.abbreviation,screenshots.url,videos.name," +
+                "videos.video_id,similar_games.name,similar_games.cover.url,expansions.name," +
+                "dlcs.name,websites.url,websites.type.type;"
+        )
+        appendLine("where id = $gameId;")
+        appendLine("limit 1;")
     }
 
     private suspend fun getValidAccessToken(): String = authLocalDataSource.getAccessToken(clientId)

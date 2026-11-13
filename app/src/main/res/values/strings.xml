@@ -186,5 +186,62 @@
     <string name="muted_articles_badge">Muted</string>
     <string name="all_muted_empty_title">Everything here is muted</string>
     <string name="all_muted_empty_message">All articles in this view match your muted words.</string>
-</resources>
 
+    <string name="game_detail_tab_about">About</string>
+    <string name="game_detail_tab_media">Media</string>
+    <string name="game_detail_tab_related">Related</string>
+    <string name="game_detail_share_cd">Share game</string>
+    <string name="game_detail_error">Couldn’t load this game. Check your connection and try again.</string>
+    <plurals name="game_detail_user_score_label">
+        <item quantity="one">IGDB users · %1$s rating</item>
+        <item quantity="other">IGDB users · %1$s ratings</item>
+    </plurals>
+    <plurals name="game_detail_critic_score_label">
+        <item quantity="one">Critics · %1$s review</item>
+        <item quantity="other">Critics · %1$s reviews</item>
+    </plurals>
+    <plurals name="game_detail_days_until">
+        <item quantity="one">%1$d day</item>
+        <item quantity="other">%1$d days</item>
+    </plurals>
+    <string name="game_detail_until_release">until release · %1$s</string>
+    <string name="game_detail_today">Today</string>
+    <string name="game_detail_release_day">Release day · %1$s</string>
+    <string name="game_detail_expected_release">Expected release</string>
+    <plurals name="game_detail_hyped_label">
+        <item quantity="one">person hyped</item>
+        <item quantity="other">people hyped</item>
+    </plurals>
+    <string name="game_detail_read_more">Read more</string>
+    <string name="game_detail_show_less">Show less</string>
+    <string name="game_detail_genres">Genres</string>
+    <string name="game_detail_available_on">Available on</string>
+    <plurals name="game_detail_platform_count">
+        <item quantity="one">%1$d platform</item>
+        <item quantity="other">%1$d platforms</item>
+    </plurals>
+    <string name="game_detail_unknown_date">Unknown date</string>
+    <string name="game_detail_developer">Developer</string>
+    <string name="game_detail_publisher">Publisher</string>
+    <string name="game_detail_franchise">Franchise</string>
+    <string name="game_detail_modes">Modes</string>
+    <string name="game_detail_age_rating">Age rating</string>
+    <string name="game_detail_screenshots">Screenshots</string>
+    <string name="game_detail_screenshot_cd">Screenshot %1$d of %2$s</string>
+    <string name="game_detail_images_disabled">You have images disabled. Enable them to see screenshots of %1$s.</string>
+    <string name="game_detail_videos">Videos</string>
+    <string name="game_detail_no_media">No screenshots or videos yet.</string>
+    <string name="game_detail_similar_games">Similar games</string>
+    <string name="game_detail_expansions">Expansions and DLC</string>
+    <string name="game_detail_expansion_badge">Expansion</string>
+    <plurals name="game_detail_show_dlc">
+        <item quantity="one">Show %1$d DLC pack</item>
+        <item quantity="other">Show %1$d DLC packs</item>
+    </plurals>
+    <string name="game_detail_hide_dlc">Hide DLC packs</string>
+    <string name="game_detail_links">Stores and links</string>
+    <string name="game_detail_link_official">Official site</string>
+    <string name="game_detail_no_related">Nothing related yet.</string>
+    <string name="game_detail_follow">Follow release</string>
+    <string name="game_detail_following">Following</string>
+</resources>

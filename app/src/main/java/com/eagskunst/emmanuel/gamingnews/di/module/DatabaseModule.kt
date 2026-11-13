@@ -5,11 +5,13 @@ import androidx.room.Room
 import com.eagskunst.emmanuel.gamingnews.core.data.source.local.AppDatabase
 import com.eagskunst.emmanuel.gamingnews.core.data.source.local.ArticleDao
 import com.eagskunst.emmanuel.gamingnews.core.data.source.local.FollowedGameDao
+import com.eagskunst.emmanuel.gamingnews.core.data.source.local.GameDetailsDao
 import com.eagskunst.emmanuel.gamingnews.core.data.source.local.MIGRATION_1_2
 import com.eagskunst.emmanuel.gamingnews.core.data.source.local.MIGRATION_2_3
 import com.eagskunst.emmanuel.gamingnews.core.data.source.local.MIGRATION_3_4
 import com.eagskunst.emmanuel.gamingnews.core.data.source.local.MIGRATION_4_5
 import com.eagskunst.emmanuel.gamingnews.core.data.source.local.MIGRATION_5_6
+import com.eagskunst.emmanuel.gamingnews.core.data.source.local.MIGRATION_6_7
 import com.eagskunst.emmanuel.gamingnews.core.data.source.local.MuteRuleDao
 import com.eagskunst.emmanuel.gamingnews.core.data.source.local.ReleaseDao
 import dagger.Module
@@ -32,7 +34,8 @@ object DatabaseModule {
             "gamingnews.db"
         )
             .addMigrations(
-                MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6
+                MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6,
+                MIGRATION_6_7
             )
             .build()
     }
@@ -48,4 +51,7 @@ object DatabaseModule {
 
     @Provides
     fun provideFollowedGameDao(database: AppDatabase): FollowedGameDao = database.followedGameDao()
+
+    @Provides
+    fun provideGameDetailsDao(database: AppDatabase): GameDetailsDao = database.gameDetailsDao()
 }

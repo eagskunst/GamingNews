@@ -88,7 +88,7 @@ class ReleasesScreenTest {
             ReleasesScreen(
                 viewModel = viewModel,
                 onSettingsClick = {},
-                onOpenGameUrl = {}
+                onOpenGame = {}
             )
         }
     }
@@ -283,7 +283,7 @@ class ReleasesScreenTest {
                 ReleasesScreen(
                     viewModel = vm,
                     onSettingsClick = {},
-                    onOpenGameUrl = {}
+                    onOpenGame = {}
                 )
             }
         }

@@ -59,6 +59,14 @@ These are exposed as `BuildConfig.TWITCH_CLIENT_ID` and `BuildConfig.TWITCH_CLIE
    per-platform launches can't corrupt follows). All notification posting goes through
    `AppNotifier`/`ReleaseNotifier`.
 
+9. Game detail page (issue #8): tapping a Releases card or a release notification opens
+   `ui/gamedetail` (About / Media / Related tabs) for the IGDB game ID. Details come from one
+   `games` query and are cached as JSON in Room (`game_details`, DB version 7, refreshed
+   after 24 h). Follows reuse `GameRelease` via `GameDetails.pendingRelease`, so the Follow
+   button only shows while a tracked platform still has an exact upcoming date. New DB
+   versions need their schema JSON copied into `app/src/androidTest/assets/` for the
+   migration tests.
+
 ## Agent Skills
 
 All skills live in `.agents/skills/` (the cross-harness standard location). `.claude/skills`

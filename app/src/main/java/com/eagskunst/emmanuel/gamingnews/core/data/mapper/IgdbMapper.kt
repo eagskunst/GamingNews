@@ -1,7 +1,6 @@
 package com.eagskunst.emmanuel.gamingnews.core.data.mapper
 
 import com.eagskunst.emmanuel.gamingnews.core.data.source.remote.api.IGDB_DATE_FORMAT_YYYYMMDD
-import com.eagskunst.emmanuel.gamingnews.core.data.source.remote.api.IgdbCoverDto
 import com.eagskunst.emmanuel.gamingnews.core.data.source.remote.api.IgdbReleaseDateDto
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.GameReleaseRecord
 import java.util.Date
@@ -23,18 +22,9 @@ fun IgdbReleaseDateDto.toReleaseRecord(): GameReleaseRecord? {
         platformId = platform,
         releaseDate = Date(releaseTimestamp * 1000L),
         name = gameName,
-        coverUrl = gameDto.cover?.toCoverBigUrl(),
+        coverUrl = gameDto.cover?.url.toIgdbImageUrl("t_cover_big"),
         gameUrl = gameDto.url,
         hasExactDate = dateFormat == IGDB_DATE_FORMAT_YYYYMMDD,
         human = human
     )
-}
-
-private fun IgdbCoverDto.toCoverBigUrl(): String? {
-    val rawUrl = url ?: return null
-    return when {
-        rawUrl.startsWith("http") -> rawUrl.replace("t_thumb", "t_cover_big")
-        rawUrl.startsWith("//") -> "https:$rawUrl".replace("t_thumb", "t_cover_big")
-        else -> null
-    }
 }

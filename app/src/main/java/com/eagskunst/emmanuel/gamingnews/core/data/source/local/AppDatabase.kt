@@ -5,6 +5,7 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.eagskunst.emmanuel.gamingnews.core.data.source.local.entity.ArticleEntity
 import com.eagskunst.emmanuel.gamingnews.core.data.source.local.entity.FollowedGameEntity
+import com.eagskunst.emmanuel.gamingnews.core.data.source.local.entity.GameDetailsEntity
 import com.eagskunst.emmanuel.gamingnews.core.data.source.local.entity.MuteRuleEntity
 import com.eagskunst.emmanuel.gamingnews.core.data.source.local.entity.MuteRuleTabEntity
 import com.eagskunst.emmanuel.gamingnews.core.data.source.local.entity.ReleaseCoverageEntity
@@ -17,9 +18,10 @@ import com.eagskunst.emmanuel.gamingnews.core.data.source.local.entity.ReleaseEn
         ReleaseCoverageEntity::class,
         MuteRuleEntity::class,
         MuteRuleTabEntity::class,
-        FollowedGameEntity::class
+        FollowedGameEntity::class,
+        GameDetailsEntity::class
     ],
-    version = 6,
+    version = 7,
     exportSchema = true
 )
 @TypeConverters(Converters::class)
@@ -28,4 +30,5 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun releaseDao(): ReleaseDao
     abstract fun muteRuleDao(): MuteRuleDao
     abstract fun followedGameDao(): FollowedGameDao
+    abstract fun gameDetailsDao(): GameDetailsDao
 }

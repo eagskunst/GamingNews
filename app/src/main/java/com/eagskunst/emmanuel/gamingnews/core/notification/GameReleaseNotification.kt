@@ -12,7 +12,6 @@ class GameReleaseNotification(
     val gameId: Long,
     val name: String,
     val platformsLabel: String,
-    val gameUrl: String?,
     val kind: Kind
 ) {
 

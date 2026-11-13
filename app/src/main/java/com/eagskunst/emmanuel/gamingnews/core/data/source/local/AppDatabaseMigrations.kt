@@ -112,3 +112,19 @@ val MIGRATION_5_6 = object : Migration(5, 6) {
         )
     }
 }
+
+/** Creates the per-game cache behind the game detail page. */
+val MIGRATION_6_7 = object : Migration(6, 7) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `game_details` (
+                `gameId` INTEGER NOT NULL,
+                `json` TEXT NOT NULL,
+                `fetchedAt` INTEGER NOT NULL,
+                PRIMARY KEY(`gameId`)
+            )
+            """.trimIndent()
+        )
+    }
+}

@@ -101,4 +101,25 @@ class AppNotifierTest {
 
         assertTrue(notifier.canNotify(NotificationChannelSpec.GAME_RELEASES))
     }
+
+    @Test
+    fun `when a release reminder is tapped then it opens the game detail page`() {
+        notifier.ensureChannels()
+
+        notifier.notifyOffset(
+            com.eagskunst.emmanuel.gamingnews.testutil.Fixtures.followedGame(gameId = 42),
+            com.eagskunst.emmanuel.gamingnews.core.domain.model.ReminderOffset.RELEASE_DAY
+        )
+
+        val posted = shadowOf(notificationManager).allNotifications.single()
+        val intent = shadowOf(posted.contentIntent).savedIntent
+        assertEquals(
+            com.eagskunst.emmanuel.gamingnews.views.MainActivity::class.java.name,
+            intent.component?.className
+        )
+        assertEquals(
+            42L,
+            intent.getLongExtra(com.eagskunst.emmanuel.gamingnews.views.MainActivity.EXTRA_OPEN_GAME_ID, -1)
+        )
+    }
 }

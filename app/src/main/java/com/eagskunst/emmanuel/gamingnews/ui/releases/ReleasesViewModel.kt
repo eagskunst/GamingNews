@@ -1,10 +1,6 @@
 package com.eagskunst.emmanuel.gamingnews.ui.releases
 
-import android.Manifest
 import android.content.Context
-import android.content.pm.PackageManager
-import android.os.Build
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.eagskunst.emmanuel.gamingnews.core.common.Result
@@ -23,6 +19,7 @@ import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.FollowGameUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetReleasesUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.ObserveFollowedGameIdsUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UnfollowGameUseCase
+import com.eagskunst.emmanuel.gamingnews.utility.canPostNotifications
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
@@ -290,7 +287,7 @@ class ReleasesViewModel @Inject constructor(
             }
             return
         }
-        if (canPostNotifications()) {
+        if (context.canPostNotifications()) {
             _uiState.update { it.copy(offsetPickerFor = release) }
         } else {
             pendingFollowRelease = release
@@ -330,17 +327,6 @@ class ReleasesViewModel @Inject constructor(
     /** Re-follows a game that was just unfollowed via the bell's Undo snackbar. */
     fun undoUnfollow(game: FollowedGame) {
         viewModelScope.launch { followGame.restore(game) }
-    }
-
-    private fun canPostNotifications(): Boolean {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.POST_NOTIFICATIONS
-            ) == PackageManager.PERMISSION_GRANTED
-        } else {
-            true
-        }
     }
 
     private fun persistPlatformSelection(ids: Set<Int>) {

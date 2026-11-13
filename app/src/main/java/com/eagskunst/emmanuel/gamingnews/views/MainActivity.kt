@@ -45,14 +45,18 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.eagskunst.emmanuel.gamingnews.R
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.ArticleOpenMode
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.NewsArticle
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.ThemeMode
+import com.eagskunst.emmanuel.gamingnews.ui.gamedetail.GameDetailScreen
+import com.eagskunst.emmanuel.gamingnews.ui.gamedetail.GameDetailViewModel
 import com.eagskunst.emmanuel.gamingnews.ui.main.MainActivityViewModel
 
 import com.eagskunst.emmanuel.gamingnews.ui.news.NewsScreen
@@ -80,14 +84,13 @@ class MainActivity : ComponentActivity() {
         lifecycleScope.launch { viewModel.maybeRequestReview(this@MainActivity) }
     }
 
-    /** Incremented whenever a notification wants the app to open on the Releases tab. */
-    private val _openReleasesSignal = MutableStateFlow(0)
+    /** Game a release notification asked to open; cleared once the detail page is shown. */
+    private val pendingGameId = MutableStateFlow<Long?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (intent.getBooleanExtra(EXTRA_OPEN_RELEASES, false)) {
-            _openReleasesSignal.value++
-        }
+        // A recreated activity still carries the launch intent; only a fresh start may open it.
+        if (savedInstanceState == null) pendingGameId.value = intent.gameIdExtra()
         enableEdgeToEdge()
         setContent {
             val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
@@ -99,7 +102,7 @@ class MainActivity : ComponentActivity() {
                     onOpenArticle = { url -> viewModel.openArticle(url, articleOpenMode) },
                     onOpenArticleWithMode = viewModel::openArticleWithMode,
                     onShareArticle = { article -> shareArticle(article.title, article.link) },
-                    onOpenGameUrl = { url -> viewModel.openArticleWithMode(url, ArticleOpenMode.CUSTOM_TAB) },
+                    onShareGame = { name, url -> shareArticle(name, url) },
                     onSettingsClick = { startActivity(Intent(this, SettingsActivity::class.java)) },
                     onManageMutedWords = {
                         startActivity(
@@ -107,7 +110,8 @@ class MainActivity : ComponentActivity() {
                                 .putExtra(SettingsActivity.EXTRA_OPEN_MUTED_WORDS, true)
                         )
                     },
-                    openReleasesSignal = _openReleasesSignal
+                    pendingGameId = pendingGameId,
+                    onPendingGameOpened = { pendingGameId.value = null }
                 )
             }
         }
@@ -116,14 +120,16 @@ class MainActivity : ComponentActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        if (intent.getBooleanExtra(EXTRA_OPEN_RELEASES, false)) {
-            _openReleasesSignal.value++
-        }
+        intent.gameIdExtra()?.let { pendingGameId.value = it }
     }
 
+    private fun Intent.gameIdExtra(): Long? =
+        getLongExtra(EXTRA_OPEN_GAME_ID, NO_GAME_ID).takeIf { it != NO_GAME_ID }
+
     companion object {
-        /** Set by notifications that should land on the Releases tab when tapped. */
-        const val EXTRA_OPEN_RELEASES = "com.eagskunst.emmanuel.gamingnews.extra.OPEN_RELEASES"
+        /** IGDB game ID a release notification wants opened on its detail page. */
+        const val EXTRA_OPEN_GAME_ID = "com.eagskunst.emmanuel.gamingnews.extra.OPEN_GAME_ID"
+        private const val NO_GAME_ID = -1L
     }
 
 }
@@ -135,19 +141,28 @@ private fun MainScreen(
     onOpenArticle: (String) -> Unit,
     onOpenArticleWithMode: (String, ArticleOpenMode) -> Unit,
     onShareArticle: (NewsArticle) -> Unit,
-    onOpenGameUrl: (String) -> Unit,
+    onShareGame: (name: String, url: String) -> Unit,
     onSettingsClick: () -> Unit,
     onManageMutedWords: () -> Unit,
-    openReleasesSignal: StateFlow<Int>
+    pendingGameId: StateFlow<Long?>,
+    onPendingGameOpened: () -> Unit
 ) {
     val windowSizeClass = calculateWindowSizeClass(activity)
     val navController = rememberNavController()
     val useNavigationRail = windowSizeClass.widthSizeClass != WindowWidthSizeClass.Compact
 
-    val releasesSignal by openReleasesSignal.collectAsStateWithLifecycle()
-    LaunchedEffect(releasesSignal) {
-        if (releasesSignal > 0) navController.navigateToTopLevel(BottomNavRoute.Releases.route)
+    val gameToOpen by pendingGameId.collectAsStateWithLifecycle()
+    LaunchedEffect(gameToOpen) {
+        gameToOpen?.let { gameId ->
+            // Land on Releases first so Back from the detail page returns somewhere related.
+            navController.navigateToTopLevel(BottomNavRoute.Releases.route)
+            navController.navigateToGame(gameId)
+            onPendingGameOpened()
+        }
     }
+    // The detail page is full screen: no bottom bar or rail while it is on top.
+    val backStackEntry by navController.currentBackStackEntryAsState()
+    val showNavigation = backStackEntry?.destination?.route != GAME_ROUTE
 
     var newsScrollToTopEvent by remember { mutableIntStateOf(0) }
     var savedScrollToTopEvent by remember { mutableIntStateOf(0) }
@@ -169,13 +184,13 @@ private fun MainScreen(
         // the toolbar down twice, leaving a big gap under the status bar.
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         bottomBar = {
-            if (!useNavigationRail) {
+            if (!useNavigationRail && showNavigation) {
                 BottomNavigationBar(navController, onTabReselected = ::onTabReselected)
             }
         }
     ) { padding ->
         Row(modifier = Modifier.padding(padding)) {
-            if (useNavigationRail) {
+            if (useNavigationRail && showNavigation) {
                 NavigationSideBar(
                     navController = navController,
                     onTabReselected = ::onTabReselected,
@@ -215,7 +230,7 @@ private fun MainScreen(
                     ReleasesScreen(
                         viewModel = viewModel,
                         onSettingsClick = onSettingsClick,
-                        onOpenGameUrl = onOpenGameUrl,
+                        onOpenGame = navController::navigateToGame,
                         scrollToTopSignal = releasesScrollToTopEvent
                     )
                 }
@@ -229,6 +244,20 @@ private fun MainScreen(
                         onOpenArticleWithMode = onOpenArticleWithMode,
                         onShareArticle = onShareArticle,
                         scrollToTopSignal = reviewsScrollToTopEvent
+                    )
+                }
+                composable(
+                    route = GAME_ROUTE,
+                    arguments = listOf(
+                        navArgument(GameDetailViewModel.GAME_ID_ARG) { type = NavType.LongType }
+                    )
+                ) {
+                    val viewModel = hiltViewModel<GameDetailViewModel>()
+                    GameDetailScreen(
+                        viewModel = viewModel,
+                        onBack = { navController.popBackStack() },
+                        onShare = onShareGame,
+                        onOpenGame = navController::navigateToGame
                     )
                 }
             }
@@ -299,6 +328,17 @@ private fun NavigationSideBar(
             )
         }
     }
+}
+
+private const val GAME_ROUTE = "game/{${GameDetailViewModel.GAME_ID_ARG}}"
+
+private fun NavHostController.navigateToGame(gameId: Long) {
+    // launchSingleTop would swallow a similar-game tap (same route, new ID), so only skip
+    // when this exact game is already on top, e.g. a double tap.
+    val current = currentBackStackEntry
+    val isAlreadyOpen = current?.destination?.route == GAME_ROUTE &&
+        current.arguments?.getLong(GameDetailViewModel.GAME_ID_ARG) == gameId
+    if (!isAlreadyOpen) navigate("game/$gameId")
 }
 
 private fun NavHostController.navigateToTopLevel(route: String) {

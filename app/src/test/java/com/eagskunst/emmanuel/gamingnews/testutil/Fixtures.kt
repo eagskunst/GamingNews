@@ -186,4 +186,54 @@ object Fixtures {
         applyGlobalMuteRulesToReviews = applyGlobalMuteRulesToReviews
     )
 
+    fun platformRelease(
+        platformId: Int = 6,
+        platformName: String = "PC",
+        epochDay: Long? = 20_000L,
+        hasExactDate: Boolean = true,
+        human: String? = null
+    ) = com.eagskunst.emmanuel.gamingnews.core.domain.model.PlatformRelease(
+        platformId = platformId,
+        platformName = platformName,
+        releaseDate = epochDay?.let { Date(it * 86_400_000L) },
+        hasExactDate = hasExactDate && epochDay != null,
+        human = human
+    )
+
+    fun gameDetails(
+        gameId: Long = 1L,
+        name: String = "Some Game",
+        summary: String? = "A game.",
+        gameUrl: String? = "https://example.com/game",
+        userRating: com.eagskunst.emmanuel.gamingnews.core.domain.model.GameRating? = null,
+        criticRating: com.eagskunst.emmanuel.gamingnews.core.domain.model.GameRating? = null,
+        hypes: Int? = null,
+        platformReleases: List<com.eagskunst.emmanuel.gamingnews.core.domain.model.PlatformRelease> =
+            listOf(platformRelease()),
+        screenshots: List<String> = emptyList(),
+        expansions: List<String> = emptyList(),
+        dlcs: List<String> = emptyList()
+    ) = com.eagskunst.emmanuel.gamingnews.core.domain.model.GameDetails(
+        gameId = gameId,
+        name = name,
+        summary = summary,
+        coverUrl = null,
+        gameUrl = gameUrl,
+        userRating = userRating,
+        criticRating = criticRating,
+        hypes = hypes,
+        genres = listOf("Adventure"),
+        modes = emptyList(),
+        developers = listOf("Studio"),
+        publishers = emptyList(),
+        franchise = null,
+        ageRatings = emptyList(),
+        platformReleases = platformReleases,
+        screenshots = screenshots,
+        videos = emptyList(),
+        similarGames = emptyList(),
+        expansions = expansions,
+        dlcs = dlcs,
+        links = emptyList()
+    )
 }

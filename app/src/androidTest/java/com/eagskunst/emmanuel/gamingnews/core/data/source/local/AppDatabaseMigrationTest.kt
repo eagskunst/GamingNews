@@ -186,6 +186,30 @@ class AppDatabaseMigrationTest {
     }
 
     @Test
+    fun migrate6To7_creates_the_game_details_cache_and_preserves_follows() {
+        helper.createDatabase(TEST_DB, 6).use { db ->
+            db.execSQL(
+                """
+                INSERT INTO followed_games (gameId, name, coverUrl, gameUrl, releaseEpochDay, offsets, notifiedOffsets, platformsLabel, followedAt, lastSyncedAt)
+                VALUES (10, 'Game', NULL, NULL, 20000, 7, 0, 'PC', 1700000000000, NULL)
+                """.trimIndent()
+            )
+        }
+
+        val db = helper.runMigrationsAndValidate(TEST_DB, 7, true, MIGRATION_6_7)
+
+        db.query("SELECT COUNT(*) FROM followed_games").use { cursor ->
+            assertTrue(cursor.moveToFirst())
+            assertEquals(1, cursor.getInt(0))
+        }
+        db.execSQL("INSERT INTO game_details (gameId, json, fetchedAt) VALUES (10, '{}', 1700000000000)")
+        db.query("SELECT json FROM game_details WHERE gameId = 10").use { cursor ->
+            assertTrue(cursor.moveToFirst())
+            assertEquals("{}", cursor.getString(0))
+        }
+    }
+
+    @Test
     fun migrate1To3_applies_the_full_migration_chain() {
         val now = Date().time
         helper.createDatabase(TEST_DB, 1).use { db ->

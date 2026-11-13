@@ -7,7 +7,6 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
@@ -94,7 +93,6 @@ class AppNotifier @Inject constructor(
                 gameId = game.gameId,
                 name = game.name,
                 platformsLabel = game.platformsLabel,
-                gameUrl = game.gameUrl,
                 kind = GameReleaseNotification.Kind.Offset(offset)
             )
         )
@@ -124,14 +122,8 @@ class AppNotifier @Inject constructor(
     }
 
     private fun contentIntent(notification: GameReleaseNotification): PendingIntent {
-        val intent = notification.gameUrl
-            ?.takeIf { it.isNotBlank() }
-            ?.let { url ->
-                Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            }
-            ?: Intent(context, MainActivity::class.java)
-                .putExtra(MainActivity.EXTRA_OPEN_RELEASES, true)
+        val intent = Intent(context, MainActivity::class.java)
+            .putExtra(MainActivity.EXTRA_OPEN_GAME_ID, notification.gameId)
         return PendingIntent.getActivity(
             context,
             notification.notificationId,

@@ -87,7 +87,7 @@ import java.util.TimeZone
 fun ReleasesScreen(
     viewModel: ReleasesViewModel,
     onSettingsClick: () -> Unit,
-    onOpenGameUrl: (String) -> Unit,
+    onOpenGame: (Long) -> Unit,
     scrollToTopSignal: Int = 0
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -247,7 +247,7 @@ fun ReleasesScreen(
                         listState = listState,
                         followedGameIds = uiState.followedGameIds,
                         onBellClick = viewModel::onBellClick,
-                        onOpenGameUrl = onOpenGameUrl
+                        onOpenGame = onOpenGame
                     )
                     uiState.isBusy || (uiState.hasMorePages && uiState.error == null) -> {
                         SearchingState()
@@ -426,7 +426,7 @@ private fun ReleaseList(
     listState: LazyListState,
     followedGameIds: Set<Long>,
     onBellClick: (GameRelease) -> Unit,
-    onOpenGameUrl: (String) -> Unit
+    onOpenGame: (Long) -> Unit
 ) {
     LazyColumn(
         modifier = Modifier
@@ -451,7 +451,7 @@ private fun ReleaseList(
                     release = release,
                     isFollowed = release.id in followedGameIds,
                     onBellClick = { onBellClick(release) },
-                    onClick = { release.gameUrl?.let(onOpenGameUrl) },
+                    onClick = { onOpenGame(release.id) },
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
             }

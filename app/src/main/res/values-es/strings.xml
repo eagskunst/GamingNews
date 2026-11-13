@@ -186,5 +186,62 @@
     <string name="muted_articles_badge">Silenciado</string>
     <string name="all_muted_empty_title">Todo aquí está silenciado</string>
     <string name="all_muted_empty_message">Todos los artículos de esta vista coinciden con tus palabras silenciadas.</string>
-</resources>
 
+    <string name="game_detail_tab_about">Acerca de</string>
+    <string name="game_detail_tab_media">Multimedia</string>
+    <string name="game_detail_tab_related">Relacionado</string>
+    <string name="game_detail_share_cd">Compartir juego</string>
+    <string name="game_detail_error">No se pudo cargar este juego. Revisa tu conexión e inténtalo de nuevo.</string>
+    <plurals name="game_detail_user_score_label">
+        <item quantity="one">Usuarios de IGDB · %1$s valoración</item>
+        <item quantity="other">Usuarios de IGDB · %1$s valoraciones</item>
+    </plurals>
+    <plurals name="game_detail_critic_score_label">
+        <item quantity="one">Crítica · %1$s reseña</item>
+        <item quantity="other">Crítica · %1$s reseñas</item>
+    </plurals>
+    <plurals name="game_detail_days_until">
+        <item quantity="one">%1$d día</item>
+        <item quantity="other">%1$d días</item>
+    </plurals>
+    <string name="game_detail_until_release">para el lanzamiento · %1$s</string>
+    <string name="game_detail_today">Hoy</string>
+    <string name="game_detail_release_day">Día de lanzamiento · %1$s</string>
+    <string name="game_detail_expected_release">Lanzamiento previsto</string>
+    <plurals name="game_detail_hyped_label">
+        <item quantity="one">persona lo espera</item>
+        <item quantity="other">personas lo esperan</item>
+    </plurals>
+    <string name="game_detail_read_more">Leer más</string>
+    <string name="game_detail_show_less">Mostrar menos</string>
+    <string name="game_detail_genres">Géneros</string>
+    <string name="game_detail_available_on">Disponible en</string>
+    <plurals name="game_detail_platform_count">
+        <item quantity="one">%1$d plataforma</item>
+        <item quantity="other">%1$d plataformas</item>
+    </plurals>
+    <string name="game_detail_unknown_date">Fecha desconocida</string>
+    <string name="game_detail_developer">Desarrollador</string>
+    <string name="game_detail_publisher">Distribuidor</string>
+    <string name="game_detail_franchise">Franquicia</string>
+    <string name="game_detail_modes">Modos</string>
+    <string name="game_detail_age_rating">Clasificación por edad</string>
+    <string name="game_detail_screenshots">Capturas de pantalla</string>
+    <string name="game_detail_screenshot_cd">Captura %1$d de %2$s</string>
+    <string name="game_detail_images_disabled">Tienes las imágenes desactivadas. Actívalas para ver capturas de %1$s.</string>
+    <string name="game_detail_videos">Videos</string>
+    <string name="game_detail_no_media">Aún no hay capturas ni videos.</string>
+    <string name="game_detail_similar_games">Juegos similares</string>
+    <string name="game_detail_expansions">Expansiones y DLC</string>
+    <string name="game_detail_expansion_badge">Expansión</string>
+    <plurals name="game_detail_show_dlc">
+        <item quantity="one">Mostrar %1$d DLC</item>
+        <item quantity="other">Mostrar %1$d DLC</item>
+    </plurals>
+    <string name="game_detail_hide_dlc">Ocultar DLC</string>
+    <string name="game_detail_links">Tiendas y enlaces</string>
+    <string name="game_detail_link_official">Sitio oficial</string>
+    <string name="game_detail_no_related">Aún no hay nada relacionado.</string>
+    <string name="game_detail_follow">Seguir lanzamiento</string>
+    <string name="game_detail_following">Siguiendo</string>
+</resources>
