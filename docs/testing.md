@@ -55,9 +55,11 @@ app/src/androidTest/java/com/eagskunst/emmanuel/gamingnews/
   literals across test classes.
 - `testutil/fakes/` — one canonical, reusable fake per repository/DAO/notifier, shared across
   every use case/ViewModel/Compose UI test that needs it (`FakeNewsRepository`,
-  `FakeReleasesRepository`, `FakeFollowedGamesRepository`, `FakeTopicsRepository`,
-  `FakeUserPreferencesRepository`, `FakeArticleDao`, `FakeReleaseDao`, `FakeFollowedGameDao`,
-  `FakeReleaseNotifier`, `FakePlatformCatalog`).
+  `FakeReleasesRepository`, `FakeFollowedGamesRepository`, `FakeGameDetailsRepository`,
+  `FakeReviewsRepository`, `FakeTopicsRepository`, `FakeUserPreferencesRepository`,
+  `FakeFeedProvidersRepository`, `FakeMuteRulesRepository`, `FakeArticleReaderRepository`,
+  `FakeImageCacheRepository`, `FakeArticleDao`, `FakeReleaseDao`, `FakeFollowedGameDao`,
+  `FakeGameDetailsDao`, `FakeReleaseNotifier`, `FakePlatformCatalog`).
   **Always reuse these instead of writing a new private fake inside a test file** — this keeps
   fake behavior consistent and easy to evolve in one place as the interfaces change.
 

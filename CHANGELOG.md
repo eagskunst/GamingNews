@@ -15,6 +15,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The Releases tab is now called Games, with Releases as the default view and Followed next to it.
 - Followed games are kept after they release, shown as "Released", until you remove them. They stop sending reminders once released, and a released game with a later launch can be followed again.
 
+## [2.13.0] - 2026-11-12
+
+### Added
+- Game pages: tap any upcoming release to see its details, including scores or a release countdown, genres, per-platform release dates, screenshots, trailers, similar games, expansions and store links.
+- Follow a release right from its game page.
+
+### Changed
+- Release reminder notifications now open the game's page instead of its IGDB web page.
+
+## [2.12.1] - 2026-11-05
+
+### Changed
+- Release builds are now shrunk and obfuscated with R8, making the app download much lighter. No other changes in this release.
+
+## [2.12.0] - 2026-10-31
+
+### Added
+- Search your saved articles by source, with a clear message when nothing matches.
+- "Rate Gaming News" shortcut in Settings, and an occasional prompt to rate the app on Google Play (after 5 opened articles, at most once every 30 days).
+
+### Fixed
+- Notifications now use a monochrome gamepad icon instead of a solid white circle.
+
 ## [2.11.2] - 2026-10-27
 
 ### Fixed
