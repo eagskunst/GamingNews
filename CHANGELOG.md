@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.14.0] - 2026-11-18
+
+### Added
+- Followed view in the new Games tab: see every game you follow in one place, soonest release first, open its page with a tap, and remove follows with Undo.
+- Clear image cache in Settings: shows how much space cached images use and frees it after a confirmation.
+
+### Changed
+- The Releases tab is now called Games, with Releases as the default view and Followed next to it.
+- Followed games are kept after they release, shown as "Released", until you remove them. They stop sending reminders once released, and a released game with a later launch can be followed again.
+
 ## [2.11.2] - 2026-10-27
 
 ### Fixed
