@@ -244,4 +244,8 @@
     <string name="game_detail_no_related">Nothing related yet.</string>
     <string name="game_detail_follow">Follow release</string>
     <string name="game_detail_following">Following</string>
+    <string name="settings_clear_image_cache">Clear image cache</string>
+    <string name="settings_clear_image_cache_confirm_title">Clear image cache?</string>
+    <string name="settings_clear_image_cache_confirm_message">Cached images will be deleted and downloaded again the next time you view them.</string>
+    <string name="settings_image_cache_cleared">Image cache cleared</string>
 </resources>

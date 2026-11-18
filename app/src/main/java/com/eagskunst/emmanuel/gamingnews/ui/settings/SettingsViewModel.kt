@@ -10,6 +10,7 @@ import androidx.lifecycle.viewModelScope
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.ArticleOpenMode
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.ThemeMode
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.Topic
+import com.eagskunst.emmanuel.gamingnews.core.domain.repository.ImageCacheRepository
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.AddTopicUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetTopicsUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetUserPreferencesUseCase
@@ -26,6 +27,7 @@ import com.eagskunst.emmanuel.gamingnews.worker.DailyReminderScheduler
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -40,6 +42,7 @@ import javax.inject.Inject
 sealed interface SettingsUiEvent {
     data object RequestNotificationPermission : SettingsUiEvent
     data object ShowNotificationPermissionDenied : SettingsUiEvent
+    data object ImageCacheCleared : SettingsUiEvent
 }
 
 data class SettingsUiState(
@@ -53,6 +56,7 @@ data class SettingsUiState(
     val articleOpenMode: ArticleOpenMode = ArticleOpenMode.READER_MODE,
     val topics: List<Topic> = emptyList(),
     val muteRuleCount: Int = 0,
+    val imageCacheSizeBytes: Long = 0,
     val isLoading: Boolean = true
 )
 
@@ -71,17 +75,21 @@ class SettingsViewModel @Inject constructor(
     private val addTopicUseCase: AddTopicUseCase,
     private val removeTopicUseCase: RemoveTopicUseCase,
     observeMuteRulesUseCase: ObserveMuteRulesUseCase,
+    private val imageCacheRepository: ImageCacheRepository,
     private val reminderScheduler: DailyReminderScheduler
 ) : ViewModel() {
 
     private val _uiEvent = MutableSharedFlow<SettingsUiEvent>()
     val uiEvent: SharedFlow<SettingsUiEvent> = _uiEvent.asSharedFlow()
 
+    private val imageCacheSizeBytes = MutableStateFlow(0L)
+
     val uiState: StateFlow<SettingsUiState> = combine(
         getUserPreferencesUseCase(),
         getTopicsUseCase(),
-        observeMuteRulesUseCase()
-    ) { preferences, topics, muteRules ->
+        observeMuteRulesUseCase(),
+        imageCacheSizeBytes
+    ) { preferences, topics, muteRules, imageCacheSize ->
         SettingsUiState(
             themeMode = preferences.themeMode,
             dynamicColor = preferences.dynamicColor,
@@ -93,6 +101,7 @@ class SettingsViewModel @Inject constructor(
             articleOpenMode = preferences.articleOpenMode,
             topics = topics,
             muteRuleCount = muteRules.size,
+            imageCacheSizeBytes = imageCacheSize,
             isLoading = false
         )
     }.stateIn(
@@ -100,6 +109,18 @@ class SettingsViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = SettingsUiState()
     )
+
+    init {
+        viewModelScope.launch { imageCacheSizeBytes.value = imageCacheRepository.sizeBytes() }
+    }
+
+    fun clearImageCache() {
+        viewModelScope.launch {
+            imageCacheRepository.clear()
+            imageCacheSizeBytes.value = imageCacheRepository.sizeBytes()
+            _uiEvent.emit(SettingsUiEvent.ImageCacheCleared)
+        }
+    }
 
     fun setThemeMode(mode: ThemeMode) {
         viewModelScope.launch { updateThemeModeUseCase(mode) }

@@ -2,6 +2,7 @@ package com.eagskunst.emmanuel.gamingnews.ui.settings
 
 import android.Manifest
 import android.app.Application
+import android.text.format.Formatter
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsOff
 import androidx.compose.ui.test.assertIsOn
@@ -9,6 +10,7 @@ import androidx.compose.ui.test.isToggleable
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.test.core.app.ApplicationProvider
 import androidx.work.testing.WorkManagerTestInitHelper
 import org.robolectric.Shadows
@@ -27,6 +29,7 @@ import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateLoadImagesUse
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateThemeModeUseCase
 import com.eagskunst.emmanuel.gamingnews.testutil.Fixtures
 import com.eagskunst.emmanuel.gamingnews.testutil.MainDispatcherRule
+import com.eagskunst.emmanuel.gamingnews.testutil.fakes.FakeImageCacheRepository
 import com.eagskunst.emmanuel.gamingnews.testutil.fakes.FakeMuteRulesRepository
 import com.eagskunst.emmanuel.gamingnews.testutil.fakes.FakeTopicsRepository
 import com.eagskunst.emmanuel.gamingnews.testutil.fakes.FakeUserPreferencesRepository
@@ -54,6 +57,7 @@ class SettingsScreenTest {
     private val fakeUserPreferencesRepository = FakeUserPreferencesRepository()
     private val fakeTopicsRepository = FakeTopicsRepository()
     private val fakeMuteRulesRepository = FakeMuteRulesRepository()
+    private val fakeImageCacheRepository = FakeImageCacheRepository(currentSizeBytes = 48_000_000L)
 
     @Before
     fun setUp() {
@@ -82,6 +86,7 @@ class SettingsScreenTest {
             addTopicUseCase = AddTopicUseCase(fakeTopicsRepository),
             removeTopicUseCase = RemoveTopicUseCase(fakeTopicsRepository),
             observeMuteRulesUseCase = ObserveMuteRulesUseCase(fakeMuteRulesRepository),
+            imageCacheRepository = fakeImageCacheRepository,
             reminderScheduler = DailyReminderScheduler(context)
         )
     }
@@ -163,5 +168,48 @@ class SettingsScreenTest {
 
         composeTestRule.onNodeWithText("Daily reminder time").assertExists()
         composeTestRule.onNodeWithText("21:00", substring = true).assertExists()
+    }
+
+    private fun formattedSize(bytes: Long): String =
+        Formatter.formatShortFileSize(ApplicationProvider.getApplicationContext<Application>(), bytes)
+
+    @Test
+    fun `given cached images when screen is shown then the clear image cache entry displays the cache size`() {
+        setContent()
+
+        composeTestRule.onNodeWithText("Clear image cache").assertExists()
+        composeTestRule.onNodeWithText(formattedSize(48_000_000L)).assertExists()
+    }
+
+    @Test
+    fun `given the clear image cache dialog is shown when confirmed then the cache is cleared and the size refreshes`() {
+        setContent()
+
+        composeTestRule.onNodeWithText("Clear image cache").performScrollTo().performClick()
+        composeTestRule.waitForIdle()
+        composeTestRule.onNodeWithText("Clear image cache?").assertExists()
+
+        composeTestRule.onNodeWithText("OK").performClick()
+        composeTestRule.waitForIdle()
+
+        assertEquals(1, fakeImageCacheRepository.clearCount)
+        composeTestRule.onNodeWithText("Clear image cache?").assertDoesNotExist()
+        composeTestRule.onNodeWithText(formattedSize(0L)).assertExists()
+        composeTestRule.onNodeWithText("Image cache cleared").assertExists()
+    }
+
+    @Test
+    fun `given the clear image cache dialog is shown when cancelled then nothing is cleared and the dialog closes`() {
+        setContent()
+
+        composeTestRule.onNodeWithText("Clear image cache").performScrollTo().performClick()
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onNodeWithText("CANCEL").performClick()
+        composeTestRule.waitForIdle()
+
+        assertEquals(0, fakeImageCacheRepository.clearCount)
+        composeTestRule.onNodeWithText("Clear image cache?").assertDoesNotExist()
+        composeTestRule.onNodeWithText(formattedSize(48_000_000L)).assertExists()
     }
 }

@@ -244,4 +244,8 @@
     <string name="game_detail_no_related">Aún no hay nada relacionado.</string>
     <string name="game_detail_follow">Seguir lanzamiento</string>
     <string name="game_detail_following">Siguiendo</string>
+    <string name="settings_clear_image_cache">Borrar caché de imágenes</string>
+    <string name="settings_clear_image_cache_confirm_title">¿Borrar la caché de imágenes?</string>
+    <string name="settings_clear_image_cache_confirm_message">Las imágenes en caché se eliminarán y se descargarán de nuevo la próxima vez que las veas.</string>
+    <string name="settings_image_cache_cleared">Caché de imágenes borrada</string>
 </resources>

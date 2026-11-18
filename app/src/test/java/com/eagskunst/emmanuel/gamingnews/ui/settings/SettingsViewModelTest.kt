@@ -19,6 +19,7 @@ import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateLoadImagesUse
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UpdateThemeModeUseCase
 import com.eagskunst.emmanuel.gamingnews.testutil.Fixtures
 import com.eagskunst.emmanuel.gamingnews.testutil.MainDispatcherRule
+import com.eagskunst.emmanuel.gamingnews.testutil.fakes.FakeImageCacheRepository
 import com.eagskunst.emmanuel.gamingnews.testutil.fakes.FakeMuteRulesRepository
 import com.eagskunst.emmanuel.gamingnews.testutil.fakes.FakeTopicsRepository
 import com.eagskunst.emmanuel.gamingnews.testutil.fakes.FakeUserPreferencesRepository
@@ -39,6 +40,7 @@ class SettingsViewModelTest {
     private val fakeUserPreferencesRepository = FakeUserPreferencesRepository()
     private val fakeTopicsRepository = FakeTopicsRepository()
     private val fakeMuteRulesRepository = FakeMuteRulesRepository()
+    private val fakeImageCacheRepository = FakeImageCacheRepository(currentSizeBytes = 48_000_000L)
     private val context: Context = mockk(relaxed = true)
     private val reminderScheduler: DailyReminderScheduler = mockk(relaxed = true)
 
@@ -56,6 +58,7 @@ class SettingsViewModelTest {
         addTopicUseCase = AddTopicUseCase(fakeTopicsRepository),
         removeTopicUseCase = RemoveTopicUseCase(fakeTopicsRepository),
         observeMuteRulesUseCase = ObserveMuteRulesUseCase(fakeMuteRulesRepository),
+        imageCacheRepository = fakeImageCacheRepository,
         reminderScheduler = reminderScheduler
     )
 
@@ -170,5 +173,37 @@ class SettingsViewModelTest {
         viewModel.removeTopic(topic)
 
         assertEquals(emptyList<Topic>(), fakeTopicsRepository.topicsFlow.value)
+    }
+
+    @Test
+    fun `given cached images when the view model is created then uiState exposes the cache size`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            assertEquals(48_000_000L, expectMostRecentItem().imageCacheSizeBytes)
+        }
+    }
+
+    @Test
+    fun `given cached images when clearImageCache is called then the cache is cleared and the size is re-read`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.clearImageCache()
+
+        assertEquals(1, fakeImageCacheRepository.clearCount)
+        viewModel.uiState.test {
+            assertEquals(0L, expectMostRecentItem().imageCacheSizeBytes)
+        }
+    }
+
+    @Test
+    fun `when clearImageCache is called then it emits ImageCacheCleared event`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.uiEvent.test {
+            viewModel.clearImageCache()
+
+            assertTrue(awaitItem() is SettingsUiEvent.ImageCacheCleared)
+        }
     }
 }

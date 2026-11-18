@@ -2,6 +2,7 @@ package com.eagskunst.emmanuel.gamingnews.ui.settings
 
 import android.Manifest
 import android.os.Build
+import android.text.format.Formatter
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
@@ -56,6 +57,7 @@ import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -86,6 +88,7 @@ fun SettingsScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
     val permissionDeniedMessage = stringResource(R.string.notification_permission_rationale)
+    val imageCacheClearedMessage = stringResource(R.string.settings_image_cache_cleared)
 
     val requestPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -103,6 +106,12 @@ fun SettingsScreen(
                 is SettingsUiEvent.ShowNotificationPermissionDenied -> {
                     coroutineScope.launch {
                         snackbarHostState.showSnackbar(permissionDeniedMessage)
+                    }
+                }
+
+                is SettingsUiEvent.ImageCacheCleared -> {
+                    coroutineScope.launch {
+                        snackbarHostState.showSnackbar(imageCacheClearedMessage)
                     }
                 }
             }
@@ -137,6 +146,7 @@ fun SettingsScreen(
             onDailyReminderChange = viewModel::toggleDailyReminder,
             onDailyReminderHourChange = viewModel::setDailyReminderHour,
             onArticleOpenModeChange = viewModel::setArticleOpenMode,
+            onClearImageCache = viewModel::clearImageCache,
             onCustomizeFeedClick = onCustomizeFeedClick,
             onMutedWordsClick = onMutedWordsClick,
             onAddTopic = viewModel::addTopic,
@@ -160,6 +170,7 @@ private fun SettingsContent(
     onDailyReminderChange: (Boolean) -> Unit = {},
     onDailyReminderHourChange: (Int) -> Unit = {},
     onArticleOpenModeChange: (ArticleOpenMode) -> Unit = {},
+    onClearImageCache: () -> Unit = {},
     onCustomizeFeedClick: () -> Unit = {},
     onMutedWordsClick: () -> Unit = {},
     onAddTopic: (String) -> Unit = {},
@@ -207,6 +218,10 @@ private fun SettingsContent(
         ArticleOpenModeRow(
             selectedMode = uiState.articleOpenMode,
             onModeSelected = onArticleOpenModeChange
+        )
+        ClearImageCacheRow(
+            sizeBytes = uiState.imageCacheSizeBytes,
+            onConfirm = onClearImageCache
         )
 
         HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
@@ -621,6 +636,54 @@ private fun ArticleOpenModeRow(
                 }
             },
             confirmButton = {
+                TextButton(onClick = { showDialog = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
+}
+
+@Composable
+private fun ClearImageCacheRow(
+    sizeBytes: Long,
+    onConfirm: () -> Unit
+) {
+    var showDialog by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { showDialog = true }
+            .padding(vertical = 12.dp)
+    ) {
+        Text(
+            text = stringResource(R.string.settings_clear_image_cache),
+            style = MaterialTheme.typography.bodyLarge
+        )
+        Text(
+            text = Formatter.formatShortFileSize(LocalContext.current, sizeBytes),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text(stringResource(R.string.settings_clear_image_cache_confirm_title)) },
+            text = { Text(stringResource(R.string.settings_clear_image_cache_confirm_message)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onConfirm()
+                        showDialog = false
+                    }
+                ) {
+                    Text(stringResource(R.string.confirm))
+                }
+            },
+            dismissButton = {
                 TextButton(onClick = { showDialog = false }) {
                     Text(stringResource(R.string.cancel))
                 }
