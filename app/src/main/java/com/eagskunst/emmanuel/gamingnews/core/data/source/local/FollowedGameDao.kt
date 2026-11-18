@@ -11,8 +11,8 @@ import java.util.Date
 @Dao
 interface FollowedGameDao {
 
-    @Query("SELECT gameId FROM followed_games")
-    fun observeIds(): Flow<List<Long>>
+    @Query("SELECT * FROM followed_games")
+    fun observeAll(): Flow<List<FollowedGameEntity>>
 
     @Query("SELECT * FROM followed_games")
     suspend fun getAll(): List<FollowedGameEntity>
@@ -25,10 +25,6 @@ interface FollowedGameDao {
 
     @Query("DELETE FROM followed_games WHERE gameId = :gameId")
     suspend fun delete(gameId: Long)
-
-    /** Drops games whose stored release day lies before [epochDay]. */
-    @Query("DELETE FROM followed_games WHERE releaseEpochDay < :epochDay")
-    suspend fun deleteReleasedBefore(epochDay: Long)
 
     /** Commits the post-sync state of a follow (a single UPDATE is already atomic). */
     @Query(

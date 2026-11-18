@@ -10,6 +10,8 @@ import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotSelected
+import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.hasProgressBarRangeInfo
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
@@ -28,7 +30,7 @@ import com.eagskunst.emmanuel.gamingnews.core.domain.model.UpcomingReleaseWindow
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.PlatformCatalog
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.FollowGameUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetReleasesUseCase
-import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.ObserveFollowedGameIdsUseCase
+import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.ObserveFollowedGamesUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UnfollowGameUseCase
 import com.eagskunst.emmanuel.gamingnews.testutil.Fixtures
 import com.eagskunst.emmanuel.gamingnews.testutil.MainDispatcherRule
@@ -48,6 +50,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import java.time.LocalDate
 import java.util.Date
 
 @RunWith(RobolectricTestRunner::class)
@@ -77,20 +80,29 @@ class ReleasesScreenTest {
         getReleases = GetReleasesUseCase(releases, catalog),
         releasesRepository = releases,
         userPreferencesRepository = prefs,
-        observeFollowedGameIds = ObserveFollowedGameIdsUseCase(followedGames),
+        observeFollowedGames = ObserveFollowedGamesUseCase(followedGames),
         followGame = FollowGameUseCase(followedGames, scheduler),
         unfollowGame = UnfollowGameUseCase(followedGames, scheduler),
         catalog = catalog
     )
 
-    private fun setContent(viewModel: ReleasesViewModel) {
+    private fun setContent(viewModel: ReleasesViewModel, onOpenGame: (Long) -> Unit = {}) {
         composeTestRule.setContent {
             ReleasesScreen(
                 viewModel = viewModel,
                 onSettingsClick = {},
-                onOpenGame = {}
+                onOpenGame = onOpenGame
             )
         }
+    }
+
+    private val isTab = SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Tab)
+
+    private fun today(): Long = LocalDate.now().toEpochDay()
+
+    private fun openFollowedTab() {
+        composeTestRule.onNode(isTab and hasText("Followed")).performClick()
+        settle()
     }
 
     /** Drains resumes queued on the unconfined main dispatcher, then settles composition. */
@@ -456,7 +468,7 @@ class ReleasesScreenTest {
         )
         val releases = FakeReleasesRepository(Result.Success(listOf(release)))
         val followedGames = FakeFollowedGamesRepository(
-            listOf(Fixtures.followedGame(gameId = 10L, name = "Followed Game"))
+            listOf(Fixtures.followedGame(gameId = 10L, name = "Followed Game", releaseEpochDay = today() + 5))
         )
         setContent(viewModel(releases, followedGames = followedGames))
         settle()
@@ -500,5 +512,108 @@ class ReleasesScreenTest {
         val stored = followedGames.getAll().single()
         org.junit.Assert.assertEquals(10L, stored.gameId)
         org.junit.Assert.assertEquals(setOf(ReminderOffset.RELEASE_DAY), stored.offsets)
+    }
+
+    @Test
+    fun `given the games screen when shown then both tabs render with Releases selected`() {
+        setContent(viewModel())
+        settle()
+
+        composeTestRule.onNodeWithText("Games").assertIsDisplayed()
+        composeTestRule.onNode(isTab and hasText("Releases")).assertIsSelected()
+        composeTestRule.onNode(isTab and hasText("Followed")).assertIsNotSelected()
+        composeTestRule.onNodeWithTag("platform_filter_row").assertIsDisplayed()
+    }
+
+    @Test
+    fun `given follows when the Followed tab is selected then rows show and filters search and refresh hide`() {
+        val followedGames = FakeFollowedGamesRepository(
+            listOf(
+                Fixtures.followedGame(
+                    gameId = 10, name = "Upcoming Game",
+                    releaseEpochDay = today() + 3, platformsLabel = "PC · PS5"
+                )
+            )
+        )
+        setContent(viewModel(followedGames = followedGames))
+        settle()
+
+        openFollowedTab()
+
+        composeTestRule.onNode(isTab and hasText("Followed")).assertIsSelected()
+        composeTestRule.onNodeWithText("Upcoming Game").assertIsDisplayed()
+        composeTestRule.onNodeWithText("PC").assertIsDisplayed()
+        composeTestRule.onNodeWithText("PS5").assertIsDisplayed()
+        composeTestRule
+            .onNodeWithContentDescription(
+                appContext().getString(R.string.releases_unfollow_cd, "Upcoming Game")
+            )
+            .assertIsDisplayed()
+        composeTestRule.onNodeWithTag("followed_remove_10").assertDoesNotExist()
+        composeTestRule.onNodeWithTag("platform_filter_row").assertDoesNotExist()
+        composeTestRule
+            .onNodeWithContentDescription(
+                appContext().getString(R.string.releases_refresh_content_description)
+            )
+            .assertDoesNotExist()
+        composeTestRule
+            .onNodeWithContentDescription(appContext().getString(R.string.search_hint))
+            .assertDoesNotExist()
+    }
+
+    @Test
+    fun `given a released follow when the Followed tab is shown then the Released label and remove button replace the bell`() = runTest {
+        val followedGames = FakeFollowedGamesRepository(
+            listOf(
+                Fixtures.followedGame(gameId = 10, name = "Old Game", releaseEpochDay = today() - 30)
+            )
+        )
+        setContent(viewModel(followedGames = followedGames))
+        settle()
+
+        openFollowedTab()
+
+        composeTestRule.onNodeWithText("Released · ", substring = true).assertIsDisplayed()
+        composeTestRule.onNodeWithTag("followed_bell_10").assertDoesNotExist()
+        composeTestRule
+            .onNodeWithContentDescription(
+                appContext().getString(R.string.followed_remove_cd, "Old Game")
+            )
+            .performClick()
+        settle()
+
+        assertEquals(emptyList<Long>(), followedGames.getAll().map { it.gameId })
+        composeTestRule.onAllNodesWithText("Old Game").assertCountEquals(0)
+    }
+
+    @Test
+    fun `given no follows when Browse releases is tapped in the empty Followed tab then Releases is selected again`() {
+        setContent(viewModel())
+        settle()
+
+        openFollowedTab()
+
+        composeTestRule.onNodeWithText("You aren’t following any games yet").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Browse releases").performClick()
+        settle()
+
+        composeTestRule.onNode(isTab and hasText("Releases")).assertIsSelected()
+        composeTestRule.onNodeWithTag("platform_filter_row").assertIsDisplayed()
+    }
+
+    @Test
+    fun `given a followed row when it is tapped then the open detail callback receives the game id`() {
+        val followedGames = FakeFollowedGamesRepository(
+            listOf(Fixtures.followedGame(gameId = 77, name = "Tap Me", releaseEpochDay = today() + 3))
+        )
+        val opened = mutableListOf<Long>()
+        setContent(viewModel(followedGames = followedGames), onOpenGame = { opened += it })
+        settle()
+
+        openFollowedTab()
+        composeTestRule.onNodeWithText("Tap Me").performClick()
+        settle()
+
+        assertEquals(listOf(77L), opened)
     }
 }

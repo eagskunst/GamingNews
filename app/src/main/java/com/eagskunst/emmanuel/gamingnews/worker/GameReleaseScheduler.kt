@@ -6,15 +6,17 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import com.eagskunst.emmanuel.gamingnews.core.domain.model.isActive
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.FollowedGamesRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.time.LocalDate
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
  * Owns the unique periodic [GameReleaseCheckWorker]: a daily 09:00-local check that runs only
- * while at least one game is followed. Enqueue policies: KEEP when a follow is added (an
+ * while at least one follow is still active (see [isActive]). Enqueue policies: KEEP when a follow is added (an
  * existing schedule must not be disturbed), REPLACE when the schedule itself has to be
  * re-anchored — e.g. after a timezone change (UPDATE would preserve the stale delay).
  */
@@ -34,9 +36,10 @@ class GameReleaseScheduler @Inject constructor(
         enqueue(ExistingPeriodicWorkPolicy.REPLACE)
     }
 
-    /** Cancels the check when no followed games remain; leaves it running otherwise. */
-    suspend fun cancelIfNoneFollowed() {
-        if (followedGamesRepository.getAll().isEmpty()) cancel()
+    /** Cancels the check when no active follows remain; leaves it running otherwise. */
+    suspend fun cancelIfNoneActive() {
+        val today = LocalDate.now().toEpochDay()
+        if (followedGamesRepository.getAll().none { it.isActive(today) }) cancel()
     }
 
     fun cancel() {

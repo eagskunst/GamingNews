@@ -15,7 +15,8 @@ class FakeFollowedGameDao : FollowedGameDao {
 
     private val rowsFlow = MutableStateFlow<Map<Long, FollowedGameEntity>>(emptyMap())
 
-    override fun observeIds(): Flow<List<Long>> = rowsFlow.map { it.keys.toList() }
+    override fun observeAll(): Flow<List<FollowedGameEntity>> =
+        rowsFlow.map { it.values.toList() }
 
     override suspend fun getAll(): List<FollowedGameEntity> = rowsFlow.value.values.toList()
 
@@ -27,10 +28,6 @@ class FakeFollowedGameDao : FollowedGameDao {
 
     override suspend fun delete(gameId: Long) {
         rowsFlow.value = rowsFlow.value - gameId
-    }
-
-    override suspend fun deleteReleasedBefore(epochDay: Long) {
-        rowsFlow.value = rowsFlow.value.filterValues { it.releaseEpochDay >= epochDay }
     }
 
     override suspend fun updateSync(

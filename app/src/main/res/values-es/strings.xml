@@ -44,6 +44,12 @@
     <string name="reminder_offset_week_before">1 semana antes</string>
     <string name="reminder_removed">Se quitaron los recordatorios de %1$s</string>
     <string name="action_undo">Deshacer</string>
+    <string name="games_title">Juegos</string>
+    <string name="games_tab_followed">Seguidos</string>
+    <string name="followed_released_label">Lanzado · %1$s</string>
+    <string name="followed_remove_cd">Quitar %1$s de los juegos seguidos</string>
+    <string name="followed_empty">Aún no sigues ningún juego</string>
+    <string name="followed_browse_releases">Ver lanzamientos</string>
     <string name="title_activity_settings">Configuración</string>
     <string name="summary_topics">Cambia los temas de los cuales quieres recibir notificaciones</string>
     <string name="add_topic">Añadir un tema</string>

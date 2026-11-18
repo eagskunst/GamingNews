@@ -20,14 +20,6 @@ class DefaultFollowedGamesRepositoryTest {
     )
 
     @Test
-    fun `given follows when ids are observed then the game id set is emitted`() = runTest {
-        repository.follow(Fixtures.followedGame(gameId = 10))
-        repository.follow(Fixtures.followedGame(gameId = 20))
-
-        assertEquals(setOf(10L, 20L), repository.observeFollowedGameIds().first())
-    }
-
-    @Test
     fun `when a game is followed then it is returned by getAll`() = runTest {
         val game = Fixtures.followedGame(gameId = 10, name = "Followed Game")
 
@@ -89,12 +81,16 @@ class DefaultFollowedGamesRepositoryTest {
     }
 
     @Test
-    fun `when pruning then only games released before the day are removed`() = runTest {
-        repository.follow(Fixtures.followedGame(gameId = 10, releaseEpochDay = 19_999))
-        repository.follow(Fixtures.followedGame(gameId = 20, releaseEpochDay = 20_000))
+    fun `given follows when all rows are observed then full games are emitted and track changes`() = runTest {
+        val first = Fixtures.followedGame(gameId = 10, name = "First", releaseEpochDay = 19_999)
+        val second = Fixtures.followedGame(gameId = 20, name = "Second", releaseEpochDay = 20_000)
+        repository.follow(first)
+        repository.follow(second)
 
-        repository.pruneReleasedBefore(20_000)
+        assertEquals(setOf(first, second), repository.observeAll().first().toSet())
 
-        assertEquals(listOf(20L), repository.getAll().map { it.gameId })
+        repository.unfollow(10)
+
+        assertEquals(listOf(second), repository.observeAll().first())
     }
 }

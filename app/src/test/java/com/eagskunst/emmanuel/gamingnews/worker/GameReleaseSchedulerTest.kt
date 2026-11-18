@@ -15,6 +15,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import java.time.LocalDate
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
@@ -50,20 +51,35 @@ class GameReleaseSchedulerTest {
     }
 
     @Test
-    fun `given follows exist when cancelIfNoneFollowed runs then the work stays scheduled`() = runTest {
-        followedGamesRepository.follow(Fixtures.followedGame(gameId = 10))
+    fun `given an active follow when cancelIfNoneActive runs then the work stays scheduled`() = runTest {
+        followedGamesRepository.follow(
+            Fixtures.followedGame(gameId = 10, releaseEpochDay = LocalDate.now().toEpochDay() - 7)
+        )
         scheduler.ensureScheduled()
 
-        scheduler.cancelIfNoneFollowed()
+        scheduler.cancelIfNoneActive()
 
         assertEquals(WorkInfo.State.ENQUEUED, workState("game_release_check"))
     }
 
     @Test
-    fun `given no follows when cancelIfNoneFollowed runs then the work is cancelled`() = runTest {
+    fun `given only long released follows when cancelIfNoneActive runs then the work is cancelled`() = runTest {
+        followedGamesRepository.follow(
+            Fixtures.followedGame(gameId = 10, releaseEpochDay = LocalDate.now().toEpochDay() - 30)
+        )
         scheduler.ensureScheduled()
 
-        scheduler.cancelIfNoneFollowed()
+        scheduler.cancelIfNoneActive()
+
+        assertTrue(workState("game_release_check") == null ||
+            workState("game_release_check") == WorkInfo.State.CANCELLED)
+    }
+
+    @Test
+    fun `given no follows when cancelIfNoneActive runs then the work is cancelled`() = runTest {
+        scheduler.ensureScheduled()
+
+        scheduler.cancelIfNoneActive()
 
         assertTrue(workState("game_release_check") == null ||
             workState("game_release_check") == WorkInfo.State.CANCELLED)

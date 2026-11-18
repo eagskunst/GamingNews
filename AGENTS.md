@@ -54,10 +54,13 @@ These are exposed as `BuildConfig.TWITCH_CLIENT_ID` and `BuildConfig.TWITCH_CLIE
 8. Game release reminders: users can follow exact-date releases from the Releases tab
    (notification bell + reminder-offset sheet). Follows persist in Room (`followed_games`,
    DB version 6), a daily 09:00 WorkManager check posts localized reminders and silently
-   re-syncs changed release dates (the IGDB fetch is bounded below by the prune horizon
-   and each game keeps the release row closest to its stored day, so historical
-   per-platform launches can't corrupt follows). All notification posting goes through
-   `AppNotifier`/`ReleaseNotifier`.
+   re-syncs changed release dates. Only *active* follows (unreleased, or released at most
+   `ACTIVE_FOLLOW_GRACE_DAYS` = 7 days ago) take part: the IGDB fetch is bounded below by
+   that horizon and each game keeps the release row closest to its stored day, so
+   historical per-platform launches can't corrupt follows. Older follows are never pruned,
+   fetched, reconciled or notified — they stay in Room until the user removes them — and
+   the check is cancelled once no active follow remains. All notification posting goes
+   through `AppNotifier`/`ReleaseNotifier`.
 
 9. Game detail page (issue #8): tapping a Releases card or a release notification opens
    `ui/gamedetail` (About / Media / Related tabs) for the IGDB game ID. Details come from one
@@ -66,6 +69,12 @@ These are exposed as `BuildConfig.TWITCH_CLIENT_ID` and `BuildConfig.TWITCH_CLIE
    button only shows while a tracked platform still has an exact upcoming date. New DB
    versions need their schema JSON copied into `app/src/androidTest/assets/` for the
    migration tests.
+
+10. Games tab (issue #26): the Releases destination is labelled "Games" and
+    `ui/releases/ReleasesScreen` has two tap-only top tabs (`rememberSaveable`): Releases
+    (default, unchanged) and Followed, which lists every `followed_games` row
+    (`FollowedGamesRepository.observeAll()`, ordered by `sortedForFollowedList`) with
+    unfollow/remove + Undo and no search, filters or refresh.
 
 ## Agent Skills
 

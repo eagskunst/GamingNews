@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.Intent.ACTION_TIMEZONE_CHANGED
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.UserPreferences
+import com.eagskunst.emmanuel.gamingnews.core.domain.model.isActive
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.FollowedGamesRepository
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.UserPreferencesRepository
 import com.eagskunst.emmanuel.gamingnews.worker.DailyReminderScheduler
@@ -15,6 +16,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import javax.inject.Inject
 
 /**
@@ -44,7 +46,8 @@ class TimeZoneChangedReceiver : BroadcastReceiver() {
         CoroutineScope(SupervisorJob() + Dispatchers.Default).launch {
             try {
                 reschedule(reminderScheduler, userPreferencesRepository.userPreferences.first())
-                if (followedGamesRepository.getAll().isNotEmpty()) {
+                val today = LocalDate.now().toEpochDay()
+                if (followedGamesRepository.getAll().any { it.isActive(today) }) {
                     releaseScheduler.reschedule()
                 }
             } finally {

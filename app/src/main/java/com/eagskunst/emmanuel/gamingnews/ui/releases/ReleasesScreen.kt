@@ -42,19 +42,24 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -76,10 +81,14 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import com.eagskunst.emmanuel.gamingnews.R
+import com.eagskunst.emmanuel.gamingnews.core.domain.model.FollowedGame
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.GameRelease
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.PlatformSelectionNotice
+import com.eagskunst.emmanuel.gamingnews.core.domain.model.isReleased
 import com.eagskunst.emmanuel.gamingnews.ui.components.MainTopAppBar
 import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
 
@@ -101,6 +110,9 @@ fun ReleasesScreen(
     val groupedReleases = remember(uiState.releases) {
         uiState.releases.groupBy { monthFormatter.format(it.releaseDate).uppercase(Locale.getDefault()) }
     }
+    // Saveable only: survives rotation, resets to Releases on a cold start.
+    var selectedTab by rememberSaveable { mutableIntStateOf(RELEASES_TAB) }
+    val showFollowed = selectedTab == FOLLOWED_TAB
     val listState = rememberLazyListState()
     val shouldLoadMore = remember {
         derivedStateOf {
@@ -175,17 +187,35 @@ fun ReleasesScreen(
         // navigation bar; only consume the top status bar inset here to avoid double padding.
         contentWindowInsets = WindowInsets.statusBars,
         topBar = {
-            MainTopAppBar(
-                title = stringResource(R.string.nextReleases),
-                searchQuery = uiState.searchQuery,
-                onSearchQueryChange = viewModel::onSearchQueryChange,
-                onSettingsClick = onSettingsClick
-            )
+            Column {
+                MainTopAppBar(
+                    title = stringResource(R.string.games_title),
+                    searchQuery = uiState.searchQuery,
+                    onSearchQueryChange = viewModel::onSearchQueryChange,
+                    onSettingsClick = onSettingsClick,
+                    showSearch = !showFollowed
+                )
+                PrimaryTabRow(
+                    selectedTabIndex = selectedTab,
+                    containerColor = MaterialTheme.colorScheme.background
+                ) {
+                    Tab(
+                        selected = !showFollowed,
+                        onClick = { selectedTab = RELEASES_TAB },
+                        text = { Text(stringResource(R.string.nextReleases)) }
+                    )
+                    Tab(
+                        selected = showFollowed,
+                        onClick = { selectedTab = FOLLOWED_TAB },
+                        text = { Text(stringResource(R.string.games_tab_followed)) }
+                    )
+                }
+            }
         },
         floatingActionButton = {
             // Scaffold lifts a visible snackbar above the FAB, leaving it floating over the
             // cards; hiding the FAB instead lets the snackbar anchor above the bottom nav.
-            if (snackbarHostState.currentSnackbarData == null) {
+            if (!showFollowed && snackbarHostState.currentSnackbarData == null) {
                 FloatingActionButton(onClick = viewModel::refresh) {
                     Icon(
                         imageVector = Icons.Default.Refresh,
@@ -196,6 +226,16 @@ fun ReleasesScreen(
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
+        if (showFollowed) {
+            FollowedGamesList(
+                games = uiState.followedGames,
+                onUnfollow = viewModel::onUnfollowClick,
+                onOpenGame = onOpenGame,
+                onBrowseReleases = { selectedTab = RELEASES_TAB },
+                modifier = Modifier.padding(padding)
+            )
+            return@Scaffold
+        }
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -470,7 +510,89 @@ private fun ReleaseList(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun FollowedGamesList(
+    games: List<FollowedGame>,
+    onUnfollow: (Long) -> Unit,
+    onOpenGame: (Long) -> Unit,
+    onBrowseReleases: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    if (games.isEmpty()) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+            modifier = modifier
+                .fillMaxSize()
+                .padding(24.dp)
+        ) {
+            Text(
+                text = stringResource(R.string.followed_empty),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
+            )
+            TextButton(onClick = onBrowseReleases) {
+                Text(stringResource(R.string.followed_browse_releases))
+            }
+        }
+        return
+    }
+    // Follows can be a year away or long released, so unlike release cards the year shows.
+    val dateFormatter = remember {
+        SimpleDateFormat("MMM d, yyyy", Locale.getDefault()).apply {
+            timeZone = TimeZone.getTimeZone("UTC")
+        }
+    }
+    val today = remember { LocalDate.now().toEpochDay() }
+    LazyColumn(
+        modifier = modifier
+            .fillMaxSize()
+            .testTag("followed_list"),
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        items(games, key = { it.gameId }) { game ->
+            val isReleased = game.isReleased(today)
+            val date = dateFormatter.format(Date(game.releaseEpochDay * MILLIS_PER_DAY))
+            GameCard(
+                name = game.name,
+                coverUrl = game.coverUrl,
+                // The label is stored joined by FollowGameUseCase; split it back into chips.
+                platforms = game.platformsLabel.split(" · ").filter { it.isNotBlank() },
+                dateLabel = if (isReleased) {
+                    stringResource(R.string.followed_released_label, date)
+                } else {
+                    date
+                },
+                onClick = { onOpenGame(game.gameId) }
+            ) {
+                IconButton(
+                    onClick = { onUnfollow(game.gameId) },
+                    modifier = Modifier.testTag(
+                        if (isReleased) "followed_remove_${game.gameId}"
+                        else "followed_bell_${game.gameId}"
+                    )
+                ) {
+                    Icon(
+                        imageVector = if (isReleased) {
+                            Icons.Default.Close
+                        } else {
+                            Icons.Filled.NotificationsActive
+                        },
+                        contentDescription = stringResource(
+                            if (isReleased) R.string.followed_remove_cd
+                            else R.string.releases_unfollow_cd,
+                            game.name
+                        ),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+        }
+    }
+}
+
 @Composable
 private fun ReleaseCard(
     release: GameRelease,
@@ -484,6 +606,55 @@ private fun ReleaseCard(
             timeZone = TimeZone.getTimeZone("UTC")
         }
     }
+    GameCard(
+        name = release.name,
+        coverUrl = release.coverUrl,
+        platforms = release.platforms,
+        // Approximate releases carry no meaningful day; show IGDB's own label instead.
+        dateLabel = if (release.hasExactDate) {
+            dayFormatter.format(release.releaseDate)
+        } else {
+            release.human.orEmpty()
+        },
+        onClick = onClick,
+        modifier = modifier
+    ) {
+        // Follow bell only on day-precision cards; approximate cards get no trailing slot.
+        if (release.hasExactDate) {
+            IconButton(
+                onClick = onBellClick,
+                modifier = Modifier.testTag("release_bell_${release.id}")
+            ) {
+                Icon(
+                    imageVector = if (isFollowed) {
+                        Icons.Filled.NotificationsActive
+                    } else {
+                        Icons.Outlined.Notifications
+                    },
+                    contentDescription = stringResource(
+                        if (isFollowed) R.string.releases_unfollow_cd
+                        else R.string.releases_follow_cd,
+                        release.name
+                    ),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+        }
+    }
+}
+
+/** Card body shared by the Releases and Followed lists; [trailing] is the bell/remove slot. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun GameCard(
+    name: String,
+    coverUrl: String?,
+    platforms: List<String>,
+    dateLabel: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    trailing: @Composable () -> Unit
+) {
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -499,8 +670,8 @@ private fun ReleaseCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             AsyncImage(
-                model = release.coverUrl,
-                contentDescription = release.name,
+                model = coverUrl,
+                contentDescription = name,
                 modifier = Modifier
                     .size(72.dp)
                     .clip(RoundedCornerShape(12.dp)),
@@ -513,7 +684,7 @@ private fun ReleaseCard(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
-                    text = release.name,
+                    text = name,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
@@ -522,41 +693,16 @@ private fun ReleaseCard(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    release.platforms.forEach { platform ->
+                    platforms.forEach { platform ->
                         PlatformChip(platform)
                     }
                 }
             }
-            // Follow bell only on day-precision cards; approximate cards get no trailing slot.
-            if (release.hasExactDate) {
-                IconButton(
-                    onClick = onBellClick,
-                    modifier = Modifier.testTag("release_bell_${release.id}")
-                ) {
-                    Icon(
-                        imageVector = if (isFollowed) {
-                            Icons.Filled.NotificationsActive
-                        } else {
-                            Icons.Outlined.Notifications
-                        },
-                        contentDescription = stringResource(
-                            if (isFollowed) R.string.releases_unfollow_cd
-                            else R.string.releases_follow_cd,
-                            release.name
-                        ),
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
-            }
+            trailing()
         }
         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
         Text(
-            // Approximate releases carry no meaningful day; show IGDB's own label instead.
-            text = if (release.hasExactDate) {
-                dayFormatter.format(release.releaseDate)
-            } else {
-                release.human.orEmpty()
-            },
+            text = dateLabel,
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface,
@@ -588,6 +734,9 @@ private val ReleasesError.messageResource: Int
     }
 
 private const val LOAD_MORE_THRESHOLD = 5
+private const val RELEASES_TAB = 0
+private const val FOLLOWED_TAB = 1
+private const val MILLIS_PER_DAY = 86_400_000L
 
 /** How long the unfollow/Undo snackbar stays up before dismissing itself. */
 private const val UNDO_SNACKBAR_TIMEOUT_MS = 3_000L

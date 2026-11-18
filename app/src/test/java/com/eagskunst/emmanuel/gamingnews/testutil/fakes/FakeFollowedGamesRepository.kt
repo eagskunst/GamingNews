@@ -19,13 +19,13 @@ class FakeFollowedGamesRepository(
 
     var updateReleaseDateCalls = 0
         private set
-    var pruneCalls = 0
+    var unfollowCalls = 0
         private set
     var markNotifiedCalls = 0
         private set
 
-    override fun observeFollowedGameIds(): Flow<Set<Long>> =
-        rowsFlow.map { it.keys }
+    override fun observeAll(): Flow<List<FollowedGame>> =
+        rowsFlow.map { it.values.toList() }
 
     override suspend fun getAll(): List<FollowedGame> =
         rowsFlow.value.values.toList()
@@ -34,10 +34,12 @@ class FakeFollowedGamesRepository(
         rowsFlow.value = rowsFlow.value + (game.gameId to game)
     }
 
-    override suspend fun unfollow(gameId: Long): FollowedGame? =
-        rowsFlow.value[gameId].also {
+    override suspend fun unfollow(gameId: Long): FollowedGame? {
+        unfollowCalls++
+        return rowsFlow.value[gameId].also {
             rowsFlow.value = rowsFlow.value - gameId
         }
+    }
 
     override suspend fun markNotified(gameId: Long, offset: ReminderOffset) {
         markNotifiedCalls++
@@ -56,10 +58,5 @@ class FakeFollowedGamesRepository(
                 notifiedOffsets = emptySet()
             ))
         }
-    }
-
-    override suspend fun pruneReleasedBefore(epochDay: Long) {
-        pruneCalls++
-        rowsFlow.value = rowsFlow.value.filterValues { it.releaseEpochDay >= epochDay }
     }
 }

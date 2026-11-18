@@ -77,4 +77,29 @@ class MainTopAppBarTest {
             .performClick()
         assertTrue(settingsClicked)
     }
+
+    @Test
+    fun `given search is hidden when the top app bar is rendered then only the title and settings show`() {
+        composeTestRule.setContent {
+            MainTopAppBar(
+                title = "Games",
+                searchQuery = "",
+                onSearchQueryChange = {},
+                onSettingsClick = {},
+                showSearch = false
+            )
+        }
+
+        composeTestRule.onNodeWithText("Games").assertIsDisplayed()
+        composeTestRule
+            .onNodeWithContentDescription(
+                composeTestRule.activity.getString(R.string.search_hint)
+            )
+            .assertDoesNotExist()
+        composeTestRule
+            .onNodeWithContentDescription(
+                composeTestRule.activity.getString(R.string.title_activity_settings)
+            )
+            .assertIsDisplayed()
+    }
 }

@@ -138,7 +138,7 @@ class GameDetailViewModelTest {
 
     @Test
     fun `given a followed game when follow is tapped then it is unfollowed with an undo event`() = runTest {
-        followedGames.follow(Fixtures.followedGame(gameId = GAME_ID))
+        followedGames.follow(Fixtures.followedGame(gameId = GAME_ID, releaseEpochDay = java.time.LocalDate.now().toEpochDay() + 5))
         val viewModel = viewModel()
 
         viewModel.uiEvent.test {

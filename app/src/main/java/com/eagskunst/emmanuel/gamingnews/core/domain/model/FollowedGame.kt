@@ -19,3 +19,22 @@ data class FollowedGame(
     val followedAt: Date,
     val lastSyncedAt: Date?
 )
+
+/**
+ * Days after release during which a follow is still "active": synced with IGDB and eligible
+ * for a late release-day reminder. Older follows only live on in the Followed list.
+ */
+const val ACTIVE_FOLLOW_GRACE_DAYS = 7L
+
+/** [todayEpochDay] is the device's calendar day compared against the UTC release day. */
+fun FollowedGame.isReleased(todayEpochDay: Long): Boolean = releaseEpochDay < todayEpochDay
+
+fun FollowedGame.isActive(todayEpochDay: Long): Boolean =
+    releaseEpochDay >= todayEpochDay - ACTIVE_FOLLOW_GRACE_DAYS
+
+/** Followed-list order: upcoming soonest first, then released most recent first. */
+fun List<FollowedGame>.sortedForFollowedList(todayEpochDay: Long): List<FollowedGame> {
+    val (released, upcoming) = partition { it.isReleased(todayEpochDay) }
+    return upcoming.sortedBy { it.releaseEpochDay } +
+        released.sortedByDescending { it.releaseEpochDay }
+}

@@ -371,7 +371,7 @@ private enum class BottomNavRoute(
     ),
     Releases(
         route = "releases",
-        labelRes = R.string.nextReleases,
+        labelRes = R.string.games_title,
         selectedIcon = Icons.Filled.DateRange,
         unselectedIcon = Icons.Outlined.DateRange
     ),

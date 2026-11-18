@@ -25,6 +25,7 @@ import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetTopicsUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetArticleOpenModeUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetUserPreferencesUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.ObserveFollowedGameIdsUseCase
+import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.ObserveFollowedGamesUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.ObserveMuteRulesUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.RemoveTopicUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.RestoreFeedProvidersDefaultsUseCase
@@ -174,6 +175,11 @@ object UseCaseModule {
     fun provideObserveFollowedGameIdsUseCase(
         repository: FollowedGamesRepository
     ): ObserveFollowedGameIdsUseCase = ObserveFollowedGameIdsUseCase(repository)
+
+    @Provides
+    fun provideObserveFollowedGamesUseCase(
+        repository: FollowedGamesRepository
+    ): ObserveFollowedGamesUseCase = ObserveFollowedGamesUseCase(repository)
 
     @Provides
     fun provideFollowGameUseCase(

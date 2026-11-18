@@ -151,7 +151,7 @@ class SyncFollowedGamesUseCaseTest {
     }
 
     @Test
-    fun `given follows when syncing then the fetch is bounded by stored days and the prune horizon`() = runTest {
+    fun `given follows when syncing then the fetch is bounded by stored days and the active horizon`() = runTest {
         followedRepository.follow(Fixtures.followedGame(gameId = 10, releaseEpochDay = todayDay() + 5))
         freshDays(10L to todayDay() + 5)
 
@@ -197,14 +197,48 @@ class SyncFollowedGamesUseCaseTest {
     }
 
     @Test
-    fun `given a game released over a week ago when syncing then it is pruned`() = runTest {
-        followedRepository.follow(Fixtures.followedGame(gameId = 10, releaseEpochDay = todayDay() - 8))
-        followedRepository.follow(Fixtures.followedGame(gameId = 20, releaseEpochDay = todayDay() - 6))
-        freshDays(10L to todayDay() - 8, 20L to todayDay() - 6)
+    fun `given a follow released 30 days ago when a sync succeeds then it survives untouched and silent`() = runTest {
+        // Regression guard: the IGDB query is bounded by the active horizon, so the old game
+        // is missing from the result — reconcile must not read that as "lost its date".
+        val old = Fixtures.followedGame(gameId = 10, releaseEpochDay = todayDay() - 30)
+        followedRepository.follow(old)
+        followedRepository.follow(Fixtures.followedGame(gameId = 20, releaseEpochDay = todayDay() + 5))
+        freshDays(20L to todayDay() + 5)
+
+        assertEquals(SyncOutcome.Ok, useCase()())
+
+        assertEquals(mapOf(20L to todayDay() + 5), releasesRepository.lastFetchStoredDays)
+        assertTrue(old in followedRepository.getAll())
+        assertTrue(notifier.offsetNotifications.isEmpty())
+        assertEquals(0, followedRepository.unfollowCalls)
+        assertEquals(0, followedRepository.updateReleaseDateCalls)
+        assertEquals(0, followedRepository.markNotifiedCalls)
+        verify(exactly = 0) { scheduler.cancel() }
+    }
+
+    @Test
+    fun `given only long released follows when syncing then nothing is fetched and the check is cancelled`() = runTest {
+        val old = Fixtures.followedGame(gameId = 10, releaseEpochDay = todayDay() - 8)
+        followedRepository.follow(old)
+
+        assertEquals(SyncOutcome.Ok, useCase()())
+
+        assertEquals(0, releasesRepository.fetchExactReleaseDaysInvocations)
+        assertEquals(listOf(old), followedRepository.getAll())
+        assertTrue(notifier.offsetNotifications.isEmpty())
+        verify { scheduler.cancel() }
+    }
+
+    @Test
+    fun `given a follow released within the grace window when syncing then the late release day reminder fires`() = runTest {
+        followedRepository.follow(Fixtures.followedGame(gameId = 10, releaseEpochDay = todayDay() - 7))
+        freshDays(10L to todayDay() - 7)
 
         useCase()()
 
-        assertEquals(listOf(20L), followedRepository.getAll().map { it.gameId })
+        assertEquals(listOf(10L to ReminderOffset.RELEASE_DAY), notifier.offsetNotifications)
+        assertEquals(listOf(10L), followedRepository.getAll().map { it.gameId })
+        verify(exactly = 0) { scheduler.cancel() }
     }
 
     @Test

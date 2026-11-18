@@ -6,7 +6,7 @@ import androidx.test.core.app.ApplicationProvider
 import app.cash.turbine.test
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.FollowGameUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetReleasesUseCase
-import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.ObserveFollowedGameIdsUseCase
+import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.ObserveFollowedGamesUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UnfollowGameUseCase
 import com.eagskunst.emmanuel.gamingnews.testutil.Fixtures
 import com.eagskunst.emmanuel.gamingnews.testutil.MainDispatcherRule
@@ -53,7 +53,7 @@ class ReleasesViewModelBellPermissionTest {
             getReleases = GetReleasesUseCase(releases, catalog),
             releasesRepository = releases,
             userPreferencesRepository = FakeUserPreferencesRepository(catalog = catalog),
-            observeFollowedGameIds = ObserveFollowedGameIdsUseCase(followedGames),
+            observeFollowedGames = ObserveFollowedGamesUseCase(followedGames),
             followGame = FollowGameUseCase(followedGames, scheduler),
             unfollowGame = UnfollowGameUseCase(followedGames, scheduler),
             catalog = catalog

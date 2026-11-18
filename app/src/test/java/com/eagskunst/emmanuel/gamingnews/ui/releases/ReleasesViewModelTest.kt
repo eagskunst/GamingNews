@@ -10,7 +10,7 @@ import com.eagskunst.emmanuel.gamingnews.core.domain.repository.IgdbTokenAcquisi
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.PlatformCatalog
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.FollowGameUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetReleasesUseCase
-import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.ObserveFollowedGameIdsUseCase
+import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.ObserveFollowedGamesUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UnfollowGameUseCase
 import com.eagskunst.emmanuel.gamingnews.testutil.Fixtures
 import com.eagskunst.emmanuel.gamingnews.testutil.MainDispatcherRule
@@ -59,7 +59,7 @@ class ReleasesViewModelTest {
         getReleases = GetReleasesUseCase(releases, catalog),
         releasesRepository = releases,
         userPreferencesRepository = prefs,
-        observeFollowedGameIds = ObserveFollowedGameIdsUseCase(followedGames),
+        observeFollowedGames = ObserveFollowedGamesUseCase(followedGames),
         followGame = FollowGameUseCase(followedGames, scheduler),
         unfollowGame = UnfollowGameUseCase(followedGames, scheduler),
         catalog = catalog
@@ -825,7 +825,7 @@ class ReleasesViewModelTest {
         val followedGames = FakeFollowedGamesRepository()
         val viewModel = viewModel(followedGames = followedGames)
         pumpMain()
-        val release = Fixtures.gameRelease(id = 42, name = "Exact Game")
+        val release = Fixtures.gameRelease(id = 42, name = "Exact Game", releaseDate = upcomingDate())
         viewModel.onBellClick(release)
         pumpMain()
 
@@ -847,7 +847,7 @@ class ReleasesViewModelTest {
     @Test
     fun `given a followed game when the bell is tapped then it is unfollowed and a snackbar event is emitted`() = runTest {
         val followedGames = FakeFollowedGamesRepository(
-            listOf(Fixtures.followedGame(gameId = 42, name = "Followed Game"))
+            listOf(Fixtures.followedGame(gameId = 42, name = "Followed Game", releaseEpochDay = java.time.LocalDate.now().toEpochDay() + 5))
         )
         val viewModel = viewModel(followedGames = followedGames)
         pumpMain()
@@ -868,7 +868,7 @@ class ReleasesViewModelTest {
     @Test
     fun `given an unfollowed game when undo is invoked then the follow is restored`() = runTest {
         val followedGames = FakeFollowedGamesRepository(
-            listOf(Fixtures.followedGame(gameId = 42))
+            listOf(Fixtures.followedGame(gameId = 42, releaseEpochDay = java.time.LocalDate.now().toEpochDay() + 5))
         )
         val viewModel = viewModel(followedGames = followedGames)
         pumpMain()
@@ -876,10 +876,90 @@ class ReleasesViewModelTest {
         pumpMain()
         assertTrue(followedGames.getAll().isEmpty())
 
-        viewModel.undoUnfollow(Fixtures.followedGame(gameId = 42))
+        viewModel.undoUnfollow(Fixtures.followedGame(gameId = 42, releaseEpochDay = java.time.LocalDate.now().toEpochDay() + 5))
         pumpMain()
 
         assertEquals(42L, followedGames.getAll().single().gameId)
         assertTrue(42L in viewModel.uiState.value.followedGameIds)
+    }
+
+    @Test
+    fun `given follows when initialized then the followed list is exposed upcoming first then released`() = runTest {
+        val today = java.time.LocalDate.now().toEpochDay()
+        val followedGames = FakeFollowedGamesRepository(
+            listOf(
+                Fixtures.followedGame(gameId = 1, releaseEpochDay = today - 40),
+                Fixtures.followedGame(gameId = 2, releaseEpochDay = today + 20),
+                Fixtures.followedGame(gameId = 3, releaseEpochDay = today - 2),
+                Fixtures.followedGame(gameId = 4, releaseEpochDay = today + 3)
+            )
+        )
+
+        val viewModel = viewModel(followedGames = followedGames)
+        pumpMain()
+
+        assertEquals(listOf(4L, 2L, 3L, 1L), viewModel.uiState.value.followedGames.map { it.gameId })
+        // Released follows stay listed but no longer light the bell.
+        assertEquals(setOf(2L, 4L), viewModel.uiState.value.followedGameIds)
+    }
+
+    @Test
+    fun `given a released follow when the bell is tapped on a new release of that game then the follow flow opens`() = runTest {
+        val today = java.time.LocalDate.now().toEpochDay()
+        val old = Fixtures.followedGame(
+            gameId = 42,
+            releaseEpochDay = today - 30,
+            notifiedOffsets = setOf(ReminderOffset.RELEASE_DAY)
+        )
+        val followedGames = FakeFollowedGamesRepository(listOf(old))
+        val viewModel = viewModel(followedGames = followedGames)
+        pumpMain()
+        assertEquals(listOf(old), viewModel.uiState.value.followedGames)
+        assertTrue(42L !in viewModel.uiState.value.followedGameIds)
+        val release = Fixtures.gameRelease(
+            id = 42,
+            name = "Second Launch",
+            releaseDate = Date((today + 10) * 86_400_000L)
+        )
+
+        viewModel.onBellClick(release)
+        pumpMain()
+
+        // Not treated as followed: no unfollow, the offset picker opens instead.
+        assertEquals(0, followedGames.unfollowCalls)
+        assertEquals(release, viewModel.uiState.value.offsetPickerFor)
+
+        viewModel.onOffsetsConfirmed(setOf(ReminderOffset.RELEASE_DAY))
+        pumpMain()
+
+        // The upsert moves the row to the new date with a clean delivered mask.
+        val stored = followedGames.getAll().single()
+        assertEquals(today + 10, stored.releaseEpochDay)
+        assertTrue(stored.notifiedOffsets.isEmpty())
+        assertTrue(42L in viewModel.uiState.value.followedGameIds)
+    }
+
+    @Test
+    fun `given a followed row when it is unfollowed from the list then undo restores it`() = runTest {
+        val game = Fixtures.followedGame(gameId = 42, name = "Followed Game")
+        val followedGames = FakeFollowedGamesRepository(listOf(game))
+        val viewModel = viewModel(followedGames = followedGames)
+        pumpMain()
+
+        viewModel.uiEvent.test {
+            viewModel.onUnfollowClick(42)
+            pumpMain()
+
+            val event = awaitItem() as ReleasesUiEvent.ShowReminderRemoved
+            assertEquals(game, event.game)
+            assertTrue(viewModel.uiState.value.followedGames.isEmpty())
+            assertTrue(followedGames.getAll().isEmpty())
+
+            viewModel.undoUnfollow(event.game)
+            pumpMain()
+
+            assertEquals(listOf(game), viewModel.uiState.value.followedGames)
+            cancelAndIgnoreRemainingEvents()
+        }
     }
 }

@@ -6,8 +6,8 @@ import kotlinx.coroutines.flow.Flow
 
 interface FollowedGamesRepository {
 
-    /** IDs of every followed game, kept hot while observed. */
-    fun observeFollowedGameIds(): Flow<Set<Long>>
+    /** Every followed game, including long-released ones the user hasn't removed. */
+    fun observeAll(): Flow<List<FollowedGame>>
 
     suspend fun getAll(): List<FollowedGame>
 
@@ -22,7 +22,4 @@ interface FollowedGamesRepository {
 
     /** Stores a new release day and resets the delivered-reminders bitmask. */
     suspend fun updateReleaseDate(gameId: Long, epochDay: Long)
-
-    /** Drops follows whose release day lies before [epochDay]. */
-    suspend fun pruneReleasedBefore(epochDay: Long)
 }

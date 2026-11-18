@@ -35,7 +35,8 @@ fun MainTopAppBar(
     searchQuery: String,
     onSearchQueryChange: (String) -> Unit,
     onSettingsClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    showSearch: Boolean = true
 ) {
     var isSearchActive by rememberSaveable { mutableStateOf(false) }
 
@@ -46,7 +47,7 @@ fun MainTopAppBar(
             scrolledContainerColor = MaterialTheme.colorScheme.background
         ),
         title = {
-            if (isSearchActive) {
+            if (isSearchActive && showSearch) {
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = onSearchQueryChange,
@@ -64,18 +65,20 @@ fun MainTopAppBar(
             }
         },
         actions = {
-            IconButton(
-                onClick = {
-                    if (isSearchActive) {
-                        onSearchQueryChange("")
+            if (showSearch) {
+                IconButton(
+                    onClick = {
+                        if (isSearchActive) {
+                            onSearchQueryChange("")
+                        }
+                        isSearchActive = !isSearchActive
                     }
-                    isSearchActive = !isSearchActive
+                ) {
+                    Icon(
+                        imageVector = if (isSearchActive) Icons.Default.Close else Icons.Default.Search,
+                        contentDescription = stringResource(R.string.search_hint)
+                    )
                 }
-            ) {
-                Icon(
-                    imageVector = if (isSearchActive) Icons.Default.Close else Icons.Default.Search,
-                    contentDescription = stringResource(R.string.search_hint)
-                )
             }
             IconButton(onClick = onSettingsClick) {
                 Icon(

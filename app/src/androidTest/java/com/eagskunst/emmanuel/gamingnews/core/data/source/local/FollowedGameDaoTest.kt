@@ -38,14 +38,6 @@ class FollowedGameDaoTest {
     }
 
     @Test
-    fun when_games_are_followed_then_observe_ids_emits_their_game_ids() = runTest {
-        dao.upsert(followedGame(gameId = 10))
-        dao.upsert(followedGame(gameId = 20))
-
-        assertEquals(setOf(10L, 20L), dao.observeIds().first().toSet())
-    }
-
-    @Test
     fun when_a_follow_is_upserted_with_the_same_game_then_the_row_is_replaced() = runTest {
         dao.upsert(followedGame(gameId = 10, name = "Old"))
         dao.upsert(followedGame(gameId = 10, name = "New", releaseEpochDay = 20_010))
@@ -62,18 +54,21 @@ class FollowedGameDaoTest {
         dao.delete(10)
 
         assertNull(dao.get(10))
-        assertTrue(dao.observeIds().first().isEmpty())
+        assertTrue(dao.observeAll().first().isEmpty())
     }
 
     @Test
-    fun when_pruning_then_only_rows_released_before_the_day_are_removed() = runTest {
-        dao.upsert(followedGame(gameId = 10, releaseEpochDay = 19_999))
-        dao.upsert(followedGame(gameId = 20, releaseEpochDay = 20_000))
-        dao.upsert(followedGame(gameId = 30, releaseEpochDay = 20_001))
+    fun when_games_are_followed_then_observe_all_emits_the_full_rows() = runTest {
+        val first = followedGame(gameId = 10, name = "First", releaseEpochDay = 19_999)
+        val second = followedGame(gameId = 20, name = "Second", releaseEpochDay = 20_001)
+        dao.upsert(first)
+        dao.upsert(second)
 
-        dao.deleteReleasedBefore(20_000)
+        assertEquals(setOf(first, second), dao.observeAll().first().toSet())
 
-        assertEquals(setOf(20L, 30L), dao.getAll().map { it.gameId }.toSet())
+        dao.delete(10)
+
+        assertEquals(listOf(second), dao.observeAll().first())
     }
 
     @Test

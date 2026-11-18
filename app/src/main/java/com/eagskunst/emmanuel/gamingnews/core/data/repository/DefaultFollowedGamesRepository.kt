@@ -21,9 +21,9 @@ class DefaultFollowedGamesRepository @Inject constructor(
     private val dispatchers: DispatcherProvider
 ) : FollowedGamesRepository {
 
-    override fun observeFollowedGameIds(): Flow<Set<Long>> =
-        followedGameDao.observeIds()
-            .map { ids -> ids.toSet() }
+    override fun observeAll(): Flow<List<FollowedGame>> =
+        followedGameDao.observeAll()
+            .map { rows -> rows.map { it.toFollowedGame() } }
             .flowOn(dispatchers.io)
 
     override suspend fun getAll(): List<FollowedGame> = withContext(dispatchers.io) {
@@ -53,8 +53,4 @@ class DefaultFollowedGamesRepository @Inject constructor(
                 lastSyncedAt = Date()
             )
         }
-
-    override suspend fun pruneReleasedBefore(epochDay: Long) = withContext(dispatchers.io) {
-        followedGameDao.deleteReleasedBefore(epochDay)
-    }
 }

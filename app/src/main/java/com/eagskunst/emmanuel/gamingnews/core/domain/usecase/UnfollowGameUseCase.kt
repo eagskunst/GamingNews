@@ -5,7 +5,7 @@ import com.eagskunst.emmanuel.gamingnews.core.domain.repository.FollowedGamesRep
 import com.eagskunst.emmanuel.gamingnews.worker.GameReleaseScheduler
 
 /**
- * Removes a follow and tears down the daily release check when nothing is followed anymore.
+ * Removes a follow and tears down the daily release check when no active follow remains.
  * Returns the removed game so the caller can offer an Undo.
  */
 class UnfollowGameUseCase(
@@ -14,7 +14,7 @@ class UnfollowGameUseCase(
 ) {
     suspend operator fun invoke(gameId: Long): FollowedGame? {
         val removed = repository.unfollow(gameId)
-        scheduler.cancelIfNoneFollowed()
+        scheduler.cancelIfNoneActive()
         return removed
     }
 }

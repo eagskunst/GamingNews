@@ -12,12 +12,14 @@ import com.eagskunst.emmanuel.gamingnews.core.domain.model.GameRelease
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.PlatformSelectionNotice
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.ReleaseFilters
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.ReminderOffset
+import com.eagskunst.emmanuel.gamingnews.core.domain.model.isReleased
+import com.eagskunst.emmanuel.gamingnews.core.domain.model.sortedForFollowedList
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.PlatformCatalog
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.ReleasesRepository
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.UserPreferencesRepository
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.FollowGameUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.GetReleasesUseCase
-import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.ObserveFollowedGameIdsUseCase
+import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.ObserveFollowedGamesUseCase
 import com.eagskunst.emmanuel.gamingnews.core.domain.usecase.UnfollowGameUseCase
 import com.eagskunst.emmanuel.gamingnews.utility.canPostNotifications
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -36,6 +38,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.yield
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import java.time.LocalDate
 import javax.inject.Inject
 
 enum class ReleasesError {
@@ -65,6 +68,9 @@ data class ReleasesUiState(
     val selectedPlatformIds: Set<Int> = emptySet(),
     val unknownPlatformIds: Set<Int> = emptySet(),
     val catalogNotice: PlatformSelectionNotice? = null,
+    /** Every follow in Followed-tab order (see [sortedForFollowedList]). */
+    val followedGames: List<FollowedGame> = emptyList(),
+    /** Follows that can still remind; released ones don't light the bell (re-followable). */
     val followedGameIds: Set<Long> = emptySet(),
     val offsetPickerFor: GameRelease? = null,
     val isLoading: Boolean = true,
@@ -86,7 +92,7 @@ class ReleasesViewModel @Inject constructor(
     private val getReleases: GetReleasesUseCase,
     private val releasesRepository: ReleasesRepository,
     private val userPreferencesRepository: UserPreferencesRepository,
-    observeFollowedGameIds: ObserveFollowedGameIdsUseCase,
+    observeFollowedGames: ObserveFollowedGamesUseCase,
     private val followGame: FollowGameUseCase,
     private val unfollowGame: UnfollowGameUseCase,
     catalog: PlatformCatalog
@@ -116,14 +122,18 @@ class ReleasesViewModel @Inject constructor(
         observePlatformSelection()
         observeReleases()
         observeHasMorePages()
-        observeFollowedGames(observeFollowedGameIds)
+        observeFollowedGames(observeFollowedGames)
         autoLoadMatchingPages()
     }
 
-    private fun observeFollowedGames(observeFollowedGameIds: ObserveFollowedGameIdsUseCase) =
+    private fun observeFollowedGames(observeFollowedGames: ObserveFollowedGamesUseCase) =
         viewModelScope.launch {
-            observeFollowedGameIds().collect { ids ->
-                _uiState.update { it.copy(followedGameIds = ids) }
+            observeFollowedGames().collect { games ->
+                val today = LocalDate.now().toEpochDay()
+                val sorted = games.sortedForFollowedList(today)
+                val activeIds = games.filterNot { it.isReleased(today) }
+                    .mapTo(HashSet()) { it.gameId }
+                _uiState.update { it.copy(followedGames = sorted, followedGameIds = activeIds) }
             }
         }
 
@@ -280,11 +290,7 @@ class ReleasesViewModel @Inject constructor(
     fun onBellClick(release: GameRelease) {
         if (!release.hasExactDate) return
         if (release.id in _uiState.value.followedGameIds) {
-            viewModelScope.launch {
-                unfollowGame(release.id)?.let { removed ->
-                    _uiEvent.emit(ReleasesUiEvent.ShowReminderRemoved(removed))
-                }
-            }
+            onUnfollowClick(release.id)
             return
         }
         if (context.canPostNotifications()) {
@@ -293,6 +299,15 @@ class ReleasesViewModel @Inject constructor(
             pendingFollowRelease = release
             viewModelScope.launch {
                 _uiEvent.emit(ReleasesUiEvent.RequestNotificationPermission)
+            }
+        }
+    }
+
+    /** Removes a follow (bell or Followed-tab row); the snackbar offers Undo. */
+    fun onUnfollowClick(gameId: Long) {
+        viewModelScope.launch {
+            unfollowGame(gameId)?.let { removed ->
+                _uiEvent.emit(ReleasesUiEvent.ShowReminderRemoved(removed))
             }
         }
     }

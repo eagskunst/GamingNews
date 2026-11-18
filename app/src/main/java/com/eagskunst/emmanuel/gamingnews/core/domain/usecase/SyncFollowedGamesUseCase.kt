@@ -1,8 +1,10 @@
 package com.eagskunst.emmanuel.gamingnews.core.domain.usecase
 
 import com.eagskunst.emmanuel.gamingnews.core.common.Result
+import com.eagskunst.emmanuel.gamingnews.core.domain.model.ACTIVE_FOLLOW_GRACE_DAYS
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.FollowedGame
 import com.eagskunst.emmanuel.gamingnews.core.domain.model.ReminderOffset
+import com.eagskunst.emmanuel.gamingnews.core.domain.model.isActive
 import com.eagskunst.emmanuel.gamingnews.core.domain.notification.ReleaseNotifier
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.FollowedGamesRepository
 import com.eagskunst.emmanuel.gamingnews.core.domain.repository.ReleasesRepository
@@ -19,7 +21,11 @@ enum class SyncOutcome {
 }
 
 /**
- * Daily maintenance pass over followed games:
+ * Daily maintenance pass over the *active* followed games — those not yet released or
+ * released at most [ACTIVE_FOLLOW_GRACE_DAYS] days ago. Older follows stay in Room for the
+ * Followed list until the user removes them and are skipped entirely here: never fetched,
+ * reconciled or notified. (The IGDB query is bounded below by that same horizon, so
+ * reconciling them would read "missing from the result" as "lost its date" and delete them.)
  *
  * 1. Fetches fresh exact release days from IGDB and silently stores any changed date
  *    (resetting the delivered-reminders bitmask); when a game no longer reports an exact
@@ -28,8 +34,7 @@ enum class SyncOutcome {
  * 2. Fires due reminders per follow, earliest-offset first (week → day-before → release day).
  *    A "week before" reminder is skipped when the release is already within a day — that
  *    catch-up would only fire for follows created inside the last week.
- * 3. Prunes follows released more than a week ago, and cancels the periodic check when
- *    nothing is followed anymore.
+ * 3. Cancels the periodic check when no active follows remain.
  */
 class SyncFollowedGamesUseCase @Inject constructor(
     private val followedGamesRepository: FollowedGamesRepository,
@@ -40,16 +45,19 @@ class SyncFollowedGamesUseCase @Inject constructor(
 ) {
 
     suspend operator fun invoke(): SyncOutcome {
-        val follows = followedGamesRepository.getAll()
-        if (follows.isEmpty()) return SyncOutcome.Ok
+        val today = clock().toEpochDay()
+        val follows = followedGamesRepository.getAll().filter { it.isActive(today) }
+        if (follows.isEmpty()) {
+            gameReleaseScheduler.cancel()
+            return SyncOutcome.Ok
+        }
 
         var outcome = SyncOutcome.Ok
         val remaining = LinkedHashMap<Long, FollowedGame>()
         follows.forEach { remaining[it.gameId] = it }
 
         val storedDays = remaining.mapValues { it.value.releaseEpochDay }
-        val notBeforeEpochSeconds =
-            (clock().toEpochDay() - RELEASED_PRUNE_GRACE_DAYS) * SECONDS_PER_DAY
+        val notBeforeEpochSeconds = (today - ACTIVE_FOLLOW_GRACE_DAYS) * SECONDS_PER_DAY
         when (
             val result = releasesRepository.fetchExactReleaseDays(
                 storedDays,
@@ -60,13 +68,10 @@ class SyncFollowedGamesUseCase @Inject constructor(
             else -> outcome = SyncOutcome.RetryNetwork
         }
 
-        fireDueReminders(remaining.values, clock().toEpochDay())
+        fireDueReminders(remaining.values, today)
 
-        followedGamesRepository.pruneReleasedBefore(
-            clock().toEpochDay() - RELEASED_PRUNE_GRACE_DAYS
-        )
-
-        if (followedGamesRepository.getAll().isEmpty()) {
+        // Re-read: a follow may have been added while this pass was running.
+        if (followedGamesRepository.getAll().none { it.isActive(today) }) {
             gameReleaseScheduler.cancel()
         }
 
@@ -128,7 +133,6 @@ class SyncFollowedGamesUseCase @Inject constructor(
             ReminderOffset.ONE_DAY_BEFORE,
             ReminderOffset.RELEASE_DAY
         )
-        const val RELEASED_PRUNE_GRACE_DAYS = 7L
         const val SECONDS_PER_DAY = 86_400L
     }
 }

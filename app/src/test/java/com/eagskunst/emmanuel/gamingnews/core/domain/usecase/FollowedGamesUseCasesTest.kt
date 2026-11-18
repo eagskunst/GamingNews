@@ -71,15 +71,31 @@ class FollowedGamesUseCasesTest {
 
         assertEquals(game, removed)
         assertTrue(repository.getAll().isEmpty())
-        coVerify { scheduler.cancelIfNoneFollowed() }
+        coVerify { scheduler.cancelIfNoneActive() }
     }
 
     @Test
-    fun `given ids are observed when a follow changes then the emitted set tracks it`() = runTest {
-        repository.follow(Fixtures.followedGame(gameId = 10))
-        val observeIds = ObserveFollowedGameIdsUseCase(repository)
+    fun `given ids are observed when follows exist then only not yet released ones are emitted`() = runTest {
+        val today = java.time.LocalDate.of(2025, 11, 10)
+        repository.follow(Fixtures.followedGame(gameId = 10, releaseEpochDay = today.toEpochDay() - 1))
+        repository.follow(Fixtures.followedGame(gameId = 20, releaseEpochDay = today.toEpochDay()))
+        repository.follow(Fixtures.followedGame(gameId = 30, releaseEpochDay = today.toEpochDay() + 5))
+        val observeIds = ObserveFollowedGameIdsUseCase(repository, clock = { today })
 
-        assertEquals(setOf(10L), observeIds().first())
+        assertEquals(setOf(20L, 30L), observeIds().first())
+    }
+
+    @Test
+    fun `given follows are observed when a follow changes then the emitted rows track it`() = runTest {
+        val game = Fixtures.followedGame(gameId = 10)
+        repository.follow(game)
+        val observeGames = ObserveFollowedGamesUseCase(repository)
+
+        assertEquals(listOf(game), observeGames().first())
+
+        repository.unfollow(10)
+
+        assertTrue(observeGames().first().isEmpty())
     }
 
     @Test
